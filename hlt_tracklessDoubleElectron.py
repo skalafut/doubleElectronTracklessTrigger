@@ -4381,12 +4381,12 @@ process.hltEgammaCandidatesUnseeded = cms.EDProducer( "EgammaHLTRecoEcalCandidat
 )
 process.hltEgammaCandidatesWrapperUnseeded = cms.EDFilter( "HLTEgammaTriggerFilterObjectWrapper",
     doIsolated = cms.bool( True ),
-    saveTags = cms.bool( False ),
+    saveTags = cms.bool( True ),
     candIsolatedTag = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
     candNonIsolatedTag = cms.InputTag( "" )
 )
 process.hltEG15WPYYtracklessEtFilterUnseeded = cms.EDFilter( "HLTEgammaEtFilter",
-    saveTags = cms.bool( False ),
+    saveTags = cms.bool( True ),
     L1NonIsoCand = cms.InputTag( "" ),
     relaxed = cms.untracked.bool( False ),
     L1IsoCand = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
@@ -4405,7 +4405,7 @@ process.hltEle15WPYYtracklessClusterShapeFilter = cms.EDFilter( "HLTEgammaGeneri
     doIsolated = cms.bool( True ),
     thrOverE2EE = cms.double( -1.0 ),
     L1NonIsoCand = cms.InputTag( "" ),
-    saveTags = cms.bool( False ),
+    saveTags = cms.bool( True ),
     thrOverE2EB = cms.double( -1.0 ),
     thrRegularEE = cms.double( 0.031 ),
     thrOverEEE = cms.double( -1.0 ),
@@ -4440,7 +4440,7 @@ process.hltEle15WPYYtracklessEcalIsoFilter = cms.EDFilter( "HLTEgammaGenericFilt
     doIsolated = cms.bool( True ),
     thrOverE2EE = cms.double( -1.0 ),
     L1NonIsoCand = cms.InputTag( "" ),
-    saveTags = cms.bool( False ),
+    saveTags = cms.bool( True ),
     thrOverE2EB = cms.double( -1.0 ),
     thrRegularEE = cms.double( -1.0 ),
     thrOverEEE = cms.double( 0.2 ),
@@ -4715,7 +4715,7 @@ process.hltEle15WPYYtracklessHEFilter = cms.EDFilter( "HLTEgammaGenericFilter",
     doIsolated = cms.bool( True ),
     thrOverE2EE = cms.double( -1.0 ),
     L1NonIsoCand = cms.InputTag( "" ),
-    saveTags = cms.bool( False ),
+    saveTags = cms.bool( True ),
     thrOverE2EB = cms.double( -1.0 ),
     thrRegularEE = cms.double( -1.0 ),
     thrOverEEE = cms.double( 0.075 ),
@@ -4753,7 +4753,7 @@ process.hltEle15WPYYtracklessHcalIsoFilter = cms.EDFilter( "HLTEgammaGenericFilt
     doIsolated = cms.bool( True ),
     thrOverE2EE = cms.double( -1.0 ),
     L1NonIsoCand = cms.InputTag( "" ),
-    saveTags = cms.bool( False ),
+    saveTags = cms.bool( True ),
     thrOverE2EB = cms.double( -1.0 ),
     thrRegularEE = cms.double( -1.0 ),
     thrOverEEE = cms.double( 0.2 ),
@@ -4769,17 +4769,20 @@ process.hltEle15WPYYtracklessHcalIsoFilter = cms.EDFilter( "HLTEgammaGenericFilt
 )
 process.hltEgammaNoTrackerCandidates = cms.EDFilter( "CandViewSelector",
     src = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
-    cut = cms.string( "abs( eta ) > 2.4" )
+    cut = cms.string( "abs( eta ) > 2.4" ),
+    saveTags = cms.bool( True )
 )
 process.hltEgammaNoTrackerEtaPtFilter = cms.EDFilter( "EtaPtMinCandViewSelector",
     src = cms.InputTag( "hltEgammaNoTrackerCandidates" ),
     etaMin = cms.double( -3.0 ),
     etaMax = cms.double( 3.0 ),
-    ptMin = cms.double( 15.0 )
+    ptMin = cms.double( 15.0 ),
+    saveTags = cms.bool( True )
 )
 process.hltEgammaNoTrackerNCandidatesFilter = cms.EDFilter( "CandViewCountFilter",
     src = cms.InputTag( "hltEgammaNoTrackerEtaPtFilter" ),
-    minNumber = cms.uint32( 1 )
+    minNumber = cms.uint32( 1 ),
+    saveTags = cms.bool( True )
 )
 
 process.HLTL1UnpackerSequence = cms.Sequence( process.hltGtDigis + process.hltGctDigis + process.hltL1GtObjectMap + process.hltL1extraParticles )
@@ -4835,7 +4838,16 @@ process.HLTDoFullUnpackingEgammaEcalSequence
 + process.hltEle27WPXXTrackIsoFilter 
 )
 
-process.HLTPFClusteringForEgammaUnseeded = cms.Sequence( process.HLTDoFullUnpackingEgammaEcalSequence + process.hltParticleFlowRecHitECALUnseeded + process.hltParticleFlowRecHitPSUnseeded + process.hltParticleFlowClusterPSUnseeded + process.hltParticleFlowClusterECALUncorrectedUnseeded + process.hltParticleFlowClusterECALUnseeded + process.hltParticleFlowSuperClusterECALUnseeded )
+process.HLTPFClusteringForEgammaUnseeded = cms.Sequence( 
+process.HLTDoFullUnpackingEgammaEcalSequence 
++ process.hltParticleFlowRecHitECALUnseeded 
++ process.hltParticleFlowRecHitPSUnseeded 
++ process.hltParticleFlowClusterPSUnseeded 
++ process.hltParticleFlowClusterECALUncorrectedUnseeded 
++ process.hltParticleFlowClusterECALUnseeded 
++ process.hltParticleFlowSuperClusterECALUnseeded 
+)
+
 process.HLTPFHcalClusteringForEgammaUnseeded = cms.Sequence( process.hltParticleFlowRecHitHCALForEgammaUnseeded + process.hltParticleFlowClusterHCALForEgammaUnseeded + process.hltParticleFlowClusterHFEMForEgammaUnseeded + process.hltParticleFlowClusterHFHADForEgammaUnseeded )
 
 process.HLTEle15WPYYtracklessSequence = cms.Sequence( 
@@ -4988,9 +5000,23 @@ if 'hltDQMHLTScalers' in process.__dict__:
 if 'hltDQML1SeedLogicScalers' in process.__dict__:
     process.hltDQML1SeedLogicScalers.processname              = 'TEST'
 
+#this is a standalone module to save the output from cmsRun hlt_tracklessDoubleElectron.py into a .root file
+#This .root file can then be analyzed by the trigger optimization script
+process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
+    fileName = cms.untracked.string( "outputFULL_DYtoEE_13TeV_25ns_40PU_2000evts.root" ),
+    fastCloning = cms.untracked.bool( False ),
+    dataset = cms.untracked.PSet(
+        dataTier = cms.untracked.string( 'RECO' ),
+        filterName = cms.untracked.string( '' )
+    ),
+    outputCommands = cms.untracked.vstring( 'keep *' )
+)
+process.FULLOutput = cms.EndPath( process.hltOutputFULL )
+
+
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1000)
+    input = cms.untracked.int32(2000)
 )
 
 # enable the TrigReport and TimeReport
@@ -5021,7 +5047,7 @@ process.load( "DQMServices.Core.DQMStore_cfi" )
 process.DQMStore.enableMultiThread = True
 
 process.dqmOutput = cms.OutputModule("DQMRootOutputModule",
-    fileName = cms.untracked.string("DQMIO_DYtoEE_13TeV_40PU_25ns_1000evts.root")
+    fileName = cms.untracked.string("DQMIO_DYtoEE_13TeV_40PU_25ns_2000evts.root")
 )
 
 process.DQMOutput = cms.EndPath( process.dqmOutput )
