@@ -43,6 +43,8 @@
 #include "DataFormats/RecoCandidate/interface/RecoEcalCandidate.h"
 #include "DataFormats/RecoCandidate/interface/RecoEcalCandidateFwd.h"
 #include "DataFormats/RecoCandidate/interface/RecoEcalCandidateIsolation.h"
+#include "DataFormats/RecoCandidate/interface/RecoCandidate.h"
+
 
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
 #include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
@@ -50,7 +52,13 @@
 #include "DataFormats/EgammaReco/interface/ClusterShapeFwd.h"
 #include "DataFormats/EgammaReco/interface/BasicCluster.h"
 #include "DataFormats/EgammaReco/interface/BasicClusterFwd.h"
-#include "DataFormats/HLTReco/interface/TriggerEvent.h" // trigger::TriggerEvent
+//#include "DataFormats/HLTReco/interface/TriggerEvent.h" // trigger::TriggerEvent
+#include "DataFormats/HLTReco/interface/TriggerObject.h" 
+#include "DataFormats/HLTReco/interface/TriggerEventWithRefs.h" 
+#include "DataFormats/HLTReco/interface/TriggerFilterObjectWithRefs.h" 
+#include "DataFormats/HLTReco/interface/TriggerRefsCollections.h" 
+#include "DataFormats/HLTReco/interface/TriggerTypeDefs.h" 
+
 
 
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
@@ -70,6 +78,8 @@
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/CaloRecHit/interface/CaloRecHit.h"
+#include "DataFormats/CaloRecHit/interface/CaloCluster.h"
+
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
@@ -375,10 +385,19 @@ void makeAndSaveSingle3DHisto(TString title, TString filePostfix, TString canvNa
 
 }//end makeAndSaveSingle3DHisto(...)
 
-    typedef std::pair<const trigger::TriggerObject*, double> trig_dr_pair;
-    typedef std::vector<trig_dr_pair> trig_dr_vec;
+    //typedef std::pair<const trigger::TriggerObject*, double> trig_dr_pair;
+    //typedef std::vector<trig_dr_pair> trig_dr_vec;
+  
+    //calculates delta R between two specified (eta, phi) points, and returns the value of delta R
+    double deltaR(const double ETA, const double PHI, const double eta, const double phi){
+	double deltaEta = ETA-eta;
+	double deltaPhi = PHI-phi;
+	double dR = TMath::Sqrt( TMath::Power(deltaEta,2) + TMath::Power(deltaPhi,2) );
+	return dR;
 
-const trig_dr_vec* GetMatchedTriggerObjects(
+    }
+
+void GetMatchedTriggerObjects(
 		const edm::Event& iEvent,
 		const std::vector<std::string>& trig_names,
 		const double ETA, const double PHI, const double DR_CUT
@@ -390,54 +409,107 @@ const trig_dr_vec* GetMatchedTriggerObjects(
 	 */
 	// If our vector is empty or the first item is blank
 	if (trig_names.size() == 0 || trig_names[0].size() == 0) {
-		return NULL;
+		return;
 	}
 
 	// Load Trigger Objects
-	edm::InputTag hltTrigInfoTag("hltTriggerSummaryAOD","","HLT");
-	edm::Handle<trigger::TriggerEvent> trig_event;
+	edm::InputTag hltTrigInfoTag("hltTriggerSummaryRAW","","TEST");
+	edm::Handle<trigger::TriggerEventWithRefs> trig_event;
 
 	iEvent.getByLabel(hltTrigInfoTag, trig_event);
 	if (!trig_event.isValid() ){
-		std::cout << "No valid hltTriggerSummaryAOD." << std::endl;
-		return NULL;
+		std::cout << "No valid hltTriggerSummaryRAW." << std::endl;
+		return;
 	}
 
-	trig_dr_vec* out_v = new trig_dr_vec();
+	//trig_dr_vec* out_v = new trig_dr_vec();
 	// Loop over triggers, filter the objects from these triggers, and then try to match
 	for (auto& trig_name : trig_names) {
 		// Loop over triggers, filter the objects from these triggers, and then try to match
-		// Grab objects that pass our filter
-		edm::InputTag filter_tag(trig_name, "", "HLT");
+		//std::cout<<"looping over trig module names"<<std::endl;
+		edm::InputTag filter_tag(trig_name, "", "TEST");
+
+		// the method filterIndex() is defined for TriggerEvent and TriggerEventWithRefs objects!
 		trigger::size_type filter_index = trig_event->filterIndex(filter_tag);
-		if(filter_index < trig_event->sizeFilters()) { // Check that the filter is in triggerEvent
+		//std::cout<<"declared and initialized a filter_index"<<std::endl;
+		//std::cout<< filter_index <<std::endl;
+		
+		if(filter_index < trig_event->size()) { // Check that the filter is in triggerEvent
+			std::cout<<"filter number "<< filter_index<< " is in the trigger event"<<std::endl;
+
+			for(int i=0; i<=100; i++){
+				//loop over all possible photon ids
+				//most ids are 81 and 91
+
+				//std::vector<edm::Ref<std::vector<reco::RecoEcalCandidate> > > tracklessEleRefs;
+			
+				
+				//trigger::VRphoton tracklessEleRefs = (new trigger::TriggerRefsCollections())->photonRefs();
+				trigger::VRphoton tracklessEleRefs;
+
+				//this getObjects() call fills tracklessEleRefs with references to reco::RecoEcalCandidate objects
+				trig_event->getObjects(filter_index, i, tracklessEleRefs);
+				//std::cout<< tracklessEleRefs.size() <<std::endl;
+
+				//now loop over all elements in tracklessEleRefs
+				for(unsigned int j=0; j<tracklessEleRefs.size() ; j++){
+
+					//const reco::RecoEcalCandidate * temp = tracklessEleRefs[j].get();
+					double energy = tracklessEleRefs[j]->energy();
+					std::cout<<"trackless electron has energy equal to "<< energy <<std::endl;
+
+/*
+					double energy = (temp->RecoCandidate::superCluster() )->rawEnergy();
+					std::cout<< "trackless electron SC has energy equal to "<< energy <<std::endl;
+					double eta = ( temp->RecoCandidate::superCluster() )->CaloCluster::eta();
+					std::cout<<"trackless electron SC has eta equal to "<< eta <<std::endl;
+*/
+
+					//std::cout<<"supercluster energy is "<< theSC->rawEnergy() <<std::endl;
+					//std::cout<<"supercluster eta is "<< theSC->eta() <<std::endl;	//eta() defined in CaloCluster class, SC inherits from this class
+
+
+				}//end loop over all elements in tracklessEleRefs vector
+
+			}//end loop over photon id values
+
+
+/*
 			const trigger::Keys& trig_keys = trig_event->filterKeys(filter_index);
+
 			const trigger::TriggerObjectCollection& trig_obj_collection(trig_event->getObjects());
 			// Get the objects from the trigger keys
 			for (auto& i_key : trig_keys) {
 				const trigger::TriggerObject* trig_obj = &trig_obj_collection[i_key];
 				const double DR = deltaR(ETA, PHI, trig_obj->eta(), trig_obj->phi());
+				std::cout<<"DR equals "<< DR << std::endl;
 				// Do Delta R matching, and assign a new object if we have a
 				// better match
 				if (DR < DR_CUT) {
 					out_v->push_back(std::make_pair(trig_obj, DR));
+					std::cout<<"added an element to out_v vector in GetMatchedTriggerObjects"<<std::endl;
 				}
 			}
+*/
+
+
 		}
 	}
-	return out_v;
+	//return out_v;
 }
 
 
+/*
     const trigger::TriggerObject* GetBestMatchedTriggerObject(
             const edm::Event& iEvent,
             const std::vector<std::string>& trig_names,
             const double ETA, const double PHI
             ) {
-        /* Given the ETA and PHI of a particle, and a list of trigger paths,
-         * returns the trigger object from those paths that is closest to the
-         * given coordinates. */
-        const double MIN_DR = 0.3;
+        // Given the ETA and PHI of a particle, and a list of trigger paths,
+        //  returns the trigger object from those paths that is closest to the
+         // given coordinates. 
+        //RESET MIN_DR to a reasonable value later
+	const double MIN_DR = 2;
         const trig_dr_vec* trig_vec = GetMatchedTriggerObjects(iEvent, trig_names, ETA, PHI, MIN_DR);
 
         double best_dr = 1.;
@@ -450,6 +522,7 @@ const trig_dr_vec* GetMatchedTriggerObjects(
         }
         return trig_obj;
     }
+
 
     bool TriggerMatch(
             const edm::Event& iEvent,
@@ -464,7 +537,7 @@ const trig_dr_vec* GetMatchedTriggerObjects(
             return false;
         }
     }
-
+*/
 
 private:
 virtual void beginJob() override;
@@ -502,12 +575,15 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
    edm::Service<TFileService> fs;
 
    //PFRecHit based plots
+   /*
    hists_["EnergyFrxnVsLambda"]=fs->make<TH1D>("EnergyFrxnVsLambda","temp Energy fraction vs hadronic interaction length; hadronic int length #lambda; Energy fraction",400,0.,10.9);
    hists_["FinalEnergyFrxnVsLambda"]=fs->make<TH1D>("FinalEnergyFrxnVsLambda","Energy fraction vs hadronic interaction length; hadronic int length #lambda; Energy fraction",400,0.,10.9);
 
    hists_["EE_PFRecHit_energy"]=fs->make<TH1D>("EE_PFRecHit_energy","Energy of rechits in HGCEE in GeV",100,0.,0.001);  
    hists_["HEF_PFRecHit_energy"]=fs->make<TH1D>("HEF_PFRecHit_energy","Energy of rechits in HGCHEF in GeV",100,0.,0.001);  
    hists_["HEB_PFRecHit_energy"]=fs->make<TH1D>("HEB_PFRecHit_energy","Energy of rechits in HGCHEB in GeV",100,0.,0.01);  
+
+   */
 
 
    //these four plots DO NOT pull PFRecHit objects from PFCluster objects, they are simply showing all of the PFRecHit objects as a fxn of Z distance for all events
@@ -560,37 +636,15 @@ doubleEleTracklessAnalyzer::~doubleEleTracklessAnalyzer()
 void
 doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-   //using namespace edm;
-   unsigned int numberOfBins = 9;
-   std::vector<float> binVals;
-   std::vector<std::string> binList;
-
-   //float multiplier = 20.0;
-   //float start = 30.0;
-   binVals.push_back(1.98);
-   binVals.push_back(4.98);
-   binVals.push_back(9.98);
-   binVals.push_back(19.98);
-   binVals.push_back(39.98);
-   binVals.push_back(99.98);
-   binVals.push_back(199.98);
-   binVals.push_back(499.98);
-   binVals.push_back(999.9);
-   binVals.push_back(1001.0);
-  
+   using namespace edm;
    
-   for(unsigned int i=1; i<(numberOfBins+1) ; i++){
-      binList.push_back( std::to_string(i) );
-      //binVals.push_back(start + i*multiplier);
-   }
- 
- 
    //////////////////////////////////////////////////////////////////////////
    //get the energy of the generator lvl pi+
    //plot E_gen
    //at the end of the run store the mean of the E_gen histogram 
    /////////////////////////////////////////////////////////////////////////
 
+/*
    edm::Handle<std::vector<reco::GenParticle> > genPart;
    iEvent.getByLabel("genParticles",genPart);
  
@@ -609,7 +663,25 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	   }
 
    }//end loop over GenParticle
+*/
+   std::vector<std::string> tracklessModNames;
+   //tracklessModNames.push_back("hltEgammaCandidatesWrapperUnseeded");
+   tracklessModNames.push_back("hltEG15WPYYtracklessEtFilterUnseeded");
+   tracklessModNames.push_back("hltEle15WPYYtracklessEcalIsoFilter");
+   tracklessModNames.push_back("hltEle15WPYYtracklessHEFilter");
+   tracklessModNames.push_back("hltEle15WPYYtracklessHcalIsoFilter");
+   std::cout<<"added four filter module names to a vector of strings"<<std::endl;
 
+   GetMatchedTriggerObjects(iEvent, tracklessModNames, 2.5, 2.0, 5);
+   
+
+   //std::cout<< "pT of " << bestMatch->pt() << "  eta of "<< bestMatch->eta() <<std::endl;
+/*   
+   if( bestMatch->pt() >= 15 && TMath::Abs(bestMatch->eta()) >= 2.4 && TMath::Abs(bestMatch->eta()) <= 3.0 ){
+	std::cout<<"found an electron candidate that passes Ecal iso, H/E, Hcal iso, and pT and eta requirements"<<std::endl;
+   }
+
+*/
 
 
 #ifdef THIS_IS_AN_EVENT_EXAMPLE
@@ -635,6 +707,7 @@ void
 doubleEleTracklessAnalyzer::endJob() 
 {
 
+	/*
 	for(unsigned int j=0; j<finalEnergyFrxns.size();j++){
 		//std::cout<<"finalEnergyFrxnBinNums element # "<<j<<" equals "<< finalEnergyFrxnBinNums[j] <<std::endl;
 		//std::cout<<"finalEnergyFrxns element # "<<j<<" equals "<< finalEnergyFrxns[j] <<std::endl;
@@ -647,6 +720,8 @@ doubleEleTracklessAnalyzer::endJob()
 		}
 
 	}
+	*/
+
 
 	//makeAndSaveSingle3DHisto("#Delta #eta and #Delta #phi between PFCandidate objects and gen pi+ objects as fxn of PFCandidate energy; #Delta #phi (rad); #Delta #eta; PFCand energy (GeV)","chgdPi_pT50_NoPU_deltaR_btwn_PFCand_and_gen_chgd_pion_vs_PFCand_energy","24","","PFCandidate_deltaR_energy", false);
 
