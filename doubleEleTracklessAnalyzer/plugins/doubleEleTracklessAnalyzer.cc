@@ -94,9 +94,7 @@
 #include <TLegend.h>
 #include <TStyle.h>
 #include <TROOT.h>
-
-
-
+#include "TTree.h"
 
 
 //
@@ -109,6 +107,15 @@ class doubleEleTracklessAnalyzer : public edm::EDAnalyzer {
       ~doubleEleTracklessAnalyzer();
 
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+      
+      TTree *tree;
+
+   private:
+      std::string foutName;
+      TFile *tree_file;
+      void InitNewTree(void);
+
+   public:
       bool booked(const std::string histName) const { return hists_.find(histName.c_str())!=hists_.end(); };
       bool bookedTwo(const std::string histName) const { return histsTwo_.find(histName.c_str())!=histsTwo_.end(); };
       bool bookedThree(const std::string histName) const { return histsThree_.find(histName.c_str())!=histsThree_.end(); };
@@ -241,48 +248,6 @@ class doubleEleTracklessAnalyzer : public edm::EDAnalyzer {
       }//end set3DBinContents()
 
 
-
-
-      /*
-	 void makeAndSaveSingleHistoAndFit(TString title, TString filePostfix, TString canvName, TString legEntry, const std::string histName, const std::string fitName, bool doLogYAxis){
-	 TString longPathName = "/eos/uscms/store/user/skalafut/HGCal/chargedPionGun_PFCands/analyzed/plots/analyzed_chgdPionGun_PFCandidate_";
-
-	 TH1F * histogram = hists_.find(histName.c_str())->second;
-	 TF1 * fitCurve = fits_.find(fitName.c_str())->second;
-	 TString saveFileType = ".jpg";
-	 TString canvasName = canvName;
-//std::cout<<"line 143"<<std::endl;
-
-gStyle->SetOptFit(111);
-
-TCanvas * c111=new TCanvas(canvasName,canvasName,800,800);
-c111->cd();
-if(doLogYAxis==true){
-c111->SetLogy(1);
-histogram->SetMinimum(1);
-}
-if(doLogYAxis==false){
-histogram->SetMinimum(0);
-}
-
-histogram->SetLineColor(1);
-histogram->SetLineWidth(1);
-histogram->SetTitle(title);
-
-TLegend * leg111 = new TLegend(.8,.27,1,.4);
-leg111->AddEntry(histogram,legEntry);
-
-histogram->Draw("hist");
-fitCurve->Draw("SAME");
-leg111->Draw();
-
-c111->SaveAs(longPathName+filePostfix+saveFileType, "recreate");
-
-}//end makeAndSaveSingleHistoAndFit(...)
-
-*/
-
-
 void makeAndSaveSingleHisto(TString title, TString filePostfix, TString canvName, TString legEntry, const std::string histName, bool doLogYAxis){
 	TString longPathName = "/eos/uscms/store/user/skalafut/HGCal/1D_";
 
@@ -385,9 +350,6 @@ void makeAndSaveSingle3DHisto(TString title, TString filePostfix, TString canvNa
 
 }//end makeAndSaveSingle3DHisto(...)
 
-    //typedef std::pair<const trigger::TriggerObject*, double> trig_dr_pair;
-    //typedef std::vector<trig_dr_pair> trig_dr_vec;
-  
     //calculates delta R between two specified (eta, phi) points, and returns the value of delta R
     double deltaR(const double ETA, const double PHI, const double eta, const double phi){
 	double deltaEta = ETA-eta;
@@ -399,9 +361,8 @@ void makeAndSaveSingle3DHisto(TString title, TString filePostfix, TString canvNa
 
 void GetMatchedTriggerObjects(
 		const edm::Event& iEvent,
-		const std::vector<std::string>& trig_names,
-		const double ETA, const double PHI, const double DR_CUT
-		) {
+		const std::vector<std::string>& trig_names)
+{
 	/*
 	 * Find all trigger objects that match a vector of trigger names and
 	 * are within some minimum dR of a specified eta and phi. Return them
@@ -412,7 +373,7 @@ void GetMatchedTriggerObjects(
 		return;
 	}
 
-	// Load Trigger Objects
+	// Load Trigger Event with references to objects 
 	edm::InputTag hltTrigInfoTag("hltTriggerSummaryRAW","","TEST");
 	edm::Handle<trigger::TriggerEventWithRefs> trig_event;
 
@@ -422,122 +383,158 @@ void GetMatchedTriggerObjects(
 		return;
 	}
 
-	//trig_dr_vec* out_v = new trig_dr_vec();
-	// Loop over triggers, filter the objects from these triggers, and then try to match
-	for (auto& trig_name : trig_names) {
-		// Loop over triggers, filter the objects from these triggers, and then try to match
-		//std::cout<<"looping over trig module names"<<std::endl;
-		edm::InputTag filter_tag(trig_name, "", "TEST");
-
-		// the method filterIndex() is defined for TriggerEvent and TriggerEventWithRefs objects!
-		trigger::size_type filter_index = trig_event->filterIndex(filter_tag);
-		//std::cout<<"declared and initialized a filter_index"<<std::endl;
-		//std::cout<< filter_index <<std::endl;
-		
-		if(filter_index < trig_event->size()) { // Check that the filter is in triggerEvent
-			std::cout<<"filter number "<< filter_index<< " is in the trigger event"<<std::endl;
-
-			for(int i=0; i<=100; i++){
-				//loop over all possible photon ids
-				//most ids are 81 and 91
-
-				//std::vector<edm::Ref<std::vector<reco::RecoEcalCandidate> > > tracklessEleRefs;
-			
-				
-				//trigger::VRphoton tracklessEleRefs = (new trigger::TriggerRefsCollections())->photonRefs();
-				trigger::VRphoton tracklessEleRefs;
-
-				//this getObjects() call fills tracklessEleRefs with references to reco::RecoEcalCandidate objects
-				trig_event->getObjects(filter_index, i, tracklessEleRefs);
-				//std::cout<< tracklessEleRefs.size() <<std::endl;
-
-				//now loop over all elements in tracklessEleRefs
-				for(unsigned int j=0; j<tracklessEleRefs.size() ; j++){
-
-					//const reco::RecoEcalCandidate * temp = tracklessEleRefs[j].get();
-					double energy = tracklessEleRefs[j]->energy();
-					std::cout<<"trackless electron has energy equal to "<< energy <<std::endl;
+	typedef edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>,float,unsigned int> > ecalCandToValMap;
 
 /*
-					double energy = (temp->RecoCandidate::superCluster() )->rawEnergy();
-					std::cout<< "trackless electron SC has energy equal to "<< energy <<std::endl;
-					double eta = ( temp->RecoCandidate::superCluster() )->CaloCluster::eta();
-					std::cout<<"trackless electron SC has eta equal to "<< eta <<std::endl;
+
+	//collections for tracked electron candidates
+	
+	edm::InputTag hltEleGsfTrackIsoTag("hltEgammaEleGsfTrackIso","","TEST");
+	edm::Handle<ecalCandToValMap> trackedEleGsfTrackIsoHandle;
+	iEvent.getByLabel(hltEleGsfTrackIsoTag, trackedEleGsfTrackIsoHandle);
+
+	edm::InputTag hltGsfTrackVarsDetaTag("hltEgammaGsfTrackVars","Deta","TEST");
+	edm::Handle<ecalCandToValMap> trackedGsfTrackVarsDetaHandle;
+	iEvent.getByLabel(hltGsfTrackVarsDetaTag, trackedGsfTrackVarsDetaHandle);
+
+	edm::InputTag hltGsfTrackVarsDphiTag("hltEgammaGsfTrackVars","Dphi","TEST");
+	edm::Handle<ecalCandToValMap> trackedGsfTrackVarsDphiHandle;
+	iEvent.getByLabel(hltGsfTrackVarsDphiTag, trackedGsfTrackVarsDphiHandle);
+
+	edm::InputTag hltGsfTrackVarsMissingHitsTag("hltEgammaGsfTrackVars","MissingHits","TEST");
+	edm::Handle<ecalCandToValMap> trackedGsfTrackVarsMissingHitsHandle;
+	iEvent.getByLabel(hltGsfTrackVarsMissingHitsTag, trackedGsfTrackVarsMissingHitsHandle);
+
+	edm::InputTag hltGsfTrackVarsOneOESeedMinusOneOPTag("hltEgammaGsfTrackVars","OneOESeedMinusOneOP","TEST");
+	edm::Handle<ecalCandToValMap> trackedGsfTrackVarsOneOESeedMinusOneOPHandle;
+	iEvent.getByLabel(hltGsfTrackVarsOneOESeedMinusOneOPTag, trackedGsfTrackVarsOneOESeedMinusOneOPHandle);
+
+	edm::InputTag hltGsfTrackVarsOneOESuperMinusOneOPTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST");
+	edm::Handle<ecalCandToValMap> trackedGsfTrackVarsOneOESuperMinusOneOPHandle;
+	iEvent.getByLabel(hltGsfTrackVarsOneOESuperMinusOneOPTag, trackedGsfTrackVarsOneOESuperMinusOneOPHandle);
+
+
+	edm::InputTag hltTrackedEcalClusterShapeTag("hltEgammaClusterShape","","TEST");
+	edm::Handle<ecalCandToValMap> trackedEcalClusterShapeHandle;
+	iEvent.getByLabel(hltTrackedEcalClusterShapeTag, trackedEcalClusterShapeHandle);
+
+	edm::InputTag hltTrackedEcalClusterShapeSigmaIEtaIEtaTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST");
+	edm::Handle<ecalCandToValMap> trackedEcalClusterShapeSigmaIEtaIEtaHandle;
+	iEvent.getByLabel(hltTrackedEcalClusterShapeSigmaIEtaIEtaTag, trackedEcalClusterShapeSigmaIEtaIEtaHandle);
+
+	edm::InputTag hltTrackedEcalIsoTag("hltEgammaEcalPFClusterIso","","TEST");
+	edm::Handle<ecalCandToValMap> trackedEcalIsoHandle;
+	iEvent.getByLabel(hltTrackedEcalIsoTag, trackedEcalIsoHandle);
+
+	edm::InputTag hltTrackedHoverETag("hltEgammaHoverE","","TEST");
+	edm::Handle<ecalCandToValMap> trackedHoverEHandle;
+	iEvent.getByLabel(hltTrackedHoverETag, trackedHoverEHandle);
+
+	edm::InputTag hltTrackedHcalIsoTag("hltEgammaHcalPFClusterIso","","TEST");
+	edm::Handle<ecalCandToValMap> trackedHcalIsoHandle;
+	iEvent.getByLabel(hltTrackedHcalIsoTag, trackedHcalIsoHandle);
 */
 
-					//std::cout<<"supercluster energy is "<< theSC->rawEnergy() <<std::endl;
-					//std::cout<<"supercluster eta is "<< theSC->eta() <<std::endl;	//eta() defined in CaloCluster class, SC inherits from this class
+
+	//collections for untracked electron candidates
+	edm::InputTag hltNoTrackEcalClusterShapeTag("hltEgammaClusterShapeUnseeded","","TEST");
+	edm::Handle<ecalCandToValMap> untrackedEcalClusterShapeHandle;
+	iEvent.getByLabel(hltNoTrackEcalClusterShapeTag, untrackedEcalClusterShapeHandle);
+
+	edm::InputTag hltNoTrackEcalClusterShapeSigmaIEtaIEtaTag("hltEgammaClusterShapeUnseeded","sigmaIEtaIEta5x5","TEST");
+	edm::Handle<ecalCandToValMap> untrackedEcalClusterShapeSigmaIEtaIEtaHandle;
+	iEvent.getByLabel(hltNoTrackEcalClusterShapeSigmaIEtaIEtaTag, untrackedEcalClusterShapeSigmaIEtaIEtaHandle);
+
+	edm::InputTag hltNoTrackEcalIsoTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST");
+	edm::Handle<ecalCandToValMap> untrackedEcalIsoHandle;
+	iEvent.getByLabel(hltNoTrackEcalIsoTag, untrackedEcalIsoHandle);
+
+	edm::InputTag hltNoTrackHoverETag("hltEgammaHoverEUnseeded","","TEST");
+	edm::Handle<ecalCandToValMap> untrackedHoverEHandle;
+	iEvent.getByLabel(hltNoTrackHoverETag, untrackedHoverEHandle);
+
+	edm::InputTag hltNoTrackHcalIsoTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST");
+	edm::Handle<ecalCandToValMap> untrackedHcalIsoHandle;
+	iEvent.getByLabel(hltNoTrackHcalIsoTag, untrackedHcalIsoHandle);
+
+	std::vector<edm::Handle<ecalCandToValMap> > untrackedHandles;
+	untrackedHandles.push_back(untrackedEcalClusterShapeHandle);
+	untrackedHandles.push_back(untrackedEcalClusterShapeSigmaIEtaIEtaHandle);
+	untrackedHandles.push_back(untrackedEcalIsoHandle);
+	untrackedHandles.push_back(untrackedHoverEHandle);
+	untrackedHandles.push_back(untrackedHcalIsoHandle);
+
+
+	for (auto& trig_name : trig_names) {
+		//loop over the different filter modules that appear in the HLT path.  The names of these modules are specified in the input vector<std::string> called trig_names.
+		std::cout<<"looking at trigger module named "<< trig_name <<std::endl; 
+		edm::InputTag filter_tag(trig_name, "", "TEST");
+
+		trigger::size_type filter_index = trig_event->filterIndex(filter_tag);
+		
+		if(filter_index < trig_event->size()) { //Check that at least one object in the event passed the filter corresponding to filter_index 
+			std::cout<<"at least one object in the event passed filter number "<< filter_index << std::endl;
+			std::cout<<"the name of this filter module is "<< trig_name << std::endl;
+
+			for(int i=0; i<=100; i++){
+				//loop over all possible photon ids (integer values)
+				//each object that passes a filter is assigned an id # 
+				//most ids are either 81 or 92, even if there are more than 2 objects which pass the filter
+
+				//trigger::VRphoton is a typedef to a vector of edm::Refs which point to reco::RecoEcalCandidate objects
+				trigger::VRphoton tracklessEleRefs;
+
+				//this fills the vector of RecoEcalCandidate references named tracklessEleRefs with pointers to real RecoEcalCandidate objects
+				trig_event->getObjects(filter_index, i, tracklessEleRefs);
+				std::cout<<"when photonId equals "<< i <<" there are "<< tracklessEleRefs.size() <<" different references to RecoEcalCandidate objects"<<std::endl; 
+
+				//now loop over all objects which passed  
+				for(unsigned int j=0; j<tracklessEleRefs.size() ; j++){
+
+					std::vector<float> untrackedEleParams;
+					std::vector<std::string> untrackedEleParamNames;
+					untrackedEleParamNames.push_back("energy");
+					untrackedEleParamNames.push_back("eta");
+					untrackedEleParamNames.push_back("ecal cluster shape");
+					untrackedEleParamNames.push_back("ecal cluster shape sigma IEta IEta");	//this is slightly different from "ecal cluster shape"
+					untrackedEleParamNames.push_back("ecal iso");
+					untrackedEleParamNames.push_back("H/E");
+					untrackedEleParamNames.push_back("hcal iso");
+
+					//for the trackless electron candidate: ecal iso cut <--> filter_index = 5, H/E cut <--> filter_index = 6, 
+					//hcal iso cut <--> filter_index = 7
+
+					untrackedEleParams.push_back( tracklessEleRefs[j]->energy() );
+					untrackedEleParams.push_back( tracklessEleRefs[j]->eta() );
+					std::vector<ecalCandToValMap> valMaps;
+					for(unsigned int q=0; q<untrackedHandles.size() ;q++){
+						if(untrackedHandles[q].isValid() ){
+							valMaps.push_back( *(untrackedHandles[q].product() ) );	//gets a map from the handle, puts map in the last element of a vector
+							untrackedEleParams.push_back( ( valMaps[valMaps.size()-1].find(tracklessEleRefs[j]) )->val ); //gets value of variable (ecal iso, H/E, etc) from map, and stores it in a vector
+
+						}
+
+					}//end loop over edm::Handle objects to collections tied to untracked electron candidates
+					
+					//eta and pT cut on trackless candidate, and dilepton mass cut on tracked+untracked electon candidates will be added later
+					std::cout<<" "<<std::endl;
+					std::cout<<"found a trackless electron candidate with "<<std::endl;
+					for(unsigned int w=0; w<untrackedEleParamNames.size() ;w++){
+						std::cout<< untrackedEleParamNames[w] <<" equal to "<< untrackedEleParams[w] <<std::endl;
+					}
+					std::cout<<" "<<std::endl;
 
 
 				}//end loop over all elements in tracklessEleRefs vector
 
 			}//end loop over photon id values
 
+		}//end if(filter_index...)
 
-/*
-			const trigger::Keys& trig_keys = trig_event->filterKeys(filter_index);
+	}//end loop over trigger module names
 
-			const trigger::TriggerObjectCollection& trig_obj_collection(trig_event->getObjects());
-			// Get the objects from the trigger keys
-			for (auto& i_key : trig_keys) {
-				const trigger::TriggerObject* trig_obj = &trig_obj_collection[i_key];
-				const double DR = deltaR(ETA, PHI, trig_obj->eta(), trig_obj->phi());
-				std::cout<<"DR equals "<< DR << std::endl;
-				// Do Delta R matching, and assign a new object if we have a
-				// better match
-				if (DR < DR_CUT) {
-					out_v->push_back(std::make_pair(trig_obj, DR));
-					std::cout<<"added an element to out_v vector in GetMatchedTriggerObjects"<<std::endl;
-				}
-			}
-*/
+}//end GetMatchedTriggerObjects() 
 
-
-		}
-	}
-	//return out_v;
-}
-
-
-/*
-    const trigger::TriggerObject* GetBestMatchedTriggerObject(
-            const edm::Event& iEvent,
-            const std::vector<std::string>& trig_names,
-            const double ETA, const double PHI
-            ) {
-        // Given the ETA and PHI of a particle, and a list of trigger paths,
-        //  returns the trigger object from those paths that is closest to the
-         // given coordinates. 
-        //RESET MIN_DR to a reasonable value later
-	const double MIN_DR = 2;
-        const trig_dr_vec* trig_vec = GetMatchedTriggerObjects(iEvent, trig_names, ETA, PHI, MIN_DR);
-
-        double best_dr = 1.;
-        const trigger::TriggerObject* trig_obj = NULL;
-        for (auto& i_obj : *trig_vec) {
-            if (i_obj.second < best_dr) {
-                best_dr = i_obj.second;
-                trig_obj = i_obj.first;
-            }
-        }
-        return trig_obj;
-    }
-
-
-    bool TriggerMatch(
-            const edm::Event& iEvent,
-            const std::vector<std::string>& trig_names,
-            const double ETA, const double PHI, const double DR_CUT
-            ) {
-        // Get the vector and see if there are objects
-        const trig_dr_vec* zev = GetMatchedTriggerObjects(iEvent, trig_names, ETA, PHI, DR_CUT);
-        if (zev != NULL && zev->size() >= 1) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-*/
 
 private:
 virtual void beginJob() override;
@@ -569,51 +566,24 @@ std::map<std::string,TH3D*> histsThree_;
 // constructors and destructor
 //
 doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& iConfig)
+/*  vtxCollectionTAG(iConfig.getParameter<edm::InputTag>("vertexCollection")),
+  BeamSpotTAG(iConfig.getParameter<edm::InputTag>("BeamSpotCollection")),
+  electronsTAG(iConfig.getParameter<edm::InputTag>("electronCollection")),
+  recHitCollectionEBTAG(iConfig.getParameter<edm::InputTag>("recHitCollectionEB")),
+  recHitCollectionEETAG(iConfig.getParameter<edm::InputTag>("recHitCollectionEE")),
+  EESuperClustersTAG(iConfig.getParameter<edm::InputTag>("EESuperClusterCollection")),
+  rhoTAG(iConfig.getParameter<edm::InputTag>("rhoFastJet")),
+  triggerResultsTAG(iConfig.getParameter<edm::InputTag>("triggerResultsCollection")),*/
+  //foutName(iConfig.getParameter<std::string>("foutName"))
 
 {
    //now do what ever initialization is needed
    edm::Service<TFileService> fs;
 
-   //PFRecHit based plots
-   /*
-   hists_["EnergyFrxnVsLambda"]=fs->make<TH1D>("EnergyFrxnVsLambda","temp Energy fraction vs hadronic interaction length; hadronic int length #lambda; Energy fraction",400,0.,10.9);
-   hists_["FinalEnergyFrxnVsLambda"]=fs->make<TH1D>("FinalEnergyFrxnVsLambda","Energy fraction vs hadronic interaction length; hadronic int length #lambda; Energy fraction",400,0.,10.9);
-
-   hists_["EE_PFRecHit_energy"]=fs->make<TH1D>("EE_PFRecHit_energy","Energy of rechits in HGCEE in GeV",100,0.,0.001);  
-   hists_["HEF_PFRecHit_energy"]=fs->make<TH1D>("HEF_PFRecHit_energy","Energy of rechits in HGCHEF in GeV",100,0.,0.001);  
-   hists_["HEB_PFRecHit_energy"]=fs->make<TH1D>("HEB_PFRecHit_energy","Energy of rechits in HGCHEB in GeV",100,0.,0.01);  
-
-   */
-
-
-   //these four plots DO NOT pull PFRecHit objects from PFCluster objects, they are simply showing all of the PFRecHit objects as a fxn of Z distance for all events
-   /*
-   hists_["EE_PFRecHit_z"]=fs->make<TH1D>("EE_PFRecHit_z","Z position of rechits in HGCEE in centimeters",150,300.,360.);  //this histo is made to show the Z distance between each Si layer in HGCEE
-   hists_["HEF_PFRecHit_z"]=fs->make<TH1D>("HEF_PFRecHit_z","Z position of rechits in HGCHEF in centimeters",100,350.,460.);  //this histo is made to show the Z distance between each Si layer in HGCHEF
-   hists_["HEB_PFRecHit_z"]=fs->make<TH1D>("HEB_PFRecHit_z","Z position of rechits in HGCHEB in centimeters",100,400.,600.);  //this histo is made to show the Z distance between each scintillator layer in HGCHEB
-   */
-
+   //THESE two declarations are here just for reference
    //hists_["All_PFRecHit_z"]=fs->make<TH1D>("All_PFRecHit_z","Z position of all HGC PFRecHits ; distance from IP (cm);",500,310.,560.);  //this histo is made to show the Z distance between each sensitive layer of HGC (Si or scintillator) 
 
-
-
-   /*
-   histsThree_["PFClusterSum_HCALovrECAL_gen_eta_energy"]=fs->make<TH3D>("PFClusterSum_HCALovrECAL_gen_eta_energy","Reco E_HCAL/E_ECAL for Pi+ vs gen Pi+ energy and eta", 100, 0., 210., 15, 1.55, 3.0, 30, 0., 15.);
-
-   histsThree_["EEPFCluster_deltaR_energy"]=fs->make<TH3D>("EEPFCluster_deltaR_energy","#Delta#eta and #Delta#phi between EE PFClusters and generator pi+ as a function of PFCluster energy", 632, -3.16, 3.16, 40, -1.5, 1.5, 200, 0., 100.);
- 
-   histsThree_["HEFPFCluster_deltaR_energy"]=fs->make<TH3D>("HEFPFCluster_deltaR_energy","#Delta#eta and #Delta#phi between HEF PFClusters and generator pi+ as a function of PFCluster energy", 632, -3.16, 3.16, 40, -1.5, 1.5, 200, 0., 100.);
-
-   histsThree_["HEBPFCluster_deltaR_energy"]=fs->make<TH3D>("HEBPFCluster_deltaR_energy","#Delta#eta and #Delta#phi between HEB PFClusters and generator pi+ as a function of PFCluster energy", 632, -3.16, 3.16, 40, -1.5, 1.5, 100, 0., 50.);
- 
-   histsThree_["MaxEEPFCluster_deltaR_energy"]=fs->make<TH3D>("MaxEEPFCluster_deltaR_energy","#Delta#eta and #Delta#phi between highest energy EE PFClusters and generator pi+ as a function of PFCluster energy", 632, -3.16, 3.16, 40, -1.5, 1.5, 200, 0., 300.);
- 
-   histsThree_["MaxHEFPFCluster_deltaR_energy"]=fs->make<TH3D>("MaxHEFPFCluster_deltaR_energy","#Delta#eta and #Delta#phi between highest energy HEF PFClusters and generator pi+ as a function of PFCluster energy", 632, -3.16, 3.16, 40, -1.5, 1.5, 200, 0., 300.);
-
-   histsThree_["MaxHEBPFCluster_deltaR_energy"]=fs->make<TH3D>("MaxHEBPFCluster_deltaR_energy","#Delta#eta and #Delta#phi between highest energy HEB PFClusters and generator pi+ as a function of PFCluster energy", 632, -3.16, 3.16, 40, -1.5, 1.5, 100, 0., 300.);
-
-  */ 
-
+   //histsThree_["PFClusterSum_HCALovrECAL_gen_eta_energy"]=fs->make<TH3D>("PFClusterSum_HCALovrECAL_gen_eta_energy","Reco E_HCAL/E_ECAL for Pi+ vs gen Pi+ energy and eta", 100, 0., 210., 15, 1.55, 3.0, 30, 0., 15.);
 
 
 }
@@ -638,51 +608,21 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 {
    using namespace edm;
    
-   //////////////////////////////////////////////////////////////////////////
-   //get the energy of the generator lvl pi+
-   //plot E_gen
-   //at the end of the run store the mean of the E_gen histogram 
-   /////////////////////////////////////////////////////////////////////////
-
-/*
-   edm::Handle<std::vector<reco::GenParticle> > genPart;
-   iEvent.getByLabel("genParticles",genPart);
- 
-   float gEn =0;	//energy of a generator chgd pion
-   float gEta = 0;
-   float gPhi = 0;	//eta and phi of generator chgd pion
-   int numGenParticles = 0;	//keeps track of the total number of gen lvl particles in the event
-
-   for(std::vector<reco::GenParticle>::const_iterator genIt=genPart->begin(); genIt != genPart->end(); genIt++){
-	   numGenParticles++;
-	   if(genIt->pdgId() == 211){
-		  //if the genIt pdgId is +211 then the particle is a pi+
-		  gEta = genIt->eta();
-		  gPhi = genIt->phi();
-		  gEn = (genIt->pt())*(TMath::CosH(genIt->eta()));
-	   }
-
-   }//end loop over GenParticle
-*/
    std::vector<std::string> tracklessModNames;
-   //tracklessModNames.push_back("hltEgammaCandidatesWrapperUnseeded");
+   //tracklessModNames.push_back("hltL1sL1ZeroBias");
+   //tracklessModNames.push_back("hltEGL1SingleEG20ORL1SingleEG22Filter");	//this module is called in the Ele27 sequence (this sequence looks for a tracked electron candidate)
+   //tracklessModNames.push_back("hltL1sL1SingleEG20ORL1SingleEG22");	//this appears in the path for the double electron trigger, before the Ele27 and Ele15 sequences
+   tracklessModNames.push_back("hltEgammaCandidatesWrapperUnseeded");
    tracklessModNames.push_back("hltEG15WPYYtracklessEtFilterUnseeded");
    tracklessModNames.push_back("hltEle15WPYYtracklessEcalIsoFilter");
    tracklessModNames.push_back("hltEle15WPYYtracklessHEFilter");
    tracklessModNames.push_back("hltEle15WPYYtracklessHcalIsoFilter");
-   std::cout<<"added four filter module names to a vector of strings"<<std::endl;
+   //std::cout<<"added "<< tracklessModNames.size() << " filter module names to a vector of strings"<<std::endl;
 
-   GetMatchedTriggerObjects(iEvent, tracklessModNames, 2.5, 2.0, 5);
+   GetMatchedTriggerObjects(iEvent, tracklessModNames);
+
+   //tree->Fill();
    
-
-   //std::cout<< "pT of " << bestMatch->pt() << "  eta of "<< bestMatch->eta() <<std::endl;
-/*   
-   if( bestMatch->pt() >= 15 && TMath::Abs(bestMatch->eta()) >= 2.4 && TMath::Abs(bestMatch->eta()) <= 3.0 ){
-	std::cout<<"found an electron candidate that passes Ecal iso, H/E, Hcal iso, and pT and eta requirements"<<std::endl;
-   }
-
-*/
-
 
 #ifdef THIS_IS_AN_EVENT_EXAMPLE
    Handle<ExampleData> pIn;
@@ -700,47 +640,33 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 void 
 doubleEleTracklessAnalyzer::beginJob()
 {
+/*
+  tree_file = new TFile(foutName.c_str(), "recreate");
+  if(tree_file->IsZombie()){
+    throw cms::Exception("OutputError") <<  "Output tree not created (Zombie): " << foutName;
+    return;
+  }
+  tree_file->cd();
+  
+  //now do what ever initialization is needed
+  tree = new TTree("selected","selected");
+  tree->SetDirectory(tree_file);
+
+  //InitNewTree();
+*/
+
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
 doubleEleTracklessAnalyzer::endJob() 
 {
-
-	/*
-	for(unsigned int j=0; j<finalEnergyFrxns.size();j++){
-		//std::cout<<"finalEnergyFrxnBinNums element # "<<j<<" equals "<< finalEnergyFrxnBinNums[j] <<std::endl;
-		//std::cout<<"finalEnergyFrxns element # "<<j<<" equals "<< finalEnergyFrxns[j] <<std::endl;
-		set1DBinContents("FinalEnergyFrxnVsLambda", finalEnergyFrxnBinNums[j], finalEnergyFrxns[j]);
-	}
-
-	for(int e=0; e<getXBins("All_PFRecHit_z") ; e++){
-		if(get1DBinContents("All_PFRecHit_z",e) > 0.0 ){
-			std::cout<< get1DUpperBinEdge("All_PFRecHit_z",e) << std::endl;
-		}
-
-	}
-	*/
-
-
-	//makeAndSaveSingle3DHisto("#Delta #eta and #Delta #phi between PFCandidate objects and gen pi+ objects as fxn of PFCandidate energy; #Delta #phi (rad); #Delta #eta; PFCand energy (GeV)","chgdPi_pT50_NoPU_deltaR_btwn_PFCand_and_gen_chgd_pion_vs_PFCand_energy","24","","PFCandidate_deltaR_energy", false);
-
-
-	/*
-	makeAndSaveSingle3DHisto("#Delta #eta and #Delta #phi between EE PFClusters and generator pi+ as fxn of PFCluster energy;#Delta #phi (rad); #Delta #eta; PFCluster energy (GeV)","chgdPi_pT50_NoPU_deltaR_btwn_EEPFClust_and_gen_chgd_pion_vs_EEPFClust_energy","31","","EEPFCluster_deltaR_energy", false);
-   
-	makeAndSaveSingle3DHisto("#Delta #eta and #Delta #phi between HEF PFClusters and generator pi+ as fxn of PFCluster energy;#Delta #phi (rad); #Delta #eta; PFCluster energy (GeV)","chgdPi_pT50_NoPU_deltaR_btwn_HEFPFClust_and_gen_chgd_pion_vs_HEFPFClust_energy","32","","HEFPFCluster_deltaR_energy", false);
-
-	makeAndSaveSingle3DHisto("#Delta #eta and #Delta #phi between HEB PFClusters and generator pi+ as fxn of PFCluster energy;#Delta #phi (rad); #Delta #eta; PFCluster energy (GeV)","chgdPi_pT50_NoPU_deltaR_btwn_HEBPFClust_and_gen_chgd_pion_vs_HEBPFClust_energy","33","","HEBPFCluster_deltaR_energy", false);
- 
-	makeAndSaveSingle3DHisto("#Delta #eta and #Delta #phi between highest energy EE PFClusters and generator pi+ as fxn of PFCluster energy;#Delta #phi (rad); #Delta #eta; PFCluster energy (GeV)","chgdPi_pT50_NoPU_deltaR_btwn_max_energy_EEPFClust_and_gen_chgd_pion_vs_EEPFClust_energy","34","","MaxEEPFCluster_deltaR_energy", false);
-   
-	makeAndSaveSingle3DHisto("#Delta #eta and #Delta #phi between highest energy HEF PFClusters and generator pi+ as fxn of PFCluster energy;#Delta #phi (rad); #Delta #eta; PFCluster energy (GeV)","chgdPi_pT50_NoPU_deltaR_btwn_max_energy_HEFPFClust_and_gen_chgd_pion_vs_HEFPFClust_energy","35","","MaxHEFPFCluster_deltaR_energy", false);
-
-	makeAndSaveSingle3DHisto("#Delta #eta and #Delta #phi between highest energy HEB PFClusters and generator pi+ as fxn of PFCluster energy;#Delta #phi (rad); #Delta #eta; PFCluster energy (GeV)","chgdPi_pT50_NoPU_deltaR_btwn_max_energy_HEBPFClust_and_gen_chgd_pion_vs_HEBPFClust_energy","36","","MaxHEBPFCluster_deltaR_energy", false);
-	*/
- 
-
+/*
+  //save the tree into the file
+  tree_file->cd();
+  tree->Write();
+  tree_file->Close();
+*/
 
 }
 
@@ -785,6 +711,117 @@ doubleEleTracklessAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& des
   desc.setUnknown();
   descriptions.addDefault(desc);
 }
+
+/*
+void doubleEleTracklessAnalyzer::InitNewTree(void){
+
+  std::cout << "[STATUS] InitNewTree" << std::endl;
+  if(tree==NULL) return;
+  tree->Branch("runNumber",     &runNumber,     "runNumber/I");
+  tree->Branch("eventNumber",   &eventNumber, "eventNumber/l");
+  tree->Branch("lumiBlock",     &lumiBlock,     "lumiBlock/I");
+  tree->Branch("runTime",       &runTime,         "runTime/i");
+  
+  tree->Branch("mcGenWeight",   &mcGenWeight, "mcGenWeight/F");
+
+  tree->Branch("nPU", nPU, "nPU[1]/I");
+  tree->Branch("rho", &rho, "rho/F");
+  tree->Branch("nPV", &nPV, "nPV/I");
+
+
+  tree->Branch("chargeEle",   chargeEle,    "chargeEle[2]/I");	//[nEle]
+  tree->Branch("etaSCEle",      etaSCEle,       "etaSCEle[2]/F");	//[nSCEle]
+  tree->Branch("phiSCEle",      phiSCEle,       "phiSCEle[2]/F");	//[nSCEle]
+
+  tree->Branch("PtEle",       PtEle,        "PtEle[2]/F");
+
+  tree->Branch("seedXSCEle",           seedXSCEle,      "seedXSCEle[2]/F");
+  tree->Branch("seedYSCEle",           seedYSCEle,      "seedYSCEle[2]/F");
+  tree->Branch("seedEnergySCEle", seedEnergySCEle, "seedEnergySCEle[2]/F");
+
+  tree->Branch("gainEle", gainEle, "gainEle[2]/b");
+
+  tree->Branch("energyMCEle", energyMCEle, "energyMCEle[2]/F");
+  tree->Branch("energySCEle", energySCEle, "energySCEle[2]/F");
+  tree->Branch("rawEnergySCEle", rawEnergySCEle, "rawEnergySCEle[2]/F");
+  tree->Branch("esEnergySCEle", esEnergySCEle, "esEnergySCEle[2]/F");
+
+
+  tree->Branch("R9Ele", R9Ele, "R9Ele[2]/F");
+
+  tree->Branch("e5x5SCEle", e5x5SCEle, "e5x5SCEle[2]/F");
+
+  tree->Branch("invMass",    &invMass,      "invMass/F");   // invariant mass ele+SC
+  tree->Branch("invMass_SC", &invMass_SC,   "invMass_SC/F"); // invariant mass SC+SC
+
+
+  tree->Branch("invMass_MC", &invMass_MC, "invMass_MC/F");
+
+  tree->Branch("etaMCEle",      etaMCEle,       "etaMCEle[2]/F");	//[nEle]
+  tree->Branch("phiMCEle",      phiMCEle,       "phiMCEle[2]/F");	//[nEle]
+
+  tree->Branch("nHitsSCEle", nHitsSCEle, "nHitsSCEle[2]/I");
+
+  tree->Branch("sigmaIEtaIEtaSCEle", sigmaIEtaIEtaSCEle, "sigmaIEtaIEtaSCEle[2]/F");
+  tree->Branch("sigmaIEtaIEtaSCEle", sigmaIEtaIEtaSCEle, "sigmaIEtaIEtaSCEle[2]/F");
+
+  return;
+}
+
+//negative index means the corresponding electron does not exist
+void doubleEleTracklessAnalyzer::TreeSetSingleElectronVar(const pat::Electron& electron1, int index){
+
+  if(index<0){
+    PtEle[-index] 	  = 0;  
+    chargeEle[-index] = 0;
+    etaEle[-index]    = 0; 
+    phiEle[-index]    = 0;
+    return;
+  }   
+
+  PtEle[index]     = electron1.et();  
+  chargeEle[index] = electron1.charge();
+  etaEle[index]    = electron1.eta(); 
+  phiEle[index]    = electron1.phi();
+}
+
+void doubleEleTracklessAnalyzer::TreeSetSingleElectronVar(const reco::SuperCluster& electron1, int index){
+
+  if(index<0){
+    PtEle[-index] 	  = 0;
+    chargeEle[-index] = 0;
+    etaEle[-index]    = 0;
+    phiEle[-index]    = 0;
+    return;
+  }
+
+//checks
+
+  PtEle[index]     = electron1.energy()/cosh(electron1.eta());
+  chargeEle[index] = -100; // dont know the charge for SC
+  etaEle[index]    = electron1.eta(); // eta = etaSC
+  phiEle[index]    = electron1.phi();
+}
+
+void doubleEleTracklessAnalyzer::TreeSetDiElectronVar(const pat::Electron& electron1, const reco::SuperCluster& electron2){
+  
+  TreeSetSingleElectronVar(electron1, 0);
+  TreeSetSingleElectronVar(electron2, 1);
+
+  double t1=TMath::Exp(-etaEle[0]);
+  double t2=TMath::Exp(-etaEle[1]);
+  double t1q = t1*t1;
+  double t2q = t2*t2;
+
+  double angle=1- ( (1-t1q)*(1-t2q)+4*t1*t2*cos(phiEle[0]-phiEle[1]))/( (1+t1q)*(1+t2q) );
+
+
+  invMass = sqrt(2*electron1.energy()*electron2.energy() *angle);
+  invMass_e5x5   = sqrt(2*electron1.e5x5()*(clustertools->e5x5(*electron2.seed())) * angle);
+
+}
+*/
+
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(doubleEleTracklessAnalyzer);
