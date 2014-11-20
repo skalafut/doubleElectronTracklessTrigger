@@ -110,10 +110,104 @@ class doubleEleTracklessAnalyzer : public edm::EDAnalyzer {
       
       TTree *tree;
 
+	  void incrementNumTriggeredEvents(){
+		  numTriggeredEvents = numTriggeredEvents + 1.0;
+	  }
+	  double getNumTriggeredEvents(){
+		  return numTriggeredEvents;
+	  }
+
+	  void incrementEfficiencyDenominator(){
+		  efficiencyDenominator = efficiencyDenominator + 1.0;
+	  }
+	  double getEfficiencyDenominator(){
+		  return efficiencyDenominator;
+	  }
+
+	  void addRECEta(double eta){
+		  RECEta.push_back(eta);
+	  }
+	  double getRECEta(unsigned int t){
+		  if(RECEta.size() > t) return RECEta[t];
+		  return 0;
+	  }
+
+	  void addRECPt(double pt){
+		  RECPt.push_back(pt);
+	  }
+	  double getRECPt(unsigned int t){
+		  if(RECPt.size() > t) return RECPt[t];
+		  return 0;
+	  }
+
+
+	  void addRECHcalIso(double hcalIso){
+		  RECHcalIso.push_back(hcalIso);
+	  }
+	  double getRECHcalIso(unsigned int t){
+		  if(RECHcalIso.size() > t) return RECHcalIso[t];
+		  return 0;
+	  }
+
+
+	  void addRECEcalIso(double ecalIso){
+		  RECEcalIso.push_back(ecalIso);
+	  }
+	  double getRECEcalIso(unsigned int t){
+		  if(RECEcalIso.size() > t) return RECEcalIso[t];
+		  return 0;
+	  }
+
+
+	  void addRECHoverE(double HoE){
+		  RECHoverE.push_back(HoE);
+	  }
+	  double getRECHoverE(unsigned int t){
+		  if(RECHoverE.size() > t) return RECHoverE[t];
+		  return 0;
+	  }
+
+
+	  void addRECEcalClusterShape(double clstShape){
+		  RECEcalClusterShape.push_back(clstShape);
+	  }
+	  double getRECEcalClusterShape(unsigned int t){
+		  if(RECEcalClusterShape.size() > t) return RECEcalClusterShape[t];
+		  return 0;
+	  }
+
+
+	  void addRECEcalClusterShape_SigmaIEtaIEta(double sigmaIEta){
+		  RECEcalClusterShape_SigmaIEtaIEta.push_back(sigmaIEta);
+	  }
+	  double getRECEcalClusterShape_SigmaIEtaIEta(unsigned int t){
+		  if(RECEcalClusterShape_SigmaIEtaIEta.size() > t) return RECEcalClusterShape_SigmaIEtaIEta[t];
+		  return 0;
+	  }
+
+	  unsigned int getRECEtaSize(){
+		  return RECEta.size();
+	  }
+
+
+
+
    private:
-      std::string foutName;
+	  double numTriggeredEvents=0;
+	  double efficiencyDenominator=0;	//total number of events where there is one GEN electron with pT > 15 GeV in the trackless region, and one tracked electron
+	  
+	  std::vector<double> RECEta;
+	  std::vector<double> RECPt;
+	  std::vector<double> RECEcalIso;
+	  std::vector<double> RECHcalIso;
+	  std::vector<double> RECHoverE;
+	  std::vector<double> RECEcalClusterShape;
+	  std::vector<double> RECEcalClusterShape_SigmaIEtaIEta;
+
+	  std::string foutName;
       TFile *tree_file;
       void InitNewTree(void);
+	
 
    public:
       bool booked(const std::string histName) const { return hists_.find(histName.c_str())!=hists_.end(); };
@@ -350,28 +444,29 @@ void makeAndSaveSingle3DHisto(TString title, TString filePostfix, TString canvNa
 
 }//end makeAndSaveSingle3DHisto(...)
 
-    //calculates delta R between two specified (eta, phi) points, and returns the value of delta R
-    double deltaR(const double ETA, const double PHI, const double eta, const double phi){
+//calculates delta R between two specified (eta, phi) points, and returns the value of delta R
+double deltaR(const double ETA, const double PHI, const double eta, const double phi){
 	double deltaEta = ETA-eta;
 	double deltaPhi = PHI-phi;
 	double dR = TMath::Sqrt( TMath::Power(deltaEta,2) + TMath::Power(deltaPhi,2) );
 	return dR;
 
-    }
+}
+
 
 void GetMatchedTriggerObjects(
 		const edm::Event& iEvent,
-		const std::vector<std::string>& trig_names)
+		const std::vector<std::string>& trig_names, const double eta, const double phi, const double dRForMatch)
 {
 	/*
 	 * Find all trigger objects that match a vector of trigger names and
-	 * are within some minimum dR of a specified eta and phi. Return them
-	 * as a vector of pairs of the object, and the dr.
+	 * are within some minimum dR of a specified eta and phi.
 	 */
 	// If our vector is empty or the first item is blank
 	if (trig_names.size() == 0 || trig_names[0].size() == 0) {
 		return;
 	}
+	bool incrementedTriggeredEvents = false;
 
 	// Load Trigger Event with references to objects 
 	edm::InputTag hltTrigInfoTag("hltTriggerSummaryRAW","","TEST");
@@ -481,7 +576,7 @@ void GetMatchedTriggerObjects(
 				//each object that passes a filter is assigned an id # 
 				//most ids are either 81 or 92, even if there are more than 2 objects which pass the filter
 
-				//trigger::VRphoton is a typedef to a vector of edm::Refs which point to reco::RecoEcalCandidate objects
+				//trigger::VRphoton is a typedef to a vector of edm::Refs which points to reco::RecoEcalCandidate objects
 				trigger::VRphoton tracklessEleRefs;
 
 				//this fills the vector of RecoEcalCandidate references named tracklessEleRefs with pointers to real RecoEcalCandidate objects
@@ -493,7 +588,7 @@ void GetMatchedTriggerObjects(
 
 					std::vector<float> untrackedEleParams;
 					std::vector<std::string> untrackedEleParamNames;
-					untrackedEleParamNames.push_back("energy");
+					untrackedEleParamNames.push_back("pt");
 					untrackedEleParamNames.push_back("eta");
 					untrackedEleParamNames.push_back("ecal cluster shape");
 					untrackedEleParamNames.push_back("ecal cluster shape sigma IEta IEta");	//this is slightly different from "ecal cluster shape"
@@ -504,7 +599,7 @@ void GetMatchedTriggerObjects(
 					//for the trackless electron candidate: ecal iso cut <--> filter_index = 5, H/E cut <--> filter_index = 6, 
 					//hcal iso cut <--> filter_index = 7
 
-					untrackedEleParams.push_back( tracklessEleRefs[j]->energy() );
+					untrackedEleParams.push_back( tracklessEleRefs[j]->energy()/( TMath::CosH(tracklessEleRefs[j]->eta() ) ) );
 					untrackedEleParams.push_back( tracklessEleRefs[j]->eta() );
 					std::vector<ecalCandToValMap> valMaps;
 					for(unsigned int q=0; q<untrackedHandles.size() ;q++){
@@ -524,6 +619,41 @@ void GetMatchedTriggerObjects(
 					}
 					std::cout<<" "<<std::endl;
 
+					if(filter_index == 7){
+						//filter_index = 7 corresponds to HCAL iso
+						if( std::fabs(tracklessEleRefs[j]->eta()) >= 2.5 && std::fabs(tracklessEleRefs[j]->eta()) < 3.0 ){
+							if(deltaR(eta, phi, tracklessEleRefs[j]->eta(), tracklessEleRefs[j]->phi() )  <= dRForMatch){
+								//if the REC is matched to a gen electron in the trackless EE region
+								//then write the calo iso, H/E, and cluster shape info associated with the REC into vectors
+								addRECPt(untrackedEleParams[0]);
+								addRECEta(untrackedEleParams[1]);
+								addRECEcalClusterShape(untrackedEleParams[2]);
+								addRECEcalClusterShape_SigmaIEtaIEta(untrackedEleParams[3]);
+								addRECEcalIso(untrackedEleParams[4]);
+								addRECHoverE(untrackedEleParams[5]);
+								addRECHcalIso(untrackedEleParams[6]);
+								if(!incrementedTriggeredEvents){
+								   	incrementNumTriggeredEvents();
+									incrementedTriggeredEvents = true;	//guarantees numTriggeredEvents only gets incremented by at most once per iEvent object
+									std::cout<<"numTriggeredEvents equals "<< getNumTriggeredEvents() <<std::endl;
+								}
+
+							}//end deltaR matching filter
+
+						}//end requirement that REC be in trackless EE
+
+					}//end filter_index == 7
+
+
+/*
+					reco::SuperClusterRef toSC = tracklessEleRefs[j]->superCluster();
+					std::cout<<"SC associated with RecoEcalCandidate has raw energy equal to "<< toSC->rawEnergy() <<std::endl;
+					std::cout<<"SC also has eta width "<< toSC->etaWidth() <<std::endl;
+					std::cout<<"SC also has phi width "<< toSC->phiWidth() <<std::endl;
+					std::cout<<"SC contains "<< toSC->clustersSize() <<" basic clusters" <<std::endl;
+					std::cout<<" "<<std::endl;
+*/
+
 
 				}//end loop over all elements in tracklessEleRefs vector
 
@@ -534,6 +664,8 @@ void GetMatchedTriggerObjects(
 	}//end loop over trigger module names
 
 }//end GetMatchedTriggerObjects() 
+
+double totalNumEvents;	//total number of events which are analyzed, no requirement on either GEN electron
 
 
 private:
@@ -580,6 +712,21 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
    //now do what ever initialization is needed
    edm::Service<TFileService> fs;
 
+   hists_["GenEta_leadingEle"]=fs->make<TH1D>("GenEta_leadingEle","#eta of leading generator electron; electron #eta;",300,-3.0,3.0);
+   hists_["GenEta_subLeadingEle"]=fs->make<TH1D>("GenEta_subLeadingEle","#eta of sub-leading generator electron; electron #eta;",300,-3.0,3.0);
+
+   hists_["GenPt_leadingEle"]=fs->make<TH1D>("GenPt_leadingEle","P_{T} of leading generator electron; electron p_{T} (GeV);",300,0.0,100.0);
+   hists_["GenPt_subLeadingEle"]=fs->make<TH1D>("GenPt_subLeadingEle","P_{T} of sub-leading generator electron; electron p_{T} (GeV);",300,0.0,100.0);
+
+   hists_["GenPt_untrackedEle"]=fs->make<TH1D>("GenPt_untrackedEle","P_{T} of untracked generator electron in EB+EE events; untracked electron p_{T} (GeV);",300,0.0,100.0);
+
+
+   hists_["EventFraction"]=fs->make<TH1D>("EventFraction","Fraction of events with zero, one, and two untracked GEN electrons in EE; ; event fraction",3,0.0,3.0);
+
+   hists_["HLTRecoEff"]=fs->make<TH1D>("HLTRecoEff","Efficiency of trackless leg of HLT path; ; efficiency",1,0.0,1.0);
+
+
+
    //THESE two declarations are here just for reference
    //hists_["All_PFRecHit_z"]=fs->make<TH1D>("All_PFRecHit_z","Z position of all HGC PFRecHits ; distance from IP (cm);",500,310.,560.);  //this histo is made to show the Z distance between each sensitive layer of HGC (Si or scintillator) 
 
@@ -606,23 +753,178 @@ doubleEleTracklessAnalyzer::~doubleEleTracklessAnalyzer()
 void
 doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-   using namespace edm;
-   
-   std::vector<std::string> tracklessModNames;
-   //tracklessModNames.push_back("hltL1sL1ZeroBias");
-   //tracklessModNames.push_back("hltEGL1SingleEG20ORL1SingleEG22Filter");	//this module is called in the Ele27 sequence (this sequence looks for a tracked electron candidate)
-   //tracklessModNames.push_back("hltL1sL1SingleEG20ORL1SingleEG22");	//this appears in the path for the double electron trigger, before the Ele27 and Ele15 sequences
-   tracklessModNames.push_back("hltEgammaCandidatesWrapperUnseeded");
-   tracklessModNames.push_back("hltEG15WPYYtracklessEtFilterUnseeded");
-   tracklessModNames.push_back("hltEle15WPYYtracklessEcalIsoFilter");
-   tracklessModNames.push_back("hltEle15WPYYtracklessHEFilter");
-   tracklessModNames.push_back("hltEle15WPYYtracklessHcalIsoFilter");
-   //std::cout<<"added "<< tracklessModNames.size() << " filter module names to a vector of strings"<<std::endl;
+	using namespace edm;
 
-   GetMatchedTriggerObjects(iEvent, tracklessModNames);
+	totalNumEvents += 1.0;
+	//bool incrementedEffDenom = false;
 
-   //tree->Fill();
-   
+	/**/
+	std::vector<std::string> tracklessModNames;
+	//tracklessModNames.push_back("hltL1sL1ZeroBias");
+	//tracklessModNames.push_back("hltEGL1SingleEG20ORL1SingleEG22Filter");	//this module is called in the Ele27 sequence (this sequence looks for a tracked electron candidate)
+	//tracklessModNames.push_back("hltL1sL1SingleEG20ORL1SingleEG22");	//this appears in the path for the double electron trigger, before the Ele27 and Ele15 sequences
+
+	/*tracklessModNames.push_back("hltEgammaCandidatesWrapperUnseeded");
+	tracklessModNames.push_back("hltEG15WPYYtracklessEtFilterUnseeded");
+	tracklessModNames.push_back("hltEle15WPYYtracklessEcalIsoFilter");
+	tracklessModNames.push_back("hltEle15WPYYtracklessHEFilter");
+	*/
+	tracklessModNames.push_back("hltEle15WPYYtracklessHcalIsoFilter");
+	double maxDRForMatch = 0.20;
+
+	//GetMatchedTriggerObjects(iEvent, tracklessModNames, somEta, somePhi, dRForMatch);
+	/**/
+
+	//tree->Fill();
+
+	InputTag genParticleTag("genParticles","","SIM");
+	Handle<std::vector<reco::GenParticle> > genPart;
+	iEvent.getByLabel(genParticleTag, genPart);
+
+	//std::cout<<"declared and initialized handle object to reco::GenParticle collection"<<std::endl;
+
+	double gPt=0;
+	double gEta=0;
+	double gPhi=0;
+	double maxPt=0;
+
+	//the last two elements in these vectors represent the leading (last element) and subleading (2nd to last element) GEN electrons
+	std::vector<double> genElectronPTs;
+	std::vector<double> genElectronEtas;
+	std::vector<double> genElectronPhis;
+
+
+	for(std::vector<reco::GenParticle>::const_iterator genIt=genPart->begin(); genIt != genPart->end(); genIt++){
+		if(genIt->pdgId() == 11 || genIt->pdgId() == -11){
+			//std::cout<<"found an electron or positron at GEN level"<<std::endl;
+			gEta = genIt->eta();
+			gPhi = genIt->phi();
+			gPt = genIt->pt();
+			if(maxPt < gPt){
+				maxPt = 0;
+				maxPt += gPt;
+				genElectronPTs.push_back(gPt);
+				genElectronEtas.push_back(gEta);
+				genElectronPhis.push_back(gPhi);
+			}
+		}
+
+	}//end loop over GenParticle
+
+	for(std::vector<reco::GenParticle>::const_iterator genIt=genPart->begin(); genIt != genPart->end(); genIt++){
+		if(genIt->pdgId() == 11 || genIt->pdgId() == -11){
+			if(genIt->pt() > 15.0 && std::fabs(genIt->eta()) >= 2.5 && std::fabs(genIt->eta()) < 3.0 ){
+				incrementEfficiencyDenominator();
+				break;
+			}
+		}
+
+	}//end loop over GenParticle
+
+
+
+	unsigned int length = genElectronPTs.size();
+	bool countedEvent = false;
+	bool oneUntrackedElectron = false;
+	bool twoUntrackedElectrons = false;
+
+
+	//count event if there is an untracked electron with pT > 15.0 GeV
+	//determine the number of untracked EE electrons in the event
+	if(length >= 2){
+		//if the leading pT electron is tracked
+		if( std::fabs(genElectronEtas[length-1]) < 2.5 && genElectronPTs[length-2] > 15.0 && std::fabs(genElectronEtas[length-2]) >= 2.5 && std::fabs(genElectronEtas[length-2]) < 3.0 ){
+			/*(if(!incrementedEffDenom){
+				incrementEfficiencyDenominator();
+				incrementedEffDenom = true;
+			}*/
+			countedEvent = true;
+		}
+
+		//if the leading pT electron is untracked
+		if( std::fabs(genElectronEtas[length-1]) >= 2.5 && std::fabs(genElectronEtas[length-1]) < 3.0 && genElectronPTs[length-1] > 15.0 && !countedEvent){
+			/*(if(!incrementedEffDenom){
+				incrementEfficiencyDenominator();
+				incrementedEffDenom = true;
+			}*/
+		}
+
+		if( std::fabs(genElectronEtas[length-1]) >= 2.5 && std::fabs(genElectronEtas[length-1]) < 3.0 && std::fabs(genElectronEtas[length-2]) >= 2.5 && std::fabs(genElectronEtas[length-2]) < 3.0){
+			oneUntrackedElectron = false;
+			twoUntrackedElectrons = true;
+
+		}
+
+
+		if(!twoUntrackedElectrons && ( (std::fabs(genElectronEtas[length-1]) >= 2.5 && std::fabs(genElectronEtas[length-1]) < 3.0) || (std::fabs(genElectronEtas[length-2]) >= 2.5 && std::fabs(genElectronEtas[length-2]) < 3.0) ) ){
+			oneUntrackedElectron = true;
+			if( std::fabs(genElectronEtas[length-1]) >= 2.5 && std::fabs(genElectronEtas[length-1]) < 3.0 ){
+				fill("GenPt_untrackedEle", genElectronPTs[length-1]);
+				GetMatchedTriggerObjects(iEvent, tracklessModNames, genElectronEtas[length-1], genElectronPhis[length-1], maxDRForMatch);
+			}
+
+			if( std::fabs(genElectronEtas[length-2]) >= 2.5 && std::fabs(genElectronEtas[length-2]) < 3.0 ){
+			   	fill("GenPt_untrackedEle", genElectronPTs[length-2]);
+				GetMatchedTriggerObjects(iEvent, tracklessModNames, genElectronEtas[length-2], genElectronPhis[length-2], maxDRForMatch);
+			}
+
+		}
+
+
+	}
+
+
+	for(std::vector<reco::GenParticle>::const_iterator genIt=genPart->begin(); genIt != genPart->end(); genIt++){
+		if(length < 2) break;
+		if(genIt->pt() == genElectronPTs[length-2]){
+			fill("GenEta_subLeadingEle",genIt->eta() );
+			fill("GenPt_subLeadingEle",genIt->pt() );
+		}
+
+		if(genIt->pt() == genElectronPTs[length-1]){
+			fill("GenEta_leadingEle",genIt->eta() );
+			fill("GenPt_leadingEle",genIt->pt() );
+			//std::cout<<"filled leading electron pT and #eta histos"<<std::endl;
+		}
+
+	}//end loop over GenParticle
+
+	//void set1DBinContents(const std::string histName, int xBin, double content) 
+	//double get1DBinContents(const std::string histName, int xBin) const {
+	
+	//hists_["EventFraction"]=fs->make<TH1D>("EventFraction","Fraction of events with zero, one, and two untracked GEN electrons in EE; ; event fraction",3,0.0,3.0);
+
+	//first bin on the plot is bin # 1!!
+
+	for(int i=1; i<=getXBins("EventFraction"); i++){
+		if( getXBins("EventFraction") < 3) break;	//shouldn't need this, but just in case
+		if(i==1 && !oneUntrackedElectron && !twoUntrackedElectrons ){
+			//increment the 0 untracked electron bin by 1
+			//std::cout<<"0 untracked electrons bin contents equals "<< get1DBinContents("EventFraction",i) <<std::endl;
+			set1DBinContents("EventFraction",i, get1DBinContents("EventFraction",i) + 1.0);
+			//std::cout<<"0 untracked electrons bin contents equals "<< get1DBinContents("EventFraction",i) <<std::endl;
+			break;
+		}
+		
+		if(i==2 && oneUntrackedElectron){
+			//increment the 1 untracked electron bin by 1
+			//std::cout<<"1 untracked electrons bin contents equals "<< get1DBinContents("EventFraction",i) <<std::endl;
+			set1DBinContents("EventFraction",i, get1DBinContents("EventFraction",i) + 1.0);
+			//std::cout<<"1 untracked electrons bin contents equals "<< get1DBinContents("EventFraction",i) <<std::endl;
+			break;
+		}
+		
+		if(i==3 && twoUntrackedElectrons){
+			//increment the 2 untracked electrons bin by 1
+			//std::cout<<"2 untracked electrons bin contents equals "<< get1DBinContents("EventFraction",i) <<std::endl;
+			set1DBinContents("EventFraction",i, get1DBinContents("EventFraction",i) + 1.0);
+			//std::cout<<"2 untracked electrons bin contents equals "<< get1DBinContents("EventFraction",i) <<std::endl;
+			break;
+		}
+
+	}
+
+
 
 #ifdef THIS_IS_AN_EVENT_EXAMPLE
    Handle<ExampleData> pIn;
@@ -661,7 +963,24 @@ doubleEleTracklessAnalyzer::beginJob()
 void 
 doubleEleTracklessAnalyzer::endJob() 
 {
-/*
+	//loop over bins of "EventFraction", divide each bin content by totalNumEvents, then reset the bin content to the old content divided by totalNumEvents
+
+	for(int i=1; i<=getXBins("EventFraction"); i++){
+		if( getXBins("EventFraction") < 3) break;	//shouldn't need this, but just in case
+	
+		std::cout<<"bin # "<< i <<" content equals "<< get1DBinContents("EventFraction",i) <<std::endl;
+		set1DBinContents("EventFraction",i, (get1DBinContents("EventFraction",i)/totalNumEvents) );
+		std::cout<<"bin # "<< i <<" content equals "<< get1DBinContents("EventFraction",i) <<std::endl;
+	
+	}
+
+   std::cout<< "the trackless leg triggered "<< getNumTriggeredEvents() << " events out of "<< getEfficiencyDenominator() << " total events" <<std::endl;
+   set1DBinContents("HLTRecoEff",1, getNumTriggeredEvents()/getEfficiencyDenominator());
+   std::cout<<"RECEta size equals "<< getRECEtaSize() << std::endl;
+
+
+
+	/*
   //save the tree into the file
   tree_file->cd();
   tree->Write();

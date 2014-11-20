@@ -4869,7 +4869,6 @@ process.HLTPFClusteringForEgammaUnseeded
 + process.hltEgammaNoTrackerNCandidatesFilter 
 )
 
-#process.HLTriggerFinalPath = cms.Path( process.hltGtDigis + process.hltScalersRawToDigi + process.hltFEDSelector + process.hltTriggerSummaryAOD + process.hltTriggerSummaryRAW )
 process.HLTriggerFirstPath = cms.Path( process.hltGetConditions + process.hltGetRaw + process.hltBoolFalse )
 process.AlCa_EcalPhiSym_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ZeroBias + process.hltPreAlCaEcalPhiSym + process.HLTDoFullUnpackingEgammaEcalWithoutPreshowerSequence + process.hltAlCaPhiSymStream + process.hltAlCaPhiSymUncalibrator + process.HLTEndSequence )
 
@@ -4889,40 +4888,40 @@ process.source = cms.Source( "PoolSource",
     fileNames = cms.untracked.vstring(
         'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00000/063C87E4-476B-E311-9697-00259081A2C8.root',
         'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00000/14FB9BF8-476B-E311-960B-00266CF33288.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00000/4C6900EE-476B-E311-814B-0025907FD424.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00000/5004FCE4-476B-E311-B8C4-0025904B12E0.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00000/5EC17FE6-476B-E311-AD6F-002481E0DE08.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00000/C0A353E2-476B-E311-A6BD-003048C662B8.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00000/CCD29CE5-476B-E311-B13C-0025901D4C98.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/020E9D22-906A-E311-B197-0025904B1026.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/0ABEC1CA-926A-E311-9738-003048CF6336.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/0C74E7F3-9A6A-E311-B623-003048C68A9E.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/0CD1FD1E-936A-E311-8CD7-002481E0DDE8.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/20B114A6-976A-E311-A36F-00266CF32920.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/2253BE99-926A-E311-A772-0025904B1452.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/248F240B-A06A-E311-AB5E-00266CFFA658.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/2C812D22-906A-E311-938C-00266CF33318.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/2ED7B1B6-976A-E311-8D57-0025901D4844.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/3001A6F5-976A-E311-93FB-002590494C74.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/30E7A00C-A06A-E311-80F5-003048F0E838.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/32659618-976A-E311-BFCA-0025907FD430.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/3C479EE9-9A6A-E311-A9A0-0025904B578E.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/466E65CC-976A-E311-B21C-0025901D4940.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/48F7D01B-936A-E311-8951-00266CF32EAC.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/5054513C-976A-E311-BC25-002590A52B4A.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/52240E0E-A06A-E311-9272-0025907DC9D0.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/54628020-906A-E311-AD59-00266CFFA044.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/566DC8A4-A26A-E311-830C-0025907FD424.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/56D94AF3-976A-E311-8428-003048D4DFA4.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/5E8D9D35-976A-E311-9208-002481E0DDBE.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/66754D94-B16A-E311-8860-002481E0D12C.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/6C53E40E-8A6A-E311-B6B6-003048F02CBA.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/701816E5-9A6A-E311-9148-003048D2BB22.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/807FA2BA-8F6A-E311-BC00-0025907DC9F2.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/8475E1B0-976A-E311-B8E5-003048F0EBB8.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/92370B28-906A-E311-B4E4-003048C693BC.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/967000D7-9A6A-E311-8B2D-002590A2CDA8.root',
-        #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/96AFE75E-976A-E311-9B18-003048D3C7BC.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00000/4C6900EE-476B-E311-814B-0025907FD424.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00000/5004FCE4-476B-E311-B8C4-0025904B12E0.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00000/5EC17FE6-476B-E311-AD6F-002481E0DE08.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00000/C0A353E2-476B-E311-A6BD-003048C662B8.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00000/CCD29CE5-476B-E311-B13C-0025901D4C98.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/020E9D22-906A-E311-B197-0025904B1026.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/0ABEC1CA-926A-E311-9738-003048CF6336.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/0C74E7F3-9A6A-E311-B623-003048C68A9E.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/0CD1FD1E-936A-E311-8CD7-002481E0DDE8.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/20B114A6-976A-E311-A36F-00266CF32920.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/2253BE99-926A-E311-A772-0025904B1452.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/248F240B-A06A-E311-AB5E-00266CFFA658.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/2C812D22-906A-E311-938C-00266CF33318.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/2ED7B1B6-976A-E311-8D57-0025901D4844.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/3001A6F5-976A-E311-93FB-002590494C74.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/30E7A00C-A06A-E311-80F5-003048F0E838.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/32659618-976A-E311-BFCA-0025907FD430.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/3C479EE9-9A6A-E311-A9A0-0025904B578E.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/466E65CC-976A-E311-B21C-0025901D4940.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/48F7D01B-936A-E311-8951-00266CF32EAC.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/5054513C-976A-E311-BC25-002590A52B4A.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/52240E0E-A06A-E311-9272-0025907DC9D0.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/54628020-906A-E311-AD59-00266CFFA044.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/566DC8A4-A26A-E311-830C-0025907FD424.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/56D94AF3-976A-E311-8428-003048D4DFA4.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/5E8D9D35-976A-E311-9208-002481E0DDBE.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/66754D94-B16A-E311-8860-002481E0D12C.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/6C53E40E-8A6A-E311-B6B6-003048F02CBA.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/701816E5-9A6A-E311-9148-003048D2BB22.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/807FA2BA-8F6A-E311-BC00-0025907DC9F2.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/8475E1B0-976A-E311-B8E5-003048F0EBB8.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/92370B28-906A-E311-B4E4-003048C693BC.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/967000D7-9A6A-E311-8B2D-002590A2CDA8.root',
+        'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/96AFE75E-976A-E311-9B18-003048D3C7BC.root',
         #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/9CAA21A6-926A-E311-85A0-00266CF2AE10.root',
         #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/B44D8DBB-976A-E311-81E4-002481E0DDBE.root',
         #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/20000/BC755EA1-926A-E311-8E73-002481E0D144.root',
@@ -5027,10 +5026,10 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 #this is a standalone module to save the output from cmsRun hlt_tracklessDoubleElectron.py into a .root file
 #This .root file can then be analyzed by the trigger optimization script
 process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
-    fileName = cms.untracked.string( "outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_AOD_100evts.root" ),
+    fileName = cms.untracked.string( "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_10000evts.root" ),
     fastCloning = cms.untracked.bool( False ),
     dataset = cms.untracked.PSet(
-        dataTier = cms.untracked.string( 'AOD' ),
+        dataTier = cms.untracked.string( 'RECO' ),
         filterName = cms.untracked.string( '' )
     ),
     outputCommands = cms.untracked.vstring( 'keep *' )
@@ -5040,7 +5039,7 @@ process.FULLOutput = cms.EndPath( process.hltOutputFULL )
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(10000)
 )
 
 # enable the TrigReport and TimeReport
@@ -5070,8 +5069,9 @@ if 'MessageLogger' in process.__dict__:
 process.load( "DQMServices.Core.DQMStore_cfi" )
 process.DQMStore.enableMultiThread = True
 
+
 process.dqmOutput = cms.OutputModule("DQMRootOutputModule",
-    fileName = cms.untracked.string("DQMIO_DYtoEE_13TeV_40PU_25ns_100evts.root")
+    fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/DQMIO_DYtoEE_13TeV_40PU_25ns_10000evts.root")
 )
 
 process.DQMOutput = cms.EndPath( process.dqmOutput )
