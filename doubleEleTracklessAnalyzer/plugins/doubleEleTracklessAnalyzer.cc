@@ -562,14 +562,14 @@ void GetMatchedTriggerObjects(
 
 	for (auto& trig_name : trig_names) {
 		//loop over the different filter modules that appear in the HLT path.  The names of these modules are specified in the input vector<std::string> called trig_names.
-		std::cout<<"looking at trigger module named "<< trig_name <<std::endl; 
+		//std::cout<<"looking at trigger module named "<< trig_name <<std::endl; 
 		edm::InputTag filter_tag(trig_name, "", "TEST");
 
 		trigger::size_type filter_index = trig_event->filterIndex(filter_tag);
 		
 		if(filter_index < trig_event->size()) { //Check that at least one object in the event passed the filter corresponding to filter_index 
-			std::cout<<"at least one object in the event passed filter number "<< filter_index << std::endl;
-			std::cout<<"the name of this filter module is "<< trig_name << std::endl;
+			//std::cout<<"at least one object in the event passed filter number "<< filter_index << std::endl;
+			//std::cout<<"the name of this filter module is "<< trig_name << std::endl;
 
 			for(int i=0; i<=100; i++){
 				//loop over all possible photon ids (integer values)
@@ -581,7 +581,7 @@ void GetMatchedTriggerObjects(
 
 				//this fills the vector of RecoEcalCandidate references named tracklessEleRefs with pointers to real RecoEcalCandidate objects
 				trig_event->getObjects(filter_index, i, tracklessEleRefs);
-				std::cout<<"when photonId equals "<< i <<" there are "<< tracklessEleRefs.size() <<" different references to RecoEcalCandidate objects"<<std::endl; 
+				//std::cout<<"when photonId equals "<< i <<" there are "<< tracklessEleRefs.size() <<" different references to RecoEcalCandidate objects"<<std::endl; 
 
 				//now loop over all objects which passed  
 				for(unsigned int j=0; j<tracklessEleRefs.size() ; j++){
@@ -612,12 +612,12 @@ void GetMatchedTriggerObjects(
 					}//end loop over edm::Handle objects to collections tied to untracked electron candidates
 					
 					//eta and pT cut on trackless candidate, and dilepton mass cut on tracked+untracked electon candidates will be added later
-					std::cout<<" "<<std::endl;
-					std::cout<<"found a trackless electron candidate with "<<std::endl;
+					//std::cout<<" "<<std::endl;
+					//std::cout<<"found a trackless electron candidate with "<<std::endl;
 					for(unsigned int w=0; w<untrackedEleParamNames.size() ;w++){
-						std::cout<< untrackedEleParamNames[w] <<" equal to "<< untrackedEleParams[w] <<std::endl;
+						//std::cout<< untrackedEleParamNames[w] <<" equal to "<< untrackedEleParams[w] <<std::endl;
 					}
-					std::cout<<" "<<std::endl;
+					//std::cout<<" "<<std::endl;
 
 					if(filter_index == 7){
 						//filter_index = 7 corresponds to HCAL iso
@@ -664,6 +664,41 @@ void GetMatchedTriggerObjects(
 	}//end loop over trigger module names
 
 }//end GetMatchedTriggerObjects() 
+
+unsigned int addToPtSortedVector(std::vector<double>& genElePts,double& genPT){
+ 	//add the double value named genPT to the vector genElePts such that the first element in genElePts is the smallest element in the vector, and
+ 	//the last element in genElePts is the largest element in the vector
+	//return the element # where genPT is placed
+	unsigned int vectorSize = genElePts.size();
+
+	if(genElePts.size() < 1){
+	   //if genElePts is empty when it is passed to this function
+	   genElePts.push_back(genPT);
+	   return 0;
+ 	}
+
+	//if vectorSize >= 1, then loop over all elements of the genElePts vector, insert genPT such that genElePts remains pT sorted, and
+	//return the index where genPT was added.  This index will be used by the vectors which store gen electron eta and phi.
+	unsigned int i=0;
+	for(std::vector<double>::iterator iT = genElePts.begin(); iT != genElePts.end() ; iT++){
+		if(genPT< *iT){
+			genElePts.insert(iT, genPT);
+			return i;
+		}
+
+		//if genPT is > any element currently in genElePts
+		if(i == (vectorSize -1) ){
+			genElePts.push_back(genPT);
+			return (i+1);
+		}
+
+		i++;	//if genPT is not less than the current element pointed to by the iterator iT, then increase i by one and keep looking for the appropriate place to insert genPT
+
+	}//end for loop
+
+	return 0;
+
+}	
 
 double totalNumEvents;	//total number of events which are analyzed, no requirement on either GEN electron
 
@@ -718,7 +753,7 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
    hists_["GenPt_leadingEle"]=fs->make<TH1D>("GenPt_leadingEle","P_{T} of leading generator electron; electron p_{T} (GeV);",300,0.0,100.0);
    hists_["GenPt_subLeadingEle"]=fs->make<TH1D>("GenPt_subLeadingEle","P_{T} of sub-leading generator electron; electron p_{T} (GeV);",300,0.0,100.0);
 
-   hists_["GenPt_untrackedEle"]=fs->make<TH1D>("GenPt_untrackedEle","P_{T} of untracked generator electron in EB+EE events; untracked electron p_{T} (GeV);",300,0.0,100.0);
+   hists_["GenPt_untrackedEle"]=fs->make<TH1D>("GenPt_untrackedEle","P_{T} of untracked generator electron in events with one tracked electron and one untracked electron ; untracked electron p_{T} (GeV);",300,0.0,100.0);
 
 
    hists_["EventFraction"]=fs->make<TH1D>("EventFraction","Fraction of events with zero, one, and two untracked GEN electrons in EE; ; event fraction",3,0.0,3.0);
@@ -727,8 +762,7 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
 
 
 
-   //THESE two declarations are here just for reference
-   //hists_["All_PFRecHit_z"]=fs->make<TH1D>("All_PFRecHit_z","Z position of all HGC PFRecHits ; distance from IP (cm);",500,310.,560.);  //this histo is made to show the Z distance between each sensitive layer of HGC (Si or scintillator) 
+   //THIS declaration is here for reference
 
    //histsThree_["PFClusterSum_HCALovrECAL_gen_eta_energy"]=fs->make<TH3D>("PFClusterSum_HCALovrECAL_gen_eta_energy","Reco E_HCAL/E_ECAL for Pi+ vs gen Pi+ energy and eta", 100, 0., 210., 15, 1.55, 3.0, 30, 0., 15.);
 
@@ -786,45 +820,74 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	double gPt=0;
 	double gEta=0;
 	double gPhi=0;
-	double maxPt=0;
 
 	//the last two elements in these vectors represent the leading (last element) and subleading (2nd to last element) GEN electrons
 	std::vector<double> genElectronPTs;
 	std::vector<double> genElectronEtas;
 	std::vector<double> genElectronPhis;
 
+	for(int i=0; i<100 ;i++){
+		//there should be no events with 100 gen level electrons and positrons
+		genElectronEtas.push_back(0.0);
+		genElectronPhis.push_back(0.0);
+	}
+
 
 	for(std::vector<reco::GenParticle>::const_iterator genIt=genPart->begin(); genIt != genPart->end(); genIt++){
-		if(genIt->pdgId() == 11 || genIt->pdgId() == -11){
-			//std::cout<<"found an electron or positron at GEN level"<<std::endl;
+
+		bool isZDecay = false;
+
+		if( genIt->numberOfMothers() > 0 && std::fabs(genIt->pdgId()) == 11 ){
+			for (unsigned int a=0; !isZDecay && a< (genIt->numberOfMothers()) ; a++) {
+				if ( std::fabs((genIt->mother(a))->pdgId()) == 23 ) {
+					isZDecay = true;
+				}
+			}//end loop over all mothers of the GenParticle electron or positron
+
+		}
+
+		if(isZDecay){
 			gEta = genIt->eta();
 			gPhi = genIt->phi();
 			gPt = genIt->pt();
-			if(maxPt < gPt){
-				maxPt = 0;
-				maxPt += gPt;
-				genElectronPTs.push_back(gPt);
-				genElectronEtas.push_back(gEta);
-				genElectronPhis.push_back(gPhi);
-			}
-		}
+			unsigned int index = addToPtSortedVector(genElectronPTs,gPt);
+			genElectronEtas[index] = gEta;
+			genElectronPhis[index] = gPhi;
+			//if(std::fabs(gEta) >= 2.5 && std::fabs(gEta) < 3.0 && gPt > 15.0) std::cout<<"found a trackless EE lepton"<<std::endl;
+			//if(std::fabs(gEta) < 2.5 && gPt > 27.0) std::cout<<"found a tracked lepton"<<std::endl;
+
+
+		}//end filter which saves kinematic info for GEN electrons and positrons which came from a Z decay 
 
 	}//end loop over GenParticle
 
+	bool haveTracklessEleCand = false;
 	for(std::vector<reco::GenParticle>::const_iterator genIt=genPart->begin(); genIt != genPart->end(); genIt++){
-		if(genIt->pdgId() == 11 || genIt->pdgId() == -11){
+		if( std::fabs(genIt->pdgId()) == 11 ){
 			if(genIt->pt() > 15.0 && std::fabs(genIt->eta()) >= 2.5 && std::fabs(genIt->eta()) < 3.0 ){
+				haveTracklessEleCand = true;
+				break;
+			}
+		}
+
+	}//end loop over GenParticle, looking for trackless electron at GEN lvl
+
+	/**/
+	for(std::vector<reco::GenParticle>::const_iterator genIt=genPart->begin(); genIt != genPart->end(); genIt++){
+		if( std::fabs(genIt->pdgId()) == 11 ){
+			if(genIt->pt() > 27.0 && std::fabs(genIt->eta()) < 2.5 && haveTracklessEleCand){
 				incrementEfficiencyDenominator();
 				break;
 			}
 		}
 
-	}//end loop over GenParticle
+	}//end loop over GenParticle, looking for tracked electron at GEN lvl
+
+	/**/
 
 
-
+	//DON'T USE the size of the genElectronEtas or genElectronPhis vectors
 	unsigned int length = genElectronPTs.size();
-	bool countedEvent = false;
 	bool oneUntrackedElectron = false;
 	bool twoUntrackedElectrons = false;
 
@@ -832,25 +895,10 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	//count event if there is an untracked electron with pT > 15.0 GeV
 	//determine the number of untracked EE electrons in the event
 	if(length >= 2){
-		//if the leading pT electron is tracked
-		if( std::fabs(genElectronEtas[length-1]) < 2.5 && genElectronPTs[length-2] > 15.0 && std::fabs(genElectronEtas[length-2]) >= 2.5 && std::fabs(genElectronEtas[length-2]) < 3.0 ){
-			/*(if(!incrementedEffDenom){
-				incrementEfficiencyDenominator();
-				incrementedEffDenom = true;
-			}*/
-			countedEvent = true;
-		}
-
-		//if the leading pT electron is untracked
-		if( std::fabs(genElectronEtas[length-1]) >= 2.5 && std::fabs(genElectronEtas[length-1]) < 3.0 && genElectronPTs[length-1] > 15.0 && !countedEvent){
-			/*(if(!incrementedEffDenom){
-				incrementEfficiencyDenominator();
-				incrementedEffDenom = true;
-			}*/
-		}
+		//std::cout<<"leading electron has eta of "<< genElectronEtas[length-1] << std::endl;
+		//std::cout<<"sub-leading electron has eta of "<< genElectronEtas[length-2] << std::endl;
 
 		if( std::fabs(genElectronEtas[length-1]) >= 2.5 && std::fabs(genElectronEtas[length-1]) < 3.0 && std::fabs(genElectronEtas[length-2]) >= 2.5 && std::fabs(genElectronEtas[length-2]) < 3.0){
-			oneUntrackedElectron = false;
 			twoUntrackedElectrons = true;
 
 		}
@@ -884,41 +932,26 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 		if(genIt->pt() == genElectronPTs[length-1]){
 			fill("GenEta_leadingEle",genIt->eta() );
 			fill("GenPt_leadingEle",genIt->pt() );
-			//std::cout<<"filled leading electron pT and #eta histos"<<std::endl;
 		}
 
 	}//end loop over GenParticle
-
-	//void set1DBinContents(const std::string histName, int xBin, double content) 
-	//double get1DBinContents(const std::string histName, int xBin) const {
-	
-	//hists_["EventFraction"]=fs->make<TH1D>("EventFraction","Fraction of events with zero, one, and two untracked GEN electrons in EE; ; event fraction",3,0.0,3.0);
 
 	//first bin on the plot is bin # 1!!
 
 	for(int i=1; i<=getXBins("EventFraction"); i++){
 		if( getXBins("EventFraction") < 3) break;	//shouldn't need this, but just in case
 		if(i==1 && !oneUntrackedElectron && !twoUntrackedElectrons ){
-			//increment the 0 untracked electron bin by 1
-			//std::cout<<"0 untracked electrons bin contents equals "<< get1DBinContents("EventFraction",i) <<std::endl;
 			set1DBinContents("EventFraction",i, get1DBinContents("EventFraction",i) + 1.0);
-			//std::cout<<"0 untracked electrons bin contents equals "<< get1DBinContents("EventFraction",i) <<std::endl;
 			break;
 		}
 		
 		if(i==2 && oneUntrackedElectron){
-			//increment the 1 untracked electron bin by 1
-			//std::cout<<"1 untracked electrons bin contents equals "<< get1DBinContents("EventFraction",i) <<std::endl;
 			set1DBinContents("EventFraction",i, get1DBinContents("EventFraction",i) + 1.0);
-			//std::cout<<"1 untracked electrons bin contents equals "<< get1DBinContents("EventFraction",i) <<std::endl;
 			break;
 		}
 		
 		if(i==3 && twoUntrackedElectrons){
-			//increment the 2 untracked electrons bin by 1
-			//std::cout<<"2 untracked electrons bin contents equals "<< get1DBinContents("EventFraction",i) <<std::endl;
 			set1DBinContents("EventFraction",i, get1DBinContents("EventFraction",i) + 1.0);
-			//std::cout<<"2 untracked electrons bin contents equals "<< get1DBinContents("EventFraction",i) <<std::endl;
 			break;
 		}
 
