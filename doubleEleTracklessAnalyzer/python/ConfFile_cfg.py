@@ -4,7 +4,7 @@ process = cms.Process("Demo")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
@@ -39,7 +39,7 @@ process.source = cms.Source("PoolSource",
 )
 
 process.demo = cms.EDAnalyzer('doubleEleTracklessAnalyzer',
-    foutName = cms.untracked.string("testTreeFile.root")
+    #foutName = cms.untracked.string("testTreeFile.root")
 )
 
 process.TFileService = cms.Service("TFileService",

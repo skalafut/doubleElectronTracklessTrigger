@@ -720,6 +720,7 @@ void resetCounters(){
 	gen_l2_eta_=999;	//eta of subleading gen electron
 	gen_trackless_pT_=-9;	//pT of gen electron in trackless EE
 	gen_trackless_eta_=999;	//eta of gen electron in trackless EE
+	genTriggeredEvent_ = -1; 
 
 	matched_pT_=-9;
 	matched_eta_=999;
@@ -728,7 +729,6 @@ void resetCounters(){
 	matched_hOverE_=999;
 	matched_ecalClusterShape_=999;
 	matched_ecalClusterShape_SigmaIEtaIEta_=999;
-
 
 }
 
@@ -768,6 +768,7 @@ double gen_l2_pT_;	//pT of subleading gen electron
 double gen_l2_eta_;	//eta of subleading gen electron
 double gen_trackless_pT_;	//pT of gen electron in trackless EE
 double gen_trackless_eta_;	//eta of gen electron in trackless EE
+double genTriggeredEvent_;	// equals +1 for events which should have fired trackless leg of trigger based on GEN lvl info, equals -1 otherwise
 
 //variables corresponding to matched HLT object in trackless EE which will go into TTree
 double matched_pT_;
@@ -833,6 +834,8 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
    tree->Branch("gen_l1_eta_",&gen_l1_eta_,"gen_l1_eta_/D");
    tree->Branch("gen_trackless_eta_",&gen_trackless_eta_,"gen_trackless_eta_/D");
    tree->Branch("gen_trackless_pT_",&gen_trackless_pT_,"gen_trackless_pT_/D");
+   tree->Branch("genTriggeredEvent_",&genTriggeredEvent_,"genTriggeredEvent_/D");
+
    tree->Branch("matched_pT_",&matched_pT_,"matched_pT_/D");
    tree->Branch("matched_eta_",&matched_eta_,"matched_eta_/D");
    tree->Branch("matched_ecalIso_",&matched_ecalIso_,"matched_ecalIso_/D");
@@ -881,11 +884,6 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	*/
 	tracklessModNames.push_back("hltEle15WPYYtracklessHcalIsoFilter");
 	double maxDRForMatch = 0.20;
-
-	//GetMatchedTriggerObjects(iEvent, tracklessModNames, somEta, somePhi, dRForMatch);
-	/**/
-
-	//tree->Fill();
 
 	InputTag genParticleTag("genParticles","","SIM");
 	Handle<std::vector<reco::GenParticle> > genPart;
@@ -968,13 +966,13 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 		if( std::fabs(genIt->pdgId()) == 11 ){
 			if(genIt->pt() > 27.0 && std::fabs(genIt->eta()) < 2.5 && haveTracklessEleCand){
 				incrementEfficiencyDenominator();
+				genTriggeredEvent_ = 1.0;
 				break;
 			}
 		}
 
 	}//end loop over GenParticle, looking for tracked electron at GEN lvl
 
-	/**/
 
 
 	//DON'T USE the size of the genElectronEtas or genElectronPhis vectors
