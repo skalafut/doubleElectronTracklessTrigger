@@ -626,6 +626,7 @@ void GetMatchedTriggerObjects(
 					if(filter_index == 7){
 						//filter_index = 7 corresponds to HCAL iso
 						if( std::fabs(tracklessEleRefs[j]->eta()) >= 2.5 && std::fabs(tracklessEleRefs[j]->eta()) < 3.0 ){
+							numUnmatchedCandidates_ += 1.0;
 							if(deltaR(eta, phi, tracklessEleRefs[j]->eta(), tracklessEleRefs[j]->phi() )  <= dRForMatch && !incrementedTriggeredEvents){
 								//if the REC is matched to a gen electron in the trackless EE region
 								//then write the calo iso, H/E, and cluster shape info associated with the REC into vectors
@@ -729,6 +730,7 @@ void resetCounters(){
 	matched_hOverE_=999;
 	matched_ecalClusterShape_=999;
 	matched_ecalClusterShape_SigmaIEtaIEta_=999;
+	numUnmatchedCandidates_=0;
 
 }
 
@@ -778,7 +780,7 @@ double matched_hcalIso_;
 double matched_hOverE_;
 double matched_ecalClusterShape_;
 double matched_ecalClusterShape_SigmaIEtaIEta_;
-
+double numUnmatchedCandidates_;
 
 };
 
@@ -843,6 +845,7 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
    tree->Branch("matched_ecalClusterShape_",&matched_ecalClusterShape_,"matched_ecalClusterShape_/D");
    tree->Branch("matched_ecalClusterShape_SigmaIEtaIEta_",&matched_ecalClusterShape_SigmaIEtaIEta_,"matched_ecalClusterShape_SigmaIEtaIEta_/D");
    tree->Branch("matched_hOverE_",&matched_hOverE_,"matched_hOverE_/D");
+   tree->Branch("numUnmatchedCandidates_",&numUnmatchedCandidates_,"numUnmatchedCandidates_/D");
 
 }
 
@@ -950,6 +953,10 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
 	}//end loop over GenParticle
 
+	//NOTE
+	//right now (December 13 2014) the way I am incrementing genTriggeredEvent_ DOES NOT require that the two gen electrons
+	//come from the decay of a Z boson
+	//this will need to be updated 
 	bool haveTracklessEleCand = false;
 	for(std::vector<reco::GenParticle>::const_iterator genIt=genPart->begin(); genIt != genPart->end(); genIt++){
 		if( std::fabs(genIt->pdgId()) == 11 ){

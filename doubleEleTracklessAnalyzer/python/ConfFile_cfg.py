@@ -43,7 +43,7 @@ process.demo = cms.EDAnalyzer('doubleEleTracklessAnalyzer',
 )
 
 process.TFileService = cms.Service("TFileService",
-	fileName = cms.string('analyzedTest.root')
+	fileName = cms.string('signal.root')
 	#fileName = cms.string('/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/analyzedAllTracklessEvents.root')
 	
 )
