@@ -23,4 +23,5 @@ cmsRun python/ConfFile_cfg.py
 Step 3 is accomplished by executing:
 
 root -l
+
 TPython::LoadMacro("trigOptimization.py");
