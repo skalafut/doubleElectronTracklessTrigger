@@ -4,7 +4,7 @@ process = cms.Process("Demo")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
@@ -43,8 +43,7 @@ process.demo = cms.EDAnalyzer('doubleEleTracklessAnalyzer',
 )
 
 process.TFileService = cms.Service("TFileService",
-	fileName = cms.string('signal.root')
-	#fileName = cms.string('/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/analyzedAllTracklessEvents.root')
+	fileName = cms.string('test_signal.root')
 	
 )
 
