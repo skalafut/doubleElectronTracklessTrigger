@@ -130,74 +130,6 @@ class doubleEleTracklessAnalyzer : public edm::EDAnalyzer {
 		  return efficiencyDenominator;
 	  }
 
-	  /*
-	  void addRECEta(double eta){
-		  RECEta.push_back(eta);
-	  }
-	  double getRECEta(unsigned int t){
-		  if(RECEta.size() > t) return RECEta[t];
-		  return 0;
-	  }
-
-	  void addRECPt(double pt){
-		  RECPt.push_back(pt);
-	  }
-	  double getRECPt(unsigned int t){
-		  if(RECPt.size() > t) return RECPt[t];
-		  return 0;
-	  }
-
-
-	  void addRECHcalIso(double hcalIso){
-		  RECHcalIso.push_back(hcalIso);
-	  }
-	  double getRECHcalIso(unsigned int t){
-		  if(RECHcalIso.size() > t) return RECHcalIso[t];
-		  return 0;
-	  }
-
-
-	  void addRECEcalIso(double ecalIso){
-		  RECEcalIso.push_back(ecalIso);
-	  }
-	  double getRECEcalIso(unsigned int t){
-		  if(RECEcalIso.size() > t) return RECEcalIso[t];
-		  return 0;
-	  }
-
-
-	  void addRECHoverE(double HoE){
-		  RECHoverE.push_back(HoE);
-	  }
-	  double getRECHoverE(unsigned int t){
-		  if(RECHoverE.size() > t) return RECHoverE[t];
-		  return 0;
-	  }
-
-
-	  void addRECEcalClusterShape(double clstShape){
-		  RECEcalClusterShape.push_back(clstShape);
-	  }
-	  double getRECEcalClusterShape(unsigned int t){
-		  if(RECEcalClusterShape.size() > t) return RECEcalClusterShape[t];
-		  return 0;
-	  }
-
-
-	  void addRECEcalClusterShape_SigmaIEtaIEta(double sigmaIEta){
-		  RECEcalClusterShape_SigmaIEtaIEta.push_back(sigmaIEta);
-	  }
-	  double getRECEcalClusterShape_SigmaIEtaIEta(unsigned int t){
-		  if(RECEcalClusterShape_SigmaIEtaIEta.size() > t) return RECEcalClusterShape_SigmaIEtaIEta[t];
-		  return 0;
-	  }
-
-	  unsigned int getRECEtaSize(){
-		  return RECEta.size();
-	  }
-	  */
-
-
 
    //private:
 	  //TFile *tree_file;
@@ -456,12 +388,71 @@ void GetMatchedTriggerObjects(
 	/*
 	 * Find all trigger objects that match a vector of trigger names and
 	 * are within some minimum dR of a specified eta and phi.
+	 * also see if there is a gen electron in the event with pT > 10 GeV that is heading into trackless EE
 	 */
 	// If our vector is empty or the first item is blank
 	if (trig_names.size() == 0 || trig_names[0].size() == 0) {
 		return;
 	}
 	bool incrementedTriggeredEvents = false;
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//check for a gen electron heading into trackless EE with pT > 15 GeV
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	edm::InputTag genParticleTag("genParticles","","SIM");
+	edm::Handle<std::vector<reco::GenParticle> > genPart;
+	iEvent.getByLabel(genParticleTag, genPart);
+
+	double gPt=0;
+	double gEta=0;
+	double gPhi=0;
+
+	//the last two elements in these vectors represent the leading (last element) and subleading (2nd to last element) GEN electrons
+	std::vector<double> genElectronPTs;
+	std::vector<double> genElectronEtas;
+	std::vector<double> genElectronPhis;
+
+	for(int i=0; i<100 ;i++){
+		//there should be no events with 100 gen level electrons and positrons
+		genElectronEtas.push_back(0.0);
+		genElectronPhis.push_back(0.0);
+	}
+
+
+	bool skipDoubleEEEvts = false;
+	for(std::vector<reco::GenParticle>::const_iterator genIt=genPart->begin(); genIt != genPart->end(); genIt++){
+
+		//it seems each of the gen electrons and positrons only have 1 mother
+		if( std::fabs(genIt->pdgId()) == 11 && std::fabs(genIt->mother(0)->pdgId() ) == 23 ){
+			gEta = genIt->eta();
+			gPhi = genIt->phi();
+			gPt = genIt->pt();
+			unsigned int index = addToPtSortedVector(genElectronPTs,gPt);
+			genElectronEtas[index] = gEta;	//this guarantees that element #i in genElectronEtas and genElectronPTs correspond to the same gen electron
+			genElectronPhis[index] = gPhi;
+			if(std::fabs(gEta) >= 2.4 && std::fabs(gEta) < 3.0 && gPt > 1.0 && !skipDoubleEEEvts){
+				std::cout<<"found a trackless EE electron"<<std::endl;
+				gen_trackless_pT_ = gPt;
+				gen_trackless_eta_ = gEta;
+				genTriggeredEvent_ = 1;
+				skipDoubleEEEvts = true;
+
+			}
+			//if(std::fabs(gEta) < 2.5 && gPt > 27.0) std::cout<<"found a tracked lepton"<<std::endl;
+
+
+		}//end filter which saves kinematic info for GEN electrons and positrons which came from a Z decay 
+
+	}//end loop over GenParticle
+
+	*/
+
+	//end work with gen particles
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//begin work with trigger objects
+	
 
 	// Load Trigger Event with references to objects 
 	edm::InputTag hltTrigInfoTag("hltTriggerSummaryRAW","","TEST");
@@ -616,7 +607,7 @@ void GetMatchedTriggerObjects(
 
 					if(filter_index == 7){
 						//filter_index = 7 corresponds to HCAL iso
-						if( std::fabs(tracklessEleRefs[j]->eta()) >= 2.5 && std::fabs(tracklessEleRefs[j]->eta()) < 3.0 ){
+						if( std::fabs(tracklessEleRefs[j]->eta()) >= 2.4 && std::fabs(tracklessEleRefs[j]->eta()) < 3.0 ){
 							numUnmatchedCandidates_ += 1.0;
 							if(deltaR(eta, phi, tracklessEleRefs[j]->eta(), tracklessEleRefs[j]->phi() )  <= dRForMatch && !incrementedTriggeredEvents){
 								//if the REC is matched to a gen electron in the trackless EE region
@@ -642,7 +633,8 @@ void GetMatchedTriggerObjects(
 								incrementNumTriggeredEvents();
 								incrementedTriggeredEvents = true;	//guarantees numTriggeredEvents only gets incremented by at most once per iEvent object
 								std::cout<<"numTriggeredEvents equals "<< getNumTriggeredEvents() <<std::endl;
-						
+								//if(genTriggeredEvent_ ==1) consistentGenAndHLTEvent_ = 1;
+								//std::cout<<"consistentGenAndHLTEvent_ equals "<< consistentGenAndHLTEvent_ << std::endl;
 
 							}//end deltaR matching filter and incrementedTriggeredEvents filter
 
@@ -697,15 +689,17 @@ unsigned int addToPtSortedVector(std::vector<double>& genElePts,double& genPT){
 
 void resetCounters(){
 	//reset all of the private member vars which are saved to TTree to zero
-	gen_l1_pT_=-9;	//pT of leading gen electron
-	gen_l1_eta_=999;	//eta of leading gen electron
-	gen_l2_pT_=-9;	//pT of subleading gen electron
-	gen_l2_eta_=999;	//eta of subleading gen electron
-	gen_trackless_pT_=-9;	//pT of gen electron in trackless EE
-	gen_trackless_eta_=999;	//eta of gen electron in trackless EE
+	gen_l1_pT_=-1;	//pT of leading gen electron
+	gen_l1_eta_=-7;	//eta of leading gen electron
+	gen_l2_pT_=-1;	//pT of subleading gen electron
+	gen_l2_eta_=-7;	//eta of subleading gen electron
+	gen_trackless_pT_=-1;	//pT of gen electron in trackless EE
+	gen_trackless_eta_=-7;	//eta of gen electron in trackless EE
 	genTriggeredEvent_ = -1; 
+	consistentGenAndHLTEvent_ = -1;
+	numGenLeptonsFromZ_ = 0;
 
-	matched_pT_=-9;
+	matched_pT_=-1;
 	matched_eta_=999;
 	matched_ecalIso_=999;
 	matched_hcalIso_=999;
@@ -746,6 +740,7 @@ double efficiencyDenominator=0;	//total number of events where there is one GEN 
 TTree * tree;
 
 //gen lepton variables going into TTree
+double numGenLeptonsFromZ_;		//number of generator e- or e+ which have Z boson mothers
 double gen_l1_pT_;	//pT of leading gen electron
 double gen_l1_eta_;	//eta of leading gen electron
 double gen_l2_pT_;	//pT of subleading gen electron
@@ -753,6 +748,7 @@ double gen_l2_eta_;	//eta of subleading gen electron
 double gen_trackless_pT_;	//pT of gen electron in trackless EE
 double gen_trackless_eta_;	//eta of gen electron in trackless EE
 double genTriggeredEvent_;	// equals +1 for events which should have fired trackless and tracked legs of trigger based on GEN lvl info, equals -1 otherwise
+double consistentGenAndHLTEvent_;	//equals +1 when GEN info is consistent with HLT firing, equals -1 otherwise
 
 //variables corresponding to matched HLT object in trackless EE which will go into TTree
 double matched_pT_;
@@ -813,8 +809,9 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
    //histsThree_["PFClusterSum_HCALovrECAL_gen_eta_energy"]=fs->make<TH3D>("PFClusterSum_HCALovrECAL_gen_eta_energy","Reco E_HCAL/E_ECAL for Pi+ vs gen Pi+ energy and eta", 100, 0., 210., 15, 1.55, 3.0, 30, 0., 15.);
 
    */
-
+   
    tree=fs->make<TTree>("doubleEleTrigger","Summary of trackless double electron trigger event info");
+   tree->Branch("numGenLeptonsFromZ_",&numGenLeptonsFromZ_,"numGenLeptonsFromZ_/D");
    tree->Branch("gen_l1_pT_",&gen_l1_pT_,"gen_l1_pT_/D");
    tree->Branch("gen_l2_pT_",&gen_l2_pT_,"gen_l2_pT_/D");
    tree->Branch("gen_l2_eta_",&gen_l2_eta_,"gen_l2_eta_/D");
@@ -822,6 +819,8 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
    tree->Branch("gen_trackless_eta_",&gen_trackless_eta_,"gen_trackless_eta_/D");
    tree->Branch("gen_trackless_pT_",&gen_trackless_pT_,"gen_trackless_pT_/D");
    tree->Branch("genTriggeredEvent_",&genTriggeredEvent_,"genTriggeredEvent_/D");
+   tree->Branch("consistentGenAndHLTEvent_",&consistentGenAndHLTEvent_,"consistentGenAndHLTEvent_/D");
+
 
    tree->Branch("matched_pT_",&matched_pT_,"matched_pT_/D");
    tree->Branch("matched_eta_",&matched_eta_,"matched_eta_/D");
@@ -871,8 +870,12 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	tracklessModNames.push_back("hltEle15WPYYtracklessHEFilter");
 	*/
 	tracklessModNames.push_back("hltEle15WPYYtracklessHcalIsoFilter");
-	double maxDRForMatch = 0.20;
+	double maxDRForMatch = 0.2;
 
+	//GetMatchedTriggerObjects(iEvent, tracklessModNames, 0.0, 0.0, maxDRForMatch);
+
+
+/**/	
 	InputTag genParticleTag("genParticles","","SIM");
 	Handle<std::vector<reco::GenParticle> > genPart;
 	iEvent.getByLabel(genParticleTag, genPart);
@@ -880,126 +883,99 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	//std::cout<<"declared and initialized handle object to reco::GenParticle collection"<<std::endl;
 
 	double gPt=0;
-	double gEta=0;
-	double gPhi=0;
 
 	//the last two elements in these vectors represent the leading (last element) and subleading (2nd to last element) GEN electrons
 	std::vector<double> genElectronPTs;
 	std::vector<double> genElectronEtas;
 	std::vector<double> genElectronPhis;
 
-	for(int i=0; i<100 ;i++){
-		//there should be no events with 100 gen level electrons and positrons
-		genElectronEtas.push_back(0.0);
-		genElectronPhis.push_back(0.0);
-	}
-
-
 	for(std::vector<reco::GenParticle>::const_iterator genIt=genPart->begin(); genIt != genPart->end(); genIt++){
 
 		//it seems each of the gen electrons and positrons only have 1 mother
 		if( std::fabs(genIt->pdgId()) == 11 && std::fabs(genIt->mother(0)->pdgId() ) == 23 ){
-			gEta = genIt->eta();
-			gPhi = genIt->phi();
+			numGenLeptonsFromZ_ += 1.0;
 			gPt = genIt->pt();
-			unsigned int index = addToPtSortedVector(genElectronPTs,gPt);
-			genElectronEtas[index] = gEta;	//this guarantees that element #i in genElectronEtas and genElectronPTs correspond to the same gen electron
-			genElectronPhis[index] = gPhi;
-			//if(std::fabs(gEta) >= 2.5 && std::fabs(gEta) < 3.0 && gPt > 15.0) std::cout<<"found a trackless EE lepton"<<std::endl;
-			//if(std::fabs(gEta) < 2.5 && gPt > 27.0) std::cout<<"found a tracked lepton"<<std::endl;
-
-
+			addToPtSortedVector(genElectronPTs,gPt);	//the last element in genElectronPTs is the largest element in the vector
 		}//end filter which saves kinematic info for GEN electrons and positrons which came from a Z decay 
 
 	}//end loop over GenParticle
 
-	bool haveTracklessEleCand = false;
-	for(std::vector<reco::GenParticle>::const_iterator genIt=genPart->begin(); genIt != genPart->end(); genIt++){
-		if( std::fabs(genIt->pdgId()) == 11 && std::fabs(genIt->mother(0)->pdgId() ) == 23 ){
-			if(genIt->pt() > 15.0 && std::fabs(genIt->eta()) >= 2.5 && std::fabs(genIt->eta()) < 3.0 ){
-				haveTracklessEleCand = true;
-				break;
-			}
-		}
-
-	}//end loop over GenParticle, looking for trackless electron at GEN lvl
-
-	/**/
-	for(std::vector<reco::GenParticle>::const_iterator genIt=genPart->begin(); genIt != genPart->end(); genIt++){
-		if( std::fabs(genIt->pdgId()) == 11 && std::fabs(genIt->mother(0)->pdgId() ) == 23 ){
-			if(genIt->pt() > 27.0 && std::fabs(genIt->eta()) < 2.5 && haveTracklessEleCand){
-				incrementEfficiencyDenominator();
-				genTriggeredEvent_ = 1.0;
-				break;
-			}
-		}
-
-	}//end loop over GenParticle, looking for tracked electron at GEN lvl
-
-
-
-	//DON'T USE the size of the genElectronEtas or genElectronPhis vectors
 	unsigned int length = genElectronPTs.size();
-	//bool oneUntrackedElectron = false;
-	bool twoUntrackedElectrons = false;
+	if(length < 2) return;	//don't analyze the event if there are not two GEN electrons which came from a Z decay
 
 
-	//count event if there is an untracked electron with pT > 15.0 GeV
-	//determine the number of untracked EE electrons in the event
-	//HERE I assume that the trackless EE electron which we are interested in is one of the two highest pT electrons in the event
-	if(length >= 2){
-		//std::cout<<"leading electron has eta of "<< genElectronEtas[length-1] << std::endl;
-		//std::cout<<"sub-leading electron has eta of "<< genElectronEtas[length-2] << std::endl;
-
-		if( std::fabs(genElectronEtas[length-1]) >= 2.5 && std::fabs(genElectronEtas[length-1]) < 3.0 && std::fabs(genElectronEtas[length-2]) >= 2.5 && std::fabs(genElectronEtas[length-2]) < 3.0){
-			twoUntrackedElectrons = true;
-
+	//fill genElectronEtas and Phis vectors with correct content
+	//element #i in genElectronPTs, genElectronEtas, and genElectronPhis correspond to one particular gen electron or positron from a Z decay
+	unsigned int index = 0;
+	for(std::vector<reco::GenParticle>::const_iterator genIt=genPart->begin(); genIt != genPart->end(); genIt++){
+		if( std::fabs(genIt->pdgId()) == 11 && std::fabs(genIt->mother(0)->pdgId() ) == 23 && genIt->pt() == genElectronPTs[index]){
+			genElectronEtas.push_back(genIt->eta());
+			genElectronPhis.push_back(genIt->phi());
+			index += 1;
 		}
+	}//end loop over GenParticle
 
 
-		if(!twoUntrackedElectrons && ( (std::fabs(genElectronEtas[length-1]) >= 2.5 && std::fabs(genElectronEtas[length-1]) < 3.0) || (std::fabs(genElectronEtas[length-2]) >= 2.5 && std::fabs(genElectronEtas[length-2]) < 3.0) ) ){
-			//oneUntrackedElectron = true;
-			if( std::fabs(genElectronEtas[length-1]) >= 2.5 && std::fabs(genElectronEtas[length-1]) < 3.0 ){
-				//fill("GenPt_untrackedEle", genElectronPTs[length-1]);
-				gen_trackless_pT_ = genElectronPTs[length-1];
-				gen_trackless_eta_ = genElectronEtas[length-1];
-				GetMatchedTriggerObjects(iEvent, tracklessModNames, genElectronEtas[length-1], genElectronPhis[length-1], maxDRForMatch);
-			}
 
-			if( std::fabs(genElectronEtas[length-2]) >= 2.5 && std::fabs(genElectronEtas[length-2]) < 3.0 ){
-			   	//fill("GenPt_untrackedEle", genElectronPTs[length-2]);
-				gen_trackless_pT_ = genElectronPTs[length-2];
-				gen_trackless_eta_ = genElectronEtas[length-2];
-				GetMatchedTriggerObjects(iEvent, tracklessModNames, genElectronEtas[length-2], genElectronPhis[length-2], maxDRForMatch);
-			}
-
+	//see if the event contains the two necessary GEN electrons/positrons from a Z decay to fire the trigger 
+	bool haveTracklessEleCand = false;
+	for(unsigned int i=0; i<length ; i++){
+		//see if the event contains a trackless EE gen electron which came from a Z boson with pT > 15.0
+		if(genElectronPTs[i] > 15.0 && std::fabs(genElectronEtas[i]) >= 2.5 && std::fabs(genElectronEtas[i]) < 3.0){
+			haveTracklessEleCand = true;
+			break;
 		}
-
-
+	}
+	for(unsigned int i=0; i<length ; i++){
+		//see if the event contains a tracked gen electron which came from a Z boson with pT > 27.0
+		if(genElectronPTs[i] > 27.0 && std::fabs(genElectronEtas[i]) < 2.5 && haveTracklessEleCand){
+			incrementEfficiencyDenominator();
+			genTriggeredEvent_ = 1.0;
+			break;
+		}
 	}
 
 
-	for(std::vector<reco::GenParticle>::const_iterator genIt=genPart->begin(); genIt != genPart->end(); genIt++){
-		if(length < 2) break;
-		if(genIt->pt() == genElectronPTs[length-2]){
-			//fill("GenEta_subLeadingEle",genIt->eta() );
-			gen_l2_eta_ = genIt->eta();
-			//fill("GenPt_subLeadingEle",genIt->pt() );
-			gen_l2_pT_ = genIt->pt();
+	//in any event of DY->ee MC there are never more than 2 GEN electrons/positrons which come from a Z decay
+	if(genTriggeredEvent_ ==1){
+		//if genTriggeredEvent_ = 1 then there is one GEN electron with pT > 15.0 in the trackless EE region ( 2.5 <= abs(eta) < 3.0 ) 
+		//and one GEN electron with pT > 27.0 in the tracker ( abs(eta) < 2.5)
+
+		if(std::fabs(genElectronEtas[length-1]) >= 2.5){
+			gen_trackless_pT_ = genElectronPTs[length-1];
+			gen_trackless_eta_ = genElectronEtas[length-1];
+			GetMatchedTriggerObjects(iEvent, tracklessModNames, genElectronEtas[length-1], genElectronPhis[length-1], maxDRForMatch);
+			std::cout<<"# of events that should have fired trigger, based on GEN info, is "<< getEfficiencyDenominator() << std::endl;
 		}
 
-		if(genIt->pt() == genElectronPTs[length-1]){
-			//fill("GenEta_leadingEle",genIt->eta() );
-			gen_l1_eta_ = genIt->eta();
-			//fill("GenPt_leadingEle",genIt->pt() );
-			gen_l1_pT_ = genIt->pt();
+		else{
+			gen_trackless_pT_ = genElectronPTs[length-2];
+			gen_trackless_eta_ = genElectronEtas[length-2];
+			GetMatchedTriggerObjects(iEvent, tracklessModNames, genElectronEtas[length-2], genElectronPhis[length-2], maxDRForMatch);
+			std::cout<<"# of events that should have fired trigger, based on GEN info, is "<< getEfficiencyDenominator() << std::endl;
 		}
 
-	}//end loop over GenParticle
+	}
 
-	//first bin on the plot is bin # 1!!
+	//save the pT and eta of the two gen electrons, even if their pT and/or eta values are not sufficient to fire the trigger
+	gen_l2_eta_ = genElectronEtas[length-2];
+	gen_l2_pT_ = genElectronPTs[length-2];
+	gen_l1_eta_ = genElectronEtas[length-1];
+	gen_l1_pT_ = genElectronPTs[length-1];
+
+	/**/
+	
+
+	//that's all folks!
+	tree->Fill();
+
+	
 
 	/*
+
+	   OLD no longer needed as of December 19 2014
+	//first bin on the plot is bin # 1!!
+
 	for(int i=1; i<=getXBins("EventFraction"); i++){
 		if( getXBins("EventFraction") < 3) break;	//shouldn't need this, but just in case
 		if(i==1 && !oneUntrackedElectron && !twoUntrackedElectrons ){
@@ -1020,8 +996,6 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	}
 	*/
 
-	//that's all folks!
-	tree->Fill();
 
 
 #ifdef THIS_IS_AN_EVENT_EXAMPLE

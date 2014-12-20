@@ -4,12 +4,12 @@ process = cms.Process("Demo")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) ) 
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
-		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_10000evts.root'
+		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_low_thresholds_1000evts.root'
 
 		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/rawWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_1.root',
 		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/rawWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_10.root',
@@ -43,7 +43,7 @@ process.demo = cms.EDAnalyzer('doubleEleTracklessAnalyzer',
 )
 
 process.TFileService = cms.Service("TFileService",
-	fileName = cms.string('test_signal.root')
+	fileName = cms.string('signal_1kevts.root')
 	
 )
 

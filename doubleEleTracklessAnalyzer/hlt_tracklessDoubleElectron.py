@@ -4391,9 +4391,11 @@ process.hltEG15WPYYtracklessEtFilterUnseeded = cms.EDFilter( "HLTEgammaEtFilter"
     relaxed = cms.untracked.bool( False ),
     L1IsoCand = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
     inputTag = cms.InputTag( "hltEgammaCandidatesWrapperUnseeded" ),
-    etcutEB = cms.double( 15.0 ),
-    etcutEE = cms.double( 15.0 ),
-    ncandcut = cms.int32( 2 )
+    #ORIGINAL etcutEB = cms.double( 15.0 ),
+    #ORIGINAL etcutEE = cms.double( 15.0 ),
+    etcutEB = cms.double( 5.0 ),
+    etcutEE = cms.double( 5.0 ),
+	ncandcut = cms.int32( 2 )
 )
 process.hltEgammaClusterShapeUnseeded = cms.EDProducer( "EgammaHLTClusterShapeProducer",
     recoEcalCandidateProducer = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
@@ -4407,12 +4409,14 @@ process.hltEle15WPYYtracklessClusterShapeFilter = cms.EDFilter( "HLTEgammaGeneri
     L1NonIsoCand = cms.InputTag( "" ),
     saveTags = cms.bool( True ),
     thrOverE2EB = cms.double( -1.0 ),
-    thrRegularEE = cms.double( 0.031 ),
-    thrOverEEE = cms.double( -1.0 ),
+    #ORIGINAL thrRegularEE = cms.double( 0.031 ),
+    thrRegularEE = cms.double( 0.095 ),
+	thrOverEEE = cms.double( -1.0 ),
     L1IsoCand = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
     thrOverEEB = cms.double( -1.0 ),
-    thrRegularEB = cms.double( 0.011 ),
-    lessThan = cms.bool( True ),
+    #ORIGINAL thrRegularEB = cms.double( 0.011 ),
+    thrRegularEB = cms.double( 0.095 ),
+	lessThan = cms.bool( True ),
     useEt = cms.bool( False ),
     ncandcut = cms.int32( 2 ),
     isoTag = cms.InputTag( "hltEgammaClusterShapeUnseeded" ),
@@ -4443,10 +4447,12 @@ process.hltEle15WPYYtracklessEcalIsoFilter = cms.EDFilter( "HLTEgammaGenericFilt
     saveTags = cms.bool( True ),
     thrOverE2EB = cms.double( -1.0 ),
     thrRegularEE = cms.double( -1.0 ),
-    thrOverEEE = cms.double( 0.2 ),
-    L1IsoCand = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
-    thrOverEEB = cms.double( 0.2 ),
-    thrRegularEB = cms.double( -1.0 ),
+    #ORIGINAL thrOverEEE = cms.double( 0.2 ),
+    thrOverEEE = cms.double( 0.6 ),
+	L1IsoCand = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
+    #ORIGINAL thrOverEEB = cms.double( 0.2 ),
+    thrOverEEB = cms.double( 0.6 ),
+	thrRegularEB = cms.double( -1.0 ),
     lessThan = cms.bool( True ),
     useEt = cms.bool( True ),
     ncandcut = cms.int32( 2 ),
@@ -4718,10 +4724,14 @@ process.hltEle15WPYYtracklessHEFilter = cms.EDFilter( "HLTEgammaGenericFilter",
     saveTags = cms.bool( True ),
     thrOverE2EB = cms.double( -1.0 ),
     thrRegularEE = cms.double( -1.0 ),
-    thrOverEEE = cms.double( 0.075 ),
-    L1IsoCand = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
-    thrOverEEB = cms.double( 0.1 ),
-    thrRegularEB = cms.double( -1.0 ),
+    #ORIGINAL thrOverEEE = cms.double( 0.075 ),
+    thrOverEEE = cms.double( 0.85 ),
+    
+	L1IsoCand = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
+    #ORIGINAL thrOverEEB = cms.double( 0.1 ),
+    thrOverEEB = cms.double( 0.85 ),
+    
+	thrRegularEB = cms.double( -1.0 ),
     lessThan = cms.bool( True ),
     useEt = cms.bool( False ),
     ncandcut = cms.int32( 2 ),
@@ -4756,10 +4766,14 @@ process.hltEle15WPYYtracklessHcalIsoFilter = cms.EDFilter( "HLTEgammaGenericFilt
     saveTags = cms.bool( True ),
     thrOverE2EB = cms.double( -1.0 ),
     thrRegularEE = cms.double( -1.0 ),
-    thrOverEEE = cms.double( 0.2 ),
-    L1IsoCand = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
-    thrOverEEB = cms.double( 0.2 ),
-    thrRegularEB = cms.double( -1.0 ),
+    #ORIGINAL thrOverEEE = cms.double( 0.2 ),
+    thrOverEEE = cms.double( 0.8 ),
+    
+	L1IsoCand = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
+    #ORIGINAL thrOverEEB = cms.double( 0.2 ),
+    thrOverEEB = cms.double( 0.8 ),
+    
+	thrRegularEB = cms.double( -1.0 ),
     lessThan = cms.bool( True ),
     useEt = cms.bool( True ),
     ncandcut = cms.int32( 2 ),
@@ -4776,7 +4790,7 @@ process.hltEgammaNoTrackerEtaPtFilter = cms.EDFilter( "EtaPtMinCandViewSelector"
     src = cms.InputTag( "hltEgammaNoTrackerCandidates" ),
     etaMin = cms.double( -3.0 ),
     etaMax = cms.double( 3.0 ),
-    ptMin = cms.double( 15.0 ),
+    ptMin = cms.double( 5.0 ),
     saveTags = cms.bool( True )
 )
 process.hltEgammaNoTrackerNCandidatesFilter = cms.EDFilter( "CandViewCountFilter",
@@ -5005,20 +5019,20 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 #this is a standalone module to save the output from cmsRun hlt_tracklessDoubleElectron.py into a .root file
 #This .root file can then be analyzed by the trigger optimization script
 process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
-    fileName = cms.untracked.string( "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_10000evts.root" ),
+    fileName = cms.untracked.string( "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_low_thresholds_1000evts.root" ),
     fastCloning = cms.untracked.bool( False ),
     dataset = cms.untracked.PSet(
         dataTier = cms.untracked.string( 'RECO' ),
         filterName = cms.untracked.string( '' )
     ),
-    outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') 
+    outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*')  + cms.untracked.vstring('drop l1extra*_*_*_*')  + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
 )
 process.FULLOutput = cms.EndPath( process.hltOutputFULL )
 
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10000)
+    input = cms.untracked.int32(1000)
 )
 
 # enable the TrigReport and TimeReport
@@ -5050,7 +5064,7 @@ process.DQMStore.enableMultiThread = True
 
 
 process.dqmOutput = cms.OutputModule("DQMRootOutputModule",
-    fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/DQMIO_DYtoEE_13TeV_40PU_25ns_10000evts.root")
+    fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/DQMIO_DYtoEE_13TeV_40PU_25ns_low_thresholds_1000evts.root")
 )
 
 process.DQMOutput = cms.EndPath( process.dqmOutput )

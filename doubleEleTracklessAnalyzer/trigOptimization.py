@@ -4,7 +4,7 @@ import math
 
 def makeAndSaveHisto(someArray, canvName, histTitle, numBins, xmin, xmax, outFilePath):
 	h = ROOT.TH1F(histTitle, histTitle, numBins, xmin, xmax)
-	canv = ROOT.TCanvas(canvName,canvName,800,800)
+	canv = ROOT.TCanvas(canvName,canvName,500,500)
 	canv.cd()
 	for w in xrange( int(len(someArray) ) ):
 		#print 'element number ', w, ' of input array contains ', someArray[w]
@@ -120,7 +120,7 @@ def calcEff(isUpperLimit, inputArray, critValFromInputArray, effDenom):
 
 
 
-f1 = ROOT.TFile("/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_2_0/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/signal.root")
+f1 = ROOT.TFile("/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_2_0/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/signal_1kevts.root")
 
 t1 = f1.Get("demo/doubleEleTrigger")
 
@@ -131,6 +131,7 @@ t1 = f1.Get("demo/doubleEleTrigger")
 #	branchNames.push_back("gen_trackless_eta_");
 #	branchNames.push_back("gen_trackless_pT_");
 #	branchNames.push_back("genTriggeredEvent_");
+#	branchNames.push_back("consistentGenAndHLTEvent_");
 #	branchNames.push_back("matched_pT_");
 #	branchNames.push_back("matched_eta_");
 #	branchNames.push_back("matched_ecalIso_");
@@ -149,7 +150,7 @@ sigPt = []
 sigEta = []
 genTracklessPt = []
 
-efficiencyDenom = 0	#denominator of efficiency, equal to # of events with one tracked gen e- (pT > 27) and one untracked gen e- (pT > 15)
+efficiencyDenom = 0	#denominator of efficiency, equal to # of events with one untracked EE gen e- (pT > 15)
 
 #eventually swap 500 for t1.GetEntries()
 for z in xrange(t1.GetEntries()):
@@ -200,23 +201,21 @@ for q in xrange(sigPtLen):
 #			print ' '
 
 
-efficiencyGraph(sigEcalIso,sigEff_EcalIso,"canvEcalIso","Efficiency vs HLT EcalIso",True, False,"../triggerPlots/efficiencies/trigEff_EcalIsoGraph.png")
-#efficiencyGraph(sigHcalIso,sigEff_HcalIso,"canvHcalIso","Efficiency vs HcalIso",True, False,"../triggerPlots/efficiencies/trigEff_HcalIsoGraph.png")
-#efficiencyGraph(sigHoverE,sigEff_HoverE,"canvHoverE","Efficiency vs HoverE",True, False,"../triggerPlots/efficiencies/trigEff_HoverEGraph.png")
-efficiencyGraph(sigSigmaIEIE,sigEff_SigmaIEIE,"canvSigmaIEIE","Efficiency vs HLT #sigma_{i#etai#eta}",True, False,"../triggerPlots/efficiencies/trigEff_SigmaIEIEGraph.png")
-#efficiencyGraph(sigPt,sigEff_Pt,"canvPt","Efficiency vs Pt",True, True,"../triggerPlots/efficiencies/trigEff_PtGraph.png")
-#efficiencyGraph(sigEta,sigEff_Eta,"canvEta","Efficiency vs Eta",True, True,"../triggerPlots/efficiencies/trigEff_EtaGraph.png")
+#efficiencyGraph(sigEcalIso,sigEff_EcalIso,"canvEcalIso","Efficiency vs HLT EcalIso/HLT pT",True, False,"../triggerPlots/efficiencies/trigEff_EcalIsoGraph_low_thresholds_Dec_20_1kevts.png")
+#efficiencyGraph(sigHcalIso,sigEff_HcalIso,"canvHcalIso","Efficiency vs HcalIso/HLT pT",True, False,"../triggerPlots/efficiencies/trigEff_HcalIsoGraph_low_thresholds_Dec_20_1kevts.png")
+#efficiencyGraph(sigHoverE,sigEff_HoverE,"canvHoverE","Efficiency vs HoverE/HLT E",True, False,"../triggerPlots/efficiencies/trigEff_HoverEGraph_low_thresholds_Dec_20_1kevts.png")
+#efficiencyGraph(sigSigmaIEIE,sigEff_SigmaIEIE,"canvSigmaIEIE","Efficiency vs HLT #sigma_{i#etai#eta}",True, False,"../triggerPlots/efficiencies/trigEff_SigmaIEIEGraph_low_thresholds_Dec_20_1kevts.png")
+#efficiencyGraph(sigPt,sigEff_Pt,"canvPt","Efficiency vs HLT Pt",True, True,"../triggerPlots/efficiencies/trigEff_PtGraph_low_thresholds_Dec_20_1kevts.png")
+#efficiencyGraph(sigEta,sigEff_Eta,"canvEta","Efficiency vs HLT Eta",True, True,"../triggerPlots/efficiencies/trigEff_EtaGraph_low_thresholds_Dec_20_1kevts.png")
 
-makeAndSaveHisto(sigEcalIso, "EcalIsoHistoCanv","EcalIso of HLT object matched to gen trackless electron",100,-0.3,0.3, "../triggerPlots/hltObjectPlots/signal_EcalIsoHisto.png")
-makeAndSaveHisto(sigSigmaIEIE, "SigmaIEIEHistoCanv","#sigma_{i#etai#eta} of HLT object matched to gen trackless electron",100,0.,0.1, "../triggerPlots/hltObjectPlots/signal_SigmaIEIEHisto.png")
-
-
-makeAndSaveHisto(sigPt, "PtHistoCanv","Pt of HLT object matched to gen trackless electron",100,0.,250., "../triggerPlots/hltObjectPlots/signal_HLT_matched_PtHisto.png")
-
-
-makeAndSaveHisto(genTracklessPt, "genTracklessPtHistoCanv","Pt of trackless gen electron which was matched to an HLT object",100,0.,150., "../triggerPlots/genParticlePlots/signal_gen_trackless_PtHisto.png")
+makeAndSaveHisto(sigEcalIso, "EcalIsoHistoCanv","EcalIso/HLT pT of HLT object matched to gen trackless electron",100,-0.3,0.5, "../triggerPlots/hltObjectPlots/signal_EcalIsoHisto_low_thresholds_Dec_20_1kevts.png")
+makeAndSaveHisto(sigSigmaIEIE, "SigmaIEIEHistoCanv","#sigma_{i#etai#eta} of HLT object matched to gen trackless electron",100,0.,0.2, "../triggerPlots/hltObjectPlots/signal_SigmaIEIEHisto_low_thresholds_Dec_20_1kevts.png")
+makeAndSaveHisto(sigHcalIso, "HcalIsoHistoCanv","HcalIso/HLT pT of HLT object matched to gen trackless electron",100,-0.3,0.5, "../triggerPlots/hltObjectPlots/signal_HcalIsoHisto_low_thresholds_Dec_20_1kevts.png")
+makeAndSaveHisto(sigHoverE, "HoverEHistoCanv","HoverE/HLT E of HLT object matched to gen trackless electron",100,0.,1, "../triggerPlots/hltObjectPlots/signal_HoverEHisto_low_thresholds_Dec_20_1kevts.png")
+makeAndSaveHisto(sigPt, "PtHistoCanv","Pt of HLT object matched to gen trackless electron",100,0.,250., "../triggerPlots/hltObjectPlots/signal_HLT_matched_PtHisto_low_thresholds_Dec_20_1kevts.png")
 
 
+#makeAndSaveHisto(genTracklessPt, "genTracklessPtHistoCanv","Pt of trackless gen electron which was matched to an HLT object",100,0.,150., "../triggerPlots/genParticlePlots/signal_gen_trackless_PtHisto_low_thresholds_Dec_20_1kevts.png")
 
 
 
@@ -224,8 +223,6 @@ makeAndSaveHisto(genTracklessPt, "genTracklessPtHistoCanv","Pt of trackless gen 
 #makeAndSaveHisto(someArray, canvName, histTitle, numBins, xmin, xmax, outFilePath)
 #makeAndSaveGraph(someArray, canvName, histTitle, numBins, xmin, xmax, outFilePath)
 
-#makeAndSaveHisto(sigEcalIso, "ecalIsoHistoCanv","EcalIsoHisto",100,-0.3,0.3, "testDir/signal_ecalIsoHisto.png")
-#makeAndSaveGraph(sigEcalIso, "ecalIsoGraphCanv","EcalIsoGraph",100,-0.3,0.3, "testDir/signal_ecalIsoGraph.png")
 
 
 
