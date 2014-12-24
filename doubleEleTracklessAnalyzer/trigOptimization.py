@@ -120,7 +120,7 @@ def calcEff(isUpperLimit, inputArray, critValFromInputArray, effDenom):
 
 
 
-f1 = ROOT.TFile("/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_2_0/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/signal_1kevts.root")
+f1 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_75kevts_very_loose_trackless_leg.root")
 
 t1 = f1.Get("demo/doubleEleTrigger")
 

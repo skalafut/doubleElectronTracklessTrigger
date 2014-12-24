@@ -691,10 +691,16 @@ void resetCounters(){
 	//reset all of the private member vars which are saved to TTree to zero
 	gen_l1_pT_=-1;	//pT of leading gen electron
 	gen_l1_eta_=-7;	//eta of leading gen electron
+	gen_l1_phi_=-7;	//phi of leading gen electron
 	gen_l2_pT_=-1;	//pT of subleading gen electron
 	gen_l2_eta_=-7;	//eta of subleading gen electron
+	gen_l2_phi_=-7;	//phi of subleading gen electron
 	gen_trackless_pT_=-1;	//pT of gen electron in trackless EE
 	gen_trackless_eta_=-7;	//eta of gen electron in trackless EE
+	gen_trackless_phi_=-7;	//phi of gen electron in trackless EE
+	gen_tracked_pT_=-1;	//pT of gen electron in tracked ECAL
+	gen_tracked_eta_=-7;	//eta of gen electron in tracked ECAL
+	gen_tracked_phi_=-7;	//phi of gen electron in tracked ECAL
 	genTriggeredEvent_ = -1; 
 	consistentGenAndHLTEvent_ = -1;
 	numGenLeptonsFromZ_ = 0;
@@ -743,10 +749,16 @@ TTree * tree;
 double numGenLeptonsFromZ_;		//number of generator e- or e+ which have Z boson mothers
 double gen_l1_pT_;	//pT of leading gen electron
 double gen_l1_eta_;	//eta of leading gen electron
+double gen_l1_phi_;	//phi of leading gen electron
 double gen_l2_pT_;	//pT of subleading gen electron
 double gen_l2_eta_;	//eta of subleading gen electron
+double gen_l2_phi_;	//phi of subleading gen electron
 double gen_trackless_pT_;	//pT of gen electron in trackless EE
 double gen_trackless_eta_;	//eta of gen electron in trackless EE
+double gen_trackless_phi_;	//phi of gen electron in trackless EE
+double gen_tracked_pT_;	//pT of gen electron in tracked ECAL
+double gen_tracked_eta_;	//eta of gen electron in tracked ECAL 
+double gen_tracked_phi_;	//phi of gen electron in tracked ECAL 
 double genTriggeredEvent_;	// equals +1 for events which should have fired trackless and tracked legs of trigger based on GEN lvl info, equals -1 otherwise
 double consistentGenAndHLTEvent_;	//equals +1 when GEN info is consistent with HLT firing, equals -1 otherwise
 
@@ -816,8 +828,14 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
    tree->Branch("gen_l2_pT_",&gen_l2_pT_,"gen_l2_pT_/D");
    tree->Branch("gen_l2_eta_",&gen_l2_eta_,"gen_l2_eta_/D");
    tree->Branch("gen_l1_eta_",&gen_l1_eta_,"gen_l1_eta_/D");
+   tree->Branch("gen_l2_phi_",&gen_l2_phi_,"gen_l2_phi_/D");
+   tree->Branch("gen_l1_phi_",&gen_l1_phi_,"gen_l1_phi_/D");
    tree->Branch("gen_trackless_eta_",&gen_trackless_eta_,"gen_trackless_eta_/D");
    tree->Branch("gen_trackless_pT_",&gen_trackless_pT_,"gen_trackless_pT_/D");
+   tree->Branch("gen_trackless_phi_",&gen_trackless_phi_,"gen_trackless_phi_/D");
+   tree->Branch("gen_tracked_eta_",&gen_tracked_eta_,"gen_tracked_eta_/D");
+   tree->Branch("gen_tracked_pT_",&gen_tracked_pT_,"gen_tracked_pT_/D");
+   tree->Branch("gen_tracked_phi_",&gen_tracked_phi_,"gen_tracked_phi_/D");
    tree->Branch("genTriggeredEvent_",&genTriggeredEvent_,"genTriggeredEvent_/D");
    tree->Branch("consistentGenAndHLTEvent_",&consistentGenAndHLTEvent_,"consistentGenAndHLTEvent_/D");
 
@@ -901,13 +919,12 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	}//end loop over GenParticle
 
 	unsigned int length = genElectronPTs.size();
-	if(length < 2) return;	//don't analyze the event if there are not two GEN electrons which came from a Z decay
-
 
 	//fill genElectronEtas and Phis vectors with correct content
 	//element #i in genElectronPTs, genElectronEtas, and genElectronPhis correspond to one particular gen electron or positron from a Z decay
 	unsigned int index = 0;
 	for(std::vector<reco::GenParticle>::const_iterator genIt=genPart->begin(); genIt != genPart->end(); genIt++){
+		if(index == length) break;
 		if( std::fabs(genIt->pdgId()) == 11 && std::fabs(genIt->mother(0)->pdgId() ) == 23 && genIt->pt() == genElectronPTs[index]){
 			genElectronEtas.push_back(genIt->eta());
 			genElectronPhis.push_back(genIt->phi());
@@ -930,6 +947,9 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 		//see if the event contains a tracked gen electron which came from a Z boson with pT > 27.0
 		if(genElectronPTs[i] > 27.0 && std::fabs(genElectronEtas[i]) < 2.5 && haveTracklessEleCand){
 			incrementEfficiencyDenominator();
+			gen_tracked_pT_ = genElectronPTs[i];	//save the pT, eta, and phi of the tracked gen electron to calculate M_ee
+			gen_tracked_eta_ = genElectronEtas[i];
+			gen_tracked_phi_ = genElectronPhis[i];
 			genTriggeredEvent_ = 1.0;
 			break;
 		}
@@ -944,6 +964,7 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 		if(std::fabs(genElectronEtas[length-1]) >= 2.5){
 			gen_trackless_pT_ = genElectronPTs[length-1];
 			gen_trackless_eta_ = genElectronEtas[length-1];
+			gen_trackless_phi_ = genElectronPhis[length-1];
 			GetMatchedTriggerObjects(iEvent, tracklessModNames, genElectronEtas[length-1], genElectronPhis[length-1], maxDRForMatch);
 			std::cout<<"# of events that should have fired trigger, based on GEN info, is "<< getEfficiencyDenominator() << std::endl;
 		}
@@ -951,6 +972,7 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 		else{
 			gen_trackless_pT_ = genElectronPTs[length-2];
 			gen_trackless_eta_ = genElectronEtas[length-2];
+			gen_trackless_phi_ = genElectronPhis[length-2];
 			GetMatchedTriggerObjects(iEvent, tracklessModNames, genElectronEtas[length-2], genElectronPhis[length-2], maxDRForMatch);
 			std::cout<<"# of events that should have fired trigger, based on GEN info, is "<< getEfficiencyDenominator() << std::endl;
 		}
@@ -958,10 +980,15 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	}
 
 	//save the pT and eta of the two gen electrons, even if their pT and/or eta values are not sufficient to fire the trigger
-	gen_l2_eta_ = genElectronEtas[length-2];
-	gen_l2_pT_ = genElectronPTs[length-2];
-	gen_l1_eta_ = genElectronEtas[length-1];
-	gen_l1_pT_ = genElectronPTs[length-1];
+	if(length >= 2){
+		gen_l2_eta_ = genElectronEtas[length-2];
+		gen_l2_phi_ = genElectronPhis[length-2];
+		gen_l2_pT_ = genElectronPTs[length-2];
+
+		gen_l1_phi_ = genElectronPhis[length-1];
+		gen_l1_eta_ = genElectronEtas[length-1];
+		gen_l1_pT_ = genElectronPTs[length-1];
+	}
 
 	/**/
 	
