@@ -4,7 +4,7 @@ process = cms.Process("Demo")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(75000) ) 
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) ) 
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
@@ -16,26 +16,27 @@ process.source = cms.Source("PoolSource",
 		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_10.root',
 		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_2.root',
 		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_3.root',
-		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_4.root',
-		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_5.root',
-		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_6.root',
-		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_7.root',
-		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_8.root',
-		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_9.root',
+		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_4.root',
+		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_5.root',
+		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_6.root',
+		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_7.root',
+		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_8.root',
+		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_9.root',
 
 
 		#Neutrino gun with 40 PU files
+		
+		#the files _5, _6, and _7 each have 1 event which fires both legs of the trackless double electron trigger
+		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/minBiasWithHLT/outputFULL_MinBias_13TeV_25ns_40PU_RAW_to_HLTObjects_5.root',
+		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/minBiasWithHLT/outputFULL_MinBias_13TeV_25ns_40PU_RAW_to_HLTObjects_6.root',
+		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/minBiasWithHLT/outputFULL_MinBias_13TeV_25ns_40PU_RAW_to_HLTObjects_7.root',
+		#
+		#
 		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/minBiasWithHLT/outputFULL_MinBias_13TeV_25ns_40PU_RAW_to_HLTObjects_1.root',
 		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/minBiasWithHLT/outputFULL_MinBias_13TeV_25ns_40PU_RAW_to_HLTObjects_10.root',
 		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/minBiasWithHLT/outputFULL_MinBias_13TeV_25ns_40PU_RAW_to_HLTObjects_2.root',
 		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/minBiasWithHLT/outputFULL_MinBias_13TeV_25ns_40PU_RAW_to_HLTObjects_3.root',
 		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/minBiasWithHLT/outputFULL_MinBias_13TeV_25ns_40PU_RAW_to_HLTObjects_4.root',
-		#
-		##the files _5, _6, and _7 each have 1 event which fires both legs of the trackless double electron trigger
-		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/minBiasWithHLT/outputFULL_MinBias_13TeV_25ns_40PU_RAW_to_HLTObjects_5.root',
-		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/minBiasWithHLT/outputFULL_MinBias_13TeV_25ns_40PU_RAW_to_HLTObjects_6.root',
-		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/minBiasWithHLT/outputFULL_MinBias_13TeV_25ns_40PU_RAW_to_HLTObjects_7.root',
-		#
 		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/minBiasWithHLT/outputFULL_MinBias_13TeV_25ns_40PU_RAW_to_HLTObjects_8.root',
 		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/minBiasWithHLT/outputFULL_MinBias_13TeV_25ns_40PU_RAW_to_HLTObjects_9.root',
 
@@ -47,9 +48,9 @@ process.demo = cms.EDAnalyzer('doubleEleTracklessAnalyzer',
 )
 
 process.TFileService = cms.Service("TFileService",
-	#fileName = cms.string('test.root')
-	fileName = cms.string('/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_75kevts_very_loose_trackless_leg.root')
-	#fileName = cms.string('/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/bkgnd_75kevts_very_loose_trackless_leg.root')
+	#fileName = cms.string('trial.root')
+	fileName = cms.string('/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_10kevts_very_loose_trackless_leg.root')
+	#fileName = cms.string('/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/bkgnd_10kevts_very_loose_trackless_leg.root')
 	
 )
 

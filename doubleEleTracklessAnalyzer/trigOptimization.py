@@ -120,27 +120,48 @@ def calcEff(isUpperLimit, inputArray, critValFromInputArray, effDenom):
 
 
 
-f1 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_75kevts_very_loose_trackless_leg.root")
+f1 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_10kevts_very_loose_trackless_leg.root")
+#f2 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/bkgnd_10kevts_very_loose_trackless_leg.root")
+
 
 t1 = f1.Get("demo/doubleEleTrigger")
 
-#	branchNames.push_back("gen_l1_pT_");
-#	branchNames.push_back("gen_l2_pT_");
-#	branchNames.push_back("gen_l2_eta_");
-#	branchNames.push_back("gen_l1_eta_");
-#	branchNames.push_back("gen_trackless_eta_");
-#	branchNames.push_back("gen_trackless_pT_");
-#	branchNames.push_back("genTriggeredEvent_");
-#	branchNames.push_back("consistentGenAndHLTEvent_");
-#	branchNames.push_back("matched_pT_");
-#	branchNames.push_back("matched_eta_");
-#	branchNames.push_back("matched_ecalIso_");
-#	branchNames.push_back("matched_hcalIso_");
-#	branchNames.push_back("matched_ecalClusterShape_");
-#	branchNames.push_back("matched_ecalClusterShape_SigmaIEtaIEta_");
-#	branchNames.push_back("matched_hOverE_");
-#branchNames.push_back("numUnmatchedCandidates_");
+#branch variables
+#   tree->Branch("numGenLeptonsFromZ_",&numGenLeptonsFromZ_,"numGenLeptonsFromZ_/D");
+#   tree->Branch("gen_l1_pT_",&gen_l1_pT_,"gen_l1_pT_/D");
+#   tree->Branch("gen_l2_pT_",&gen_l2_pT_,"gen_l2_pT_/D");
+#   tree->Branch("gen_l2_eta_",&gen_l2_eta_,"gen_l2_eta_/D");
+#   tree->Branch("gen_l1_eta_",&gen_l1_eta_,"gen_l1_eta_/D");
+#   tree->Branch("gen_l2_phi_",&gen_l2_phi_,"gen_l2_phi_/D");
+#   tree->Branch("gen_l1_phi_",&gen_l1_phi_,"gen_l1_phi_/D");
+#   tree->Branch("gen_trackless_eta_",&gen_trackless_eta_,"gen_trackless_eta_/D");
+#   tree->Branch("gen_trackless_pT_",&gen_trackless_pT_,"gen_trackless_pT_/D");
+#   tree->Branch("gen_trackless_phi_",&gen_trackless_phi_,"gen_trackless_phi_/D");
+#   tree->Branch("gen_tracked_eta_",&gen_tracked_eta_,"gen_tracked_eta_/D");
+#   tree->Branch("gen_tracked_pT_",&gen_tracked_pT_,"gen_tracked_pT_/D");
+#   tree->Branch("gen_tracked_phi_",&gen_tracked_phi_,"gen_tracked_phi_/D");
+#   tree->Branch("genTriggeredEvent_",&genTriggeredEvent_,"genTriggeredEvent_/D");
+#   tree->Branch("consistentGenAndHLTEvent_",&consistentGenAndHLTEvent_,"consistentGenAndHLTEvent_/D");
+#
+#
+#   tree->Branch("matched_pT_",&matched_pT_,"matched_pT_/D");
+#   tree->Branch("matched_eta_",&matched_eta_,"matched_eta_/D");
+#   tree->Branch("matched_ecalIso_",&matched_ecalIso_,"matched_ecalIso_/D");
+#   tree->Branch("matched_hcalIso_",&matched_hcalIso_,"matched_hcalIso_/D");
+#   tree->Branch("matched_ecalClusterShape_",&matched_ecalClusterShape_,"matched_ecalClusterShape_/D");
+#   tree->Branch("matched_ecalClusterShape_SigmaIEtaIEta_",&matched_ecalClusterShape_SigmaIEtaIEta_,"matched_ecalClusterShape_SigmaIEtaIEta_/D");
+#   tree->Branch("matched_hOverE_",&matched_hOverE_,"matched_hOverE_/D");
+#   tree->Branch("numUnmatchedCandidates_",&numUnmatchedCandidates_,"numUnmatchedCandidates_/D");
+#
+#   tree->Branch("reco_tracked_pT_",&reco_tracked_pT_,"reco_tracked_pT_/D");
+#   tree->Branch("reco_tracked_eta_",&reco_tracked_eta_,"reco_tracked_eta_/D");
+#   tree->Branch("reco_tracked_phi_",&reco_tracked_phi_,"reco_tracked_phi_/D");
+#   tree->Branch("reco_untracked_pT_",&reco_untracked_pT_,"reco_untracked_pT_/D");
+#   tree->Branch("reco_untracked_eta_",&reco_untracked_eta_,"reco_untracked_eta_/D");
+#   tree->Branch("reco_untracked_phi_",&reco_untracked_phi_,"reco_untracked_phi_/D");
 
+
+#array vars
 sigTuple = []
 sigEcalIso = []
 sigHcalIso = []
@@ -149,17 +170,31 @@ sigSigmaIEIE = []
 sigPt = []
 sigEta = []
 genTracklessPt = []
+recoDileptonMass = []
 
-efficiencyDenom = 0	#denominator of efficiency, equal to # of events with one untracked EE gen e- (pT > 15)
+#single number vars
+efficiencyDenom = 0	#denominator of efficiency, equal to # of events with one untracked EE gen e- (pT > 15), one tracked gen e- (pT > 27), and the dilepton mass of these two gen electrons exceeds 50 GeV
 
-#eventually swap 500 for t1.GetEntries()
+#eventually swap 1000 for t1.GetEntries()
 for z in xrange(t1.GetEntries()):
 	#loop over all events that were analyzed to make signal.root
 	t1.GetEntry(z)
+	#calculate two dilepton mass values for the signal event (dy->ee)
+	#one value uses GEN electron kinematics, while the other value uses RECO gsf electron and supercluster kinematics
 	if(t1.genTriggeredEvent_ > 0.):
-		efficiencyDenom += 1.
-	
-	if(t1.matched_pT_ > 0.):
+		#calculate dilepton mass of the two GEN electrons
+		genDileptonSquared = 0.
+		genDileptonSquared += (2)*(t1.gen_tracked_pT_)*(t1.gen_trackless_pT_)*(math.cosh(t1.gen_tracked_eta_ - t1.gen_trackless_eta_) - math.cos(t1.gen_tracked_phi_ - t1.gen_trackless_phi_) )
+		genDileptonMass = 0.
+		if( genDileptonSquared > 0.):
+			genDileptonMass += math.sqrt(genDileptonSquared)
+		
+		#count events in the efficiency denominator only if the gen lvl dilepton mass exceeds 50 GeV
+		if(genDileptonMass > 81. and genDileptonMass < 101.):
+			efficiencyDenom += 1.
+
+
+	if(t1.matched_pT_ > 0. and t1.reco_tracked_pT_ > 0. and t1.reco_untracked_pT_ > 0.):
 		sigTuple.append([t1.matched_ecalClusterShape_SigmaIEtaIEta_, t1.matched_ecalIso_/t1.matched_pT_, t1.matched_hOverE_/(t1.matched_pT_*(math.cosh(t1.matched_eta_)) ), t1.matched_ecalIso_/t1.matched_pT_])
 		sigEcalIso.append(t1.matched_ecalIso_/t1.matched_pT_)
 		sigHcalIso.append(t1.matched_hcalIso_/t1.matched_pT_)
@@ -168,10 +203,22 @@ for z in xrange(t1.GetEntries()):
 		sigPt.append(t1.matched_pT_)
 		sigEta.append(t1.matched_eta_)
 		genTracklessPt.append(t1.gen_trackless_pT_)
+		#calculate dilepton mass of the RECO gsf electron and EE supercluster which are matched to the two trigger objects
+		recoDileptonSquared = 0.
+		recoDileptonSquared += (2)*(t1.reco_tracked_pT_)*(t1.reco_untracked_pT_)*(math.cosh(t1.reco_tracked_eta_ - t1.reco_untracked_eta_) - math.cos(t1.reco_tracked_phi_ - t1.reco_untracked_phi_) )
+		if( recoDileptonSquared > 0.):
+			recoDileptonMass.append( math.sqrt(recoDileptonSquared) )
+
 
 #sigTupleLen defined here is equal to the # of events which passed the trackless leg of the trigger
 sigTupleLen = float(len(sigTuple))
 sigPtLen = int(len(sigPt))
+recoDileptonLen = int(len(recoDileptonMass))
+maxEff = float(len(sigPt))*(100)/efficiencyDenom
+
+print 'after analyzing 1000 events, efficiency denom equals ', efficiencyDenom
+print 'out of 1000 possible events, the trigger fired in this many events ', sigPtLen
+print 'max trigger efficiency equals: ', maxEff
 
 sigEff_EcalIso = []
 sigEff_HcalIso = []
@@ -208,11 +255,11 @@ for q in xrange(sigPtLen):
 #efficiencyGraph(sigPt,sigEff_Pt,"canvPt","Efficiency vs HLT Pt",True, True,"../triggerPlots/efficiencies/trigEff_PtGraph_low_thresholds_Dec_20_1kevts.png")
 #efficiencyGraph(sigEta,sigEff_Eta,"canvEta","Efficiency vs HLT Eta",True, True,"../triggerPlots/efficiencies/trigEff_EtaGraph_low_thresholds_Dec_20_1kevts.png")
 
-makeAndSaveHisto(sigEcalIso, "EcalIsoHistoCanv","EcalIso/HLT pT of HLT object matched to gen trackless electron",100,-0.3,0.5, "../triggerPlots/hltObjectPlots/signal_EcalIsoHisto_low_thresholds_Dec_20_1kevts.png")
-makeAndSaveHisto(sigSigmaIEIE, "SigmaIEIEHistoCanv","#sigma_{i#etai#eta} of HLT object matched to gen trackless electron",100,0.,0.2, "../triggerPlots/hltObjectPlots/signal_SigmaIEIEHisto_low_thresholds_Dec_20_1kevts.png")
-makeAndSaveHisto(sigHcalIso, "HcalIsoHistoCanv","HcalIso/HLT pT of HLT object matched to gen trackless electron",100,-0.3,0.5, "../triggerPlots/hltObjectPlots/signal_HcalIsoHisto_low_thresholds_Dec_20_1kevts.png")
-makeAndSaveHisto(sigHoverE, "HoverEHistoCanv","HoverE/HLT E of HLT object matched to gen trackless electron",100,0.,1, "../triggerPlots/hltObjectPlots/signal_HoverEHisto_low_thresholds_Dec_20_1kevts.png")
-makeAndSaveHisto(sigPt, "PtHistoCanv","Pt of HLT object matched to gen trackless electron",100,0.,250., "../triggerPlots/hltObjectPlots/signal_HLT_matched_PtHisto_low_thresholds_Dec_20_1kevts.png")
+#makeAndSaveHisto(sigEcalIso, "EcalIsoHistoCanv","EcalIso/HLT pT of HLT object matched to gen trackless electron",100,-0.3,0.5, "../triggerPlots/hltObjectPlots/signal_EcalIsoHisto_low_thresholds_Dec_20_1kevts.png")
+#makeAndSaveHisto(sigSigmaIEIE, "SigmaIEIEHistoCanv","#sigma_{i#etai#eta} of HLT object matched to gen trackless electron",100,0.,0.2, "../triggerPlots/hltObjectPlots/signal_SigmaIEIEHisto_low_thresholds_Dec_20_1kevts.png")
+#makeAndSaveHisto(sigHcalIso, "HcalIsoHistoCanv","HcalIso/HLT pT of HLT object matched to gen trackless electron",100,-0.3,0.5, "../triggerPlots/hltObjectPlots/signal_HcalIsoHisto_low_thresholds_Dec_20_1kevts.png")
+#makeAndSaveHisto(sigHoverE, "HoverEHistoCanv","HoverE/HLT E of HLT object matched to gen trackless electron",100,0.,1, "../triggerPlots/hltObjectPlots/signal_HoverEHisto_low_thresholds_Dec_20_1kevts.png")
+#makeAndSaveHisto(sigPt, "PtHistoCanv","Pt of HLT object matched to gen trackless electron",100,0.,250., "../triggerPlots/hltObjectPlots/signal_HLT_matched_PtHisto_low_thresholds_Dec_20_1kevts.png")
 
 
 #makeAndSaveHisto(genTracklessPt, "genTracklessPtHistoCanv","Pt of trackless gen electron which was matched to an HLT object",100,0.,150., "../triggerPlots/genParticlePlots/signal_gen_trackless_PtHisto_low_thresholds_Dec_20_1kevts.png")
