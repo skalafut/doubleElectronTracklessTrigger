@@ -980,12 +980,12 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	*/
 	tracklessModNames.push_back("hltEle15WPYYtracklessHcalIsoFilter");
 
-	//uncomment this when analyzing bkgnd files
-	//GetMatchedTriggerObjects(iEvent, tracklessModNames, 0.0, 0.0, 20);
+	//uncomment this when analyzing bkgnd files or unmatched signal files (to compute signal trigger rate)
+	GetMatchedTriggerObjects(iEvent, tracklessModNames, 0.0, 0.0, 20);
 
 
-	//uncomment this when analyzing signal files
-	/**/
+	//uncomment this when analyzing matched signal files to determine Z->ee trigger efficiency
+	/*
 	double maxDRForMatch = 0.2;
 
 	InputTag genParticleTag("genParticles","","SIM");
@@ -1084,7 +1084,7 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 		gen_l1_pT_ = genElectronPTs[length-1];
 	}
 
-	/**/
+	*/
 	
 
 	//that's all folks!

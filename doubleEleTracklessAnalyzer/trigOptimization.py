@@ -2,6 +2,130 @@ import ROOT
 import array
 import math
 
+def findOptimalCutValuesAndRateAndEff(matchedSigFile, unmatchedSigFile, bkgndFile, desiredRate, effDenom, sortedEtCutArr, sortedSigmaIEIECutArr, sortedEcalIsoCutArr, sortedHoverECutArr, sortedHcalIsoCutArr):
+	#this function takes three file objects, the desired total trigger rate, and Z->ee trigger efficiency denominator, and five 1D vectors as inputs
+	#the five 1D arrays contain cut values for ET, sigma ietaieta, ecal iso/ET, (had/em)/energy, and hcal iso/ET
+	#the ET array is sorted from low to high (last element in array is largest value)
+	#the other four arrays are sorted from high to low (last element in array is smallest value)
+	#this function calculates the total trigger rate and Z->ee trigger efficiency as a function of the cut variable values
+	#and returns a 1D vector with the value of the five cut variables which maximizes the Z->ee trig efficiency, the total trigger rate, and the Z->ee trigger efficiency
+	matchedSigTree = matchedSigFile.Get("demo/doubleEleTrigger")
+	unmatchedSigTree = unmatchedSigFile.Get("demo/doubleEleTrigger")
+	bkgndTree = bkgndFile.Get("demo/doubleEleTrigger")
+	print 'declared the three TTree objects in findOptimalCutValuesAndRateAndEff'
+
+	#expected peak luminosity in 2015, in units of 1/(sec * cm^2)
+	value = 1.4
+	power = 10**34 
+	peakLumi = value*power 
+
+	#cross section for dy->ee and minbias at 13 TeV in cm^2 (units need to match luminosity units!) 
+	signalInPB = 6960
+	picoBarnToSquareCm = math.pow(10,-36)
+	#dy->ee cross section in units of cm^2
+	signalXSxn = signalInPB*picoBarnToSquareCm
+	
+	#minbias cross section at 13 TeV is approximately 70 millibarns
+	minBiasInMB = 70
+	milliBarnToPicoBarn = math.pow(10,9)
+	#minbias cross section in units of cm^2
+	minBiasXSxn = minBiasInMB*milliBarnToPicoBarn*picoBarnToSquareCm
+
+	#make a 7D array which will be returned at the end
+	#(ET, sigmaIEIE, ecalIso/ET, had/em/Energy, hcalIso/ET, calculated total trigger rate, Z->ee trig eff)
+	cutsRatesAndEffs = []
+	print 'length of sortedEtCutArr is ', len(sortedEtCutArr)
+	
+	#loop over all values of the five cut variables
+	#sortedEtCutArr, sortedSigmaIEIECutArr, sortedEcalIsoCutArr, sortedHoverECutArr, sortedHcalIsoCutArr
+	for a in xrange( int(len(sortedEtCutArr)) ):
+		for b in xrange( int(len(sortedSigmaIEIECutArr)) ):
+			for c in xrange( int(len(sortedEcalIsoCutArr)) ):
+				for d in xrange( int(len(sortedHoverECutArr)) ):
+					for f in xrange( int(len(sortedHcalIsoCutArr)) ):
+						#three variables to count the number of bkgnd evts, unmatched sig evts, and matched sig evts pass all five filters
+						numUnmatchedSigEvts = 0.
+						numMatchedSigEvts = 0.
+						numBkgndEvts = 0.
+						print 'declared the three counter variables which will be used to calculate signal rate, bkgnd rate, and Z->ee trig eff'
+
+						#loop over all signal evts which are matched to gen electrons coming from a Z decay
+						for i in xrange(matchedSigTree.GetEntries()):
+							matchedSigTree.GetEntry(i)
+							if(matchedSigTree.genTriggeredEvent_ > 0.):
+								#calculate gen di-electron mass, and only analyze evts from matchedSigTree for M_ee btwn 81 and 101 GeV
+								genDileptonSquared = 0.
+								genDileptonSquared += (2)*(matchedSigTree.gen_tracked_pT_)*(matchedSigTree.gen_trackless_pT_)*(math.cosh(matchedSigTree.gen_tracked_eta_ - matchedSigTree.gen_trackless_eta_) - math.cos(matchedSigTree.gen_tracked_phi_ - matchedSigTree.gen_trackless_phi_) )
+								genDileptonMass = 0.
+								if(genDileptonSquared > 0.):
+									genDileptonMass += math.sqrt(genDileptonSquared)
+
+								if(genDileptonMass > 81. and genDileptonMass < 101.):
+									if(matchedSigTree.matched_pT_ > sortedEtCutArr[a]):
+										if(matchedSigTree.matched_ecalClusterShape_SigmaIEtaIEta_ < sortedSigmaIEIECutArr[b]):
+											if( (matchedSigTree.matched_ecalIso_/matchedSigTree.matched_pT_) < sortedEcalIsoCutArr[c]):
+												if( (matchedSigTree.matched_hOverE_/(matchedSigTree.matched_pT_*(math.cosh(matchedSigTree.matched_eta_)) )) < sortedHoverECutArr[d]):
+													if( (matchedSigTree.matched_hcalIso_/matchedSigTree.matched_pT_) < sortedHcalIsoCutArr[f]):
+														numMatchedSigEvts += 1.0
+
+						#end loop over matchedSigTree entries to determine # of events with gen M_ee near Z peak which fired trigger
+						#begin loop over unmatchedSigTree entries
+						for j in xrange(unmatchedSigTree.GetEntries()):
+							unmatchedSigTree.GetEntry(j)
+							if(unmatchedSigTree.matched_pT_ > sortedEtCutArr[a]):
+								if(unmatchedSigTree.matched_ecalClusterShape_SigmaIEtaIEta_ < sortedSigmaIEIECutArr[b]):
+									if( (unmatchedSigTree.matched_ecalIso_/unmatchedSigTree.matched_pT_) < sortedEcalIsoCutArr[c]):
+										if( (unmatchedSigTree.matched_hOverE_/(unmatchedSigTree.matched_pT_*(math.cosh(unmatchedSigTree.matched_eta_)) )) < sortedHoverECutArr[d]):
+											if( (unmatchedSigTree.matched_hcalIso_/unmatchedSigTree.matched_pT_) < sortedHcalIsoCutArr[f]):
+												numUnmatchedSigEvts += 1.0
+
+						#end loop over unmatchedSigTree entries to determine # of signal events which fired trigger
+						#begin loop over bkgndTree entries
+						for k in xrange(bkgndTree.GetEntries()):
+							bkgndTree.GetEntry(k)
+							if(bkgndTree.matched_pT_ > sortedEtCutArr[a]):
+								if(bkgndTree.matched_ecalClusterShape_SigmaIEtaIEta_ < sortedSigmaIEIECutArr[b]):
+									if( (bkgndTree.matched_ecalIso_/bkgndTree.matched_pT_) < sortedEcalIsoCutArr[c]):
+										if( (bkgndTree.matched_hOverE_/(bkgndTree.matched_pT_*(math.cosh(bkgndTree.matched_eta_)) )) < sortedHoverECutArr[d]):
+											if( (bkgndTree.matched_hcalIso_/bkgndTree.matched_pT_) < sortedHcalIsoCutArr[f]):
+												numBkgndEvts += 1.0
+
+						#end loop over bkgndTree entries to determine # of bkgnd events which fired trigger
+						
+						#now calculate total trigger rate.  If the calculated rate is btwn 0.9 and 1.0 times the desired rate, then calculate the Z->ee efficiency, and save
+						#the values of the five cut variables, the total rate, and the Z->ee trigger efficiency
+						bkgndRate = (minBiasXSxn*peakLumi*numBkgndEvts)/bkgndTree.GetEntries()
+						signalRate = (signalXSxn*peakLumi*numUnmatchedSigEvts)/unmatchedSigTree.GetEntries()
+						totalRate = signalRate + bkgndRate
+						print 'calculated total trigger rate'
+						if(totalRate > (1.5)*desiredRate and f < (int(len(sortedHcalIsoCutArr))-2) ):
+							f += 2
+							print 'incremented f by 2 because calculated totalRate is too large'
+							continue;
+						if(totalRate >= (0.9)*desiredRate and totalRate <= desiredRate):
+							zEff = (numMatchedSigEvts/effDenom)
+							cutsRatesAndEffs.append([sortedEtCutArr[a], sortedSigmaIEIECutArr[b], sortedEcalIsoCutArr[c], sortedHoverECutArr[d], sortedHcalIsoCutArr[f], totalRate, zEff])
+
+	#now that the 7D array named cutsRatesAndEffs is filled, I should find the values of the five cut variables which maximize the Z->ee trigger efficiency
+	maxEff = 0.
+	indexOfMaxEff = 0
+	for i in xrange(int(len(cutsRatesAndEffs)) ):
+		if(cutsRatesAndEffs[6][i] > maxEff):
+			maxEff = 0.
+			maxEff += cutsRatesAndEffs[6][i]
+			indexOfMaxEff = 0
+			indexOfMaxEff += i
+	
+	#end loop over cutsRatesAndEffs[6]
+	#fill a 1D array with the five optimal cut values, the trigger rate, and the Z->ee trigger efficiency
+	optimalValues = []
+	for g in xrange(7):
+		optimalValues.append(cutsRatesAndEffs[g][indexOfMaxEff])
+	
+	return optimalValues
+
+
+
 def makeAndSaveHisto(someArray, canvName, histTitle, numBins, xmin, xmax, outFilePath):
 	h = ROOT.TH1F(histTitle, histTitle, numBins, xmin, xmax)
 	canv = ROOT.TCanvas(canvName,canvName,500,500)
@@ -121,44 +245,17 @@ def calcEff(isUpperLimit, inputArray, critValFromInputArray, effDenom):
 
 
 f1 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_10kevts_very_loose_trackless_leg.root")
-#f2 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/bkgnd_10kevts_very_loose_trackless_leg.root")
+f2 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/unmatched_signal_10kevts_very_loose_trackless_leg.root")
+f3 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/bkgnd_10kevts_very_loose_trackless_leg.root")
 
-
+#tree for signal evts which fire the trigger and are matched to gen electrons from Z decay
 t1 = f1.Get("demo/doubleEleTrigger")
 
-#branch variables
-#   tree->Branch("numGenLeptonsFromZ_",&numGenLeptonsFromZ_,"numGenLeptonsFromZ_/D");
-#   tree->Branch("gen_l1_pT_",&gen_l1_pT_,"gen_l1_pT_/D");
-#   tree->Branch("gen_l2_pT_",&gen_l2_pT_,"gen_l2_pT_/D");
-#   tree->Branch("gen_l2_eta_",&gen_l2_eta_,"gen_l2_eta_/D");
-#   tree->Branch("gen_l1_eta_",&gen_l1_eta_,"gen_l1_eta_/D");
-#   tree->Branch("gen_l2_phi_",&gen_l2_phi_,"gen_l2_phi_/D");
-#   tree->Branch("gen_l1_phi_",&gen_l1_phi_,"gen_l1_phi_/D");
-#   tree->Branch("gen_trackless_eta_",&gen_trackless_eta_,"gen_trackless_eta_/D");
-#   tree->Branch("gen_trackless_pT_",&gen_trackless_pT_,"gen_trackless_pT_/D");
-#   tree->Branch("gen_trackless_phi_",&gen_trackless_phi_,"gen_trackless_phi_/D");
-#   tree->Branch("gen_tracked_eta_",&gen_tracked_eta_,"gen_tracked_eta_/D");
-#   tree->Branch("gen_tracked_pT_",&gen_tracked_pT_,"gen_tracked_pT_/D");
-#   tree->Branch("gen_tracked_phi_",&gen_tracked_phi_,"gen_tracked_phi_/D");
-#   tree->Branch("genTriggeredEvent_",&genTriggeredEvent_,"genTriggeredEvent_/D");
-#   tree->Branch("consistentGenAndHLTEvent_",&consistentGenAndHLTEvent_,"consistentGenAndHLTEvent_/D");
-#
-#
-#   tree->Branch("matched_pT_",&matched_pT_,"matched_pT_/D");
-#   tree->Branch("matched_eta_",&matched_eta_,"matched_eta_/D");
-#   tree->Branch("matched_ecalIso_",&matched_ecalIso_,"matched_ecalIso_/D");
-#   tree->Branch("matched_hcalIso_",&matched_hcalIso_,"matched_hcalIso_/D");
-#   tree->Branch("matched_ecalClusterShape_",&matched_ecalClusterShape_,"matched_ecalClusterShape_/D");
-#   tree->Branch("matched_ecalClusterShape_SigmaIEtaIEta_",&matched_ecalClusterShape_SigmaIEtaIEta_,"matched_ecalClusterShape_SigmaIEtaIEta_/D");
-#   tree->Branch("matched_hOverE_",&matched_hOverE_,"matched_hOverE_/D");
-#   tree->Branch("numUnmatchedCandidates_",&numUnmatchedCandidates_,"numUnmatchedCandidates_/D");
-#
-#   tree->Branch("reco_tracked_pT_",&reco_tracked_pT_,"reco_tracked_pT_/D");
-#   tree->Branch("reco_tracked_eta_",&reco_tracked_eta_,"reco_tracked_eta_/D");
-#   tree->Branch("reco_tracked_phi_",&reco_tracked_phi_,"reco_tracked_phi_/D");
-#   tree->Branch("reco_untracked_pT_",&reco_untracked_pT_,"reco_untracked_pT_/D");
-#   tree->Branch("reco_untracked_eta_",&reco_untracked_eta_,"reco_untracked_eta_/D");
-#   tree->Branch("reco_untracked_phi_",&reco_untracked_phi_,"reco_untracked_phi_/D");
+#tree for signal evts which fire the trigger but are not matched to gen electrons
+#t2 = f2.Get("demo/doubleEleTrigger")
+
+#tree for bkgnd evts which fire the trigger
+#t3 = f3.Get("demo/doubleEleTrigger")
 
 
 #array vars
@@ -176,7 +273,7 @@ recoDileptonMass = []
 efficiencyDenom = 0	#denominator of efficiency, equal to # of events with one untracked EE gen e- (pT > 15), one tracked gen e- (pT > 27), and the dilepton mass of these two gen electrons exceeds 50 GeV
 
 #eventually swap 1000 for t1.GetEntries()
-for z in xrange(t1.GetEntries()):
+for z in xrange(1000):
 	#loop over all events that were analyzed to make signal.root
 	t1.GetEntry(z)
 	#calculate two dilepton mass values for the signal event (dy->ee)
@@ -192,29 +289,78 @@ for z in xrange(t1.GetEntries()):
 		#count events in the efficiency denominator only if the gen lvl dilepton mass exceeds 50 GeV
 		if(genDileptonMass > 81. and genDileptonMass < 101.):
 			efficiencyDenom += 1.
-
-
-	if(t1.matched_pT_ > 0. and t1.reco_tracked_pT_ > 0. and t1.reco_untracked_pT_ > 0.):
-		sigTuple.append([t1.matched_ecalClusterShape_SigmaIEtaIEta_, t1.matched_ecalIso_/t1.matched_pT_, t1.matched_hOverE_/(t1.matched_pT_*(math.cosh(t1.matched_eta_)) ), t1.matched_ecalIso_/t1.matched_pT_])
-		sigEcalIso.append(t1.matched_ecalIso_/t1.matched_pT_)
-		sigHcalIso.append(t1.matched_hcalIso_/t1.matched_pT_)
-		sigHoverE.append(t1.matched_hOverE_/(t1.matched_pT_*(math.cosh(t1.matched_eta_)) ))
-		sigSigmaIEIE.append(t1.matched_ecalClusterShape_SigmaIEtaIEta_)
-		sigPt.append(t1.matched_pT_)
-		sigEta.append(t1.matched_eta_)
-		genTracklessPt.append(t1.gen_trackless_pT_)
-		#calculate dilepton mass of the RECO gsf electron and EE supercluster which are matched to the two trigger objects
-		recoDileptonSquared = 0.
-		recoDileptonSquared += (2)*(t1.reco_tracked_pT_)*(t1.reco_untracked_pT_)*(math.cosh(t1.reco_tracked_eta_ - t1.reco_untracked_eta_) - math.cos(t1.reco_tracked_phi_ - t1.reco_untracked_phi_) )
-		if( recoDileptonSquared > 0.):
-			recoDileptonMass.append( math.sqrt(recoDileptonSquared) )
-
+			print 'found an event where the di-electron mass is between 81 and 101'
+			if(t1.matched_pT_ > 0.):
+				sigTuple.append([t1.matched_ecalClusterShape_SigmaIEtaIEta_, t1.matched_ecalIso_/t1.matched_pT_, t1.matched_hOverE_/(t1.matched_pT_*(math.cosh(t1.matched_eta_)) ), t1.matched_ecalIso_/t1.matched_pT_])
+				sigEcalIso.append(t1.matched_ecalIso_/t1.matched_pT_)
+				sigHcalIso.append(t1.matched_hcalIso_/t1.matched_pT_)
+				sigHoverE.append(t1.matched_hOverE_/(t1.matched_pT_*(math.cosh(t1.matched_eta_)) ))
+				sigSigmaIEIE.append(t1.matched_ecalClusterShape_SigmaIEtaIEta_)
+				sigPt.append(t1.matched_pT_)
+				sigEta.append(t1.matched_eta_)
+				genTracklessPt.append(t1.gen_trackless_pT_)
+				#calculate dilepton mass of the RECO gsf electron and EE supercluster which are matched to the two trigger objects
+				if(t1.reco_tracked_pT_ > 0. and t1.reco_untracked_pT_ > 0.):
+					recoDileptonSquared = 0.
+					recoDileptonSquared += (2)*(t1.reco_tracked_pT_)*(t1.reco_untracked_pT_)*(math.cosh(t1.reco_tracked_eta_ - t1.reco_untracked_eta_) - math.cos(t1.reco_tracked_phi_ - t1.reco_untracked_phi_) )
+					if( recoDileptonSquared > 0.):
+						recoDileptonMass.append( math.sqrt(recoDileptonSquared) )
 
 #sigTupleLen defined here is equal to the # of events which passed the trackless leg of the trigger
 sigTupleLen = float(len(sigTuple))
 sigPtLen = int(len(sigPt))
+#print 'sigPtLen equals ', sigPtLen
 recoDileptonLen = int(len(recoDileptonMass))
 maxEff = float(len(sigPt))*(100)/efficiencyDenom
+
+#make sorted arrays of sigPt, sigSigmaIEIE, sigEcalIso, sigHoverE, and sigHcalIso
+#all arrays except sigPt will be sorted from high to low (last element is smallest value)
+sortedPt = sorted(sigPt)
+sortedSigmaIEIE = sorted(sigSigmaIEIE, reverse=True)
+sortedEcalIso = sorted(sigEcalIso, reverse=True)
+sortedHoverE = sorted(sigHoverE, reverse=True)
+sortedHcalIso = sorted(sigHcalIso, reverse=True)
+
+#print ' '
+#
+#for i in xrange(sigPtLen):
+#	print 'sortedPt element # ', i, ' equals ', sortedPt[i]
+#
+#print ' '
+#
+#for i in xrange(sigPtLen):
+#	print 'sortedSigmaIEIE element # ', i, ' equals ', sortedSigmaIEIE[i]
+#
+#print ' '
+#
+#for i in xrange(sigPtLen):
+#	print 'sortedEcalIso element # ', i, ' equals ', sortedEcalIso[i]
+#
+#print ' '
+#
+#for i in xrange(sigPtLen):
+#	print 'sortedHoverE element # ', i, ' equals ', sortedHoverE[i]
+#
+#print ' '
+#
+#for i in xrange(sigPtLen):
+#	print 'sortedHcalIso element # ', i, ' equals ', sortedHcalIso[i]
+#
+
+
+targetRate = 0.4 
+optimizedCutsRateAndEff = findOptimalCutValuesAndRateAndEff(f1, f2, f3, targetRate, efficiencyDenom, sortedPt, sortedSigmaIEIE, sortedEcalIso, sortedHoverE, sortedHcalIso)
+for i in xrange(optimizedCutsRateAndEff):
+	if(i < 5):
+		print 'cut variable number ', i, ' equals ', optimizedCutsRateAndEff[i]
+	if(i == 5):
+		print ' '
+		print 'desired trigger rate equals', targetRate
+		print 'calculated trigger rate equals ', optimizedCutsRateAndEff[i]
+	if(i == 6):
+		print ' '
+		print 'Z->ee trigger efficiency equals ', optimizedCutsRateAndEff[i]
+
 
 print 'after analyzing 1000 events, efficiency denom equals ', efficiencyDenom
 print 'out of 1000 possible events, the trigger fired in this many events ', sigPtLen
