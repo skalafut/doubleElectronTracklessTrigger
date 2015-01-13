@@ -84,6 +84,7 @@
 #include "DataFormats/CaloRecHit/interface/CaloRecHit.h"
 #include "DataFormats/CaloRecHit/interface/CaloCluster.h"
 
+#include "DataFormats/Math/interface/deltaR.h"
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
@@ -375,38 +376,9 @@ void makeAndSaveSingle3DHisto(TString title, TString filePostfix, TString canvNa
 
 }//end makeAndSaveSingle3DHisto(...)
 
-//calculates delta R between two specified (eta, phi) points, and returns the value of delta R
-double deltaR(const double ETA, const double PHI, const double eta, const double phi){
-	double deltaEta = ETA-eta;
-	double deltaPhi = PHI-phi;
-	double dR = TMath::Sqrt( TMath::Power(deltaEta,2) + TMath::Power(deltaPhi,2) );
-	return dR;
 
-}
-
-
-void GetTrackedRecoMatchedTriggerObjects(const edm::Event& iEvent){
-	/*
-	 * find the highest pT GsfElectron object which is matched within dR = 0.2 cone of the HLT object which fired the tracked leg
-	 * of the trigger
-	 * save the pT, eta, and phi of the GsfElectron object to the TTree
-	 */
-	/*
-	if (trig_names.size() == 0 || trig_names[0].size() == 0) {
-		return;
-	}
-	*/
-
-	//load GsfElectron object collection
-	edm::InputTag gsfEleTag("hltEgammaGsfElectrons","","TEST");
-	edm::Handle<std::vector<reco::Electron> > gsfElectrons;
-	iEvent.getByLabel(gsfEleTag, gsfElectrons);
-	if(!gsfElectrons.isValid() ){
-		std::cout<<"no valid gsfElectron collection"<<std::endl;
-		return;
-	}
-
-	//begin work with trigger objects
+void GetTrackedTriggerObjects(const edm::Event& iEvent, const double genTrackedEta, const double genTrackedPhi, const double maxDrForMatch){
+	//get the pT, eta, and phi of the HLT object which fires the tracked leg and has the closest match to the GEN tracked electron
 
 	// Load Trigger Event with references to objects 
 	edm::InputTag hltTrigInfoTag("hltTriggerSummaryRAW","","TEST");
@@ -420,9 +392,10 @@ void GetTrackedRecoMatchedTriggerObjects(const edm::Event& iEvent){
 
 	std::vector<std::string> trig_names;
 	trig_names.push_back("hltEle27WPXXTrackIsoFilter");
+	unsigned int bestMatchIndex = -1;
+	int bestMatchPhotonId = 0;
+	double bestDeltaR = maxDrForMatch;
 
-	bool foundMatch = false;	//false if a matching gsf electron has not been found 
-	
 	for (auto& trig_name : trig_names) {
 		//loop over the different filter modules that appear in the HLT path.  The names of these modules are specified in the input vector<std::string> called trig_names.
 		//std::cout<<"looking at trigger module named "<< trig_name <<std::endl; 
@@ -451,21 +424,16 @@ void GetTrackedRecoMatchedTriggerObjects(const edm::Event& iEvent){
 
 					if(filter_index == 16){//corresponds to track iso filter
 						if( std::fabs(tracklessEleRefs[j]->eta()) < 2.5 ){
-
-							for(std::vector<reco::Electron>::const_iterator gsfIt=gsfElectrons->begin(); gsfIt != gsfElectrons->end(); gsfIt++){
-								//std::cout<<"gsfElectron has pT = "<< gsfIt->pt() << std::endl;
-								if(deltaR(gsfIt->eta(), gsfIt->phi(), tracklessEleRefs[j]->eta(), tracklessEleRefs[j]->phi() ) <= 0.2 && !foundMatch){
-									std::cout<<"found a matching gsf electron"<<std::endl;
-									foundMatch = true;
-									reco_tracked_pT_ = gsfIt->pt();
-									reco_tracked_eta_ = gsfIt->eta();
-									reco_tracked_phi_ = gsfIt->phi();
-
-								}
-
-
-							}//end loop over gsf electrons
-
+							double dR = deltaR(genTrackedEta, genTrackedPhi, tracklessEleRefs[j]->eta(), tracklessEleRefs[j]->phi() );
+							fill("trackedGENToHLTDeltaR", dR);
+							if(dR < bestDeltaR){
+								bestDeltaR = 0;
+								bestDeltaR += dR;
+								bestMatchIndex = 0;
+								bestMatchIndex += j;
+								bestMatchPhotonId = 0;
+								bestMatchPhotonId += i;
+							}
 
 						}//end requirement that REC fall within tracker coverage 
 
@@ -475,13 +443,54 @@ void GetTrackedRecoMatchedTriggerObjects(const edm::Event& iEvent){
 
 			}//end loop over photon id values
 
+			//now use the bestMatchPhotonId, bestMatchIndex, bestDeltaR, and deltaRVals objects to identify the tracked trigger object
+			//whose pT, eta, and phi should be saved
+			trigger::VRphoton trackedEleRef;
+			trig_event->getObjects(filter_index, bestMatchPhotonId, trackedEleRef);
+			for(unsigned int q=0; q<trackedEleRef.size(); q++){
+				if(q==bestMatchIndex && filter_index == 16){
+					matched_tracked_pT_ = (trackedEleRef[q]->energy()/TMath::CosH(trackedEleRef[q]->eta() ) );
+					matched_tracked_eta_ = trackedEleRef[q]->eta();
+					matched_tracked_phi_ = trackedEleRef[q]->phi();
+					break;
+				}
+			}//end loop over objects in trackedEleRef vector
+
 		}//end if(filter_index...)
 
 	}//end loop over trigger module names
 
-}//end GetTrackedRecoMatchedTriggerObjects() 
+}//end GetTrackedTriggerObjects() 
 
 
+/*
+void hasGenMatchedTrackedElectron(const edm::Event& iEvent, const double genEta, const double genPhi){
+	//checks that the gen tracked electron is matched to a reco Gsf Electron
+	
+	//load GsfElectron object collection
+	edm::InputTag gsfEleTag("hltEgammaGsfElectrons","","TEST");
+	edm::Handle<std::vector<reco::Electron> > gsfElectrons;
+	iEvent.getByLabel(gsfEleTag, gsfElectrons);
+	if(!gsfElectrons.isValid() ){
+		std::cout<<"no valid gsfElectron collection"<<std::endl;
+		return;
+	}
+   
+	for(std::vector<reco::Electron>::const_iterator gsfIt=gsfElectrons->begin(); gsfIt != gsfElectrons->end(); gsfIt++){
+		//loop over all gsf electrons in event
+		//gsf electrons will only be saved in the event record if the tracked leg of the trigger is fired
+		fill("gsfElectronDeltaR", deltaR(gsfIt->eta(), gsfIt->phi(), genEta, genPhi) );
+		if(deltaR(gsfIt->eta(), gsfIt->phi(), genEta, genPhi) <= 0.2){
+			trackedGenToRecoMatch_ = 1;
+		}
+		
+	}//end loop over gsf electrons
+
+	return;
+
+}//end hasGenMatchedTrackedElectron()
+
+*/
 
 void GetMatchedTriggerObjects(
 		const edm::Event& iEvent,
@@ -496,17 +505,6 @@ void GetMatchedTriggerObjects(
 	if (trig_names.size() == 0 || trig_names[0].size() == 0) {
 		return;
 	}
-	bool incrementedTriggeredEvents = false;
-
-	//load EE PFSuperCluster object collections
-	edm::InputTag eeSuperClusterTag("hltParticleFlowSuperClusterECALUnseeded","hltParticleFlowSuperClusterECALEndcapWithPreshower","TEST");
-	edm::Handle<std::vector<reco::SuperCluster> > eeSuperClusters;
-	iEvent.getByLabel(eeSuperClusterTag, eeSuperClusters);
-	if(!eeSuperClusters.isValid() ){
-		std::cout<<"no valid eeSuperCluster collection"<<std::endl;
-		return;
-	}
-
 
 	//begin work with trigger objects
 
@@ -521,57 +519,6 @@ void GetMatchedTriggerObjects(
 	}
 
 	typedef edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>,float,unsigned int> > ecalCandToValMap;
-
-/*
-
-	//collections for tracked electron candidates
-	
-	edm::InputTag hltEleGsfTrackIsoTag("hltEgammaEleGsfTrackIso","","TEST");
-	edm::Handle<ecalCandToValMap> trackedEleGsfTrackIsoHandle;
-	iEvent.getByLabel(hltEleGsfTrackIsoTag, trackedEleGsfTrackIsoHandle);
-
-	edm::InputTag hltGsfTrackVarsDetaTag("hltEgammaGsfTrackVars","Deta","TEST");
-	edm::Handle<ecalCandToValMap> trackedGsfTrackVarsDetaHandle;
-	iEvent.getByLabel(hltGsfTrackVarsDetaTag, trackedGsfTrackVarsDetaHandle);
-
-	edm::InputTag hltGsfTrackVarsDphiTag("hltEgammaGsfTrackVars","Dphi","TEST");
-	edm::Handle<ecalCandToValMap> trackedGsfTrackVarsDphiHandle;
-	iEvent.getByLabel(hltGsfTrackVarsDphiTag, trackedGsfTrackVarsDphiHandle);
-
-	edm::InputTag hltGsfTrackVarsMissingHitsTag("hltEgammaGsfTrackVars","MissingHits","TEST");
-	edm::Handle<ecalCandToValMap> trackedGsfTrackVarsMissingHitsHandle;
-	iEvent.getByLabel(hltGsfTrackVarsMissingHitsTag, trackedGsfTrackVarsMissingHitsHandle);
-
-	edm::InputTag hltGsfTrackVarsOneOESeedMinusOneOPTag("hltEgammaGsfTrackVars","OneOESeedMinusOneOP","TEST");
-	edm::Handle<ecalCandToValMap> trackedGsfTrackVarsOneOESeedMinusOneOPHandle;
-	iEvent.getByLabel(hltGsfTrackVarsOneOESeedMinusOneOPTag, trackedGsfTrackVarsOneOESeedMinusOneOPHandle);
-
-	edm::InputTag hltGsfTrackVarsOneOESuperMinusOneOPTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST");
-	edm::Handle<ecalCandToValMap> trackedGsfTrackVarsOneOESuperMinusOneOPHandle;
-	iEvent.getByLabel(hltGsfTrackVarsOneOESuperMinusOneOPTag, trackedGsfTrackVarsOneOESuperMinusOneOPHandle);
-
-
-	edm::InputTag hltTrackedEcalClusterShapeTag("hltEgammaClusterShape","","TEST");
-	edm::Handle<ecalCandToValMap> trackedEcalClusterShapeHandle;
-	iEvent.getByLabel(hltTrackedEcalClusterShapeTag, trackedEcalClusterShapeHandle);
-
-	edm::InputTag hltTrackedEcalClusterShapeSigmaIEtaIEtaTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST");
-	edm::Handle<ecalCandToValMap> trackedEcalClusterShapeSigmaIEtaIEtaHandle;
-	iEvent.getByLabel(hltTrackedEcalClusterShapeSigmaIEtaIEtaTag, trackedEcalClusterShapeSigmaIEtaIEtaHandle);
-
-	edm::InputTag hltTrackedEcalIsoTag("hltEgammaEcalPFClusterIso","","TEST");
-	edm::Handle<ecalCandToValMap> trackedEcalIsoHandle;
-	iEvent.getByLabel(hltTrackedEcalIsoTag, trackedEcalIsoHandle);
-
-	edm::InputTag hltTrackedHoverETag("hltEgammaHoverE","","TEST");
-	edm::Handle<ecalCandToValMap> trackedHoverEHandle;
-	iEvent.getByLabel(hltTrackedHoverETag, trackedHoverEHandle);
-
-	edm::InputTag hltTrackedHcalIsoTag("hltEgammaHcalPFClusterIso","","TEST");
-	edm::Handle<ecalCandToValMap> trackedHcalIsoHandle;
-	iEvent.getByLabel(hltTrackedHcalIsoTag, trackedHcalIsoHandle);
-*/
-
 
 	//collections for untracked electron candidates
 	edm::InputTag hltNoTrackEcalClusterShapeTag("hltEgammaClusterShapeUnseeded","","TEST");
@@ -601,8 +548,10 @@ void GetMatchedTriggerObjects(
 	untrackedHandles.push_back(untrackedHoverEHandle);
 	untrackedHandles.push_back(untrackedHcalIsoHandle);
 
-	bool matchedClstr = false;	//false if a matching reco supercluster has not been found
-	
+	unsigned int bestMatchIndex=-1;
+	int bestMatchPhotonId=0;
+	double bestDeltaR=dRForMatch;
+
 	for (auto& trig_name : trig_names) {
 		//loop over the different filter modules that appear in the HLT path.  The names of these modules are specified in the input vector<std::string> called trig_names.
 		//std::cout<<"looking at trigger module named "<< trig_name <<std::endl; 
@@ -628,75 +577,24 @@ void GetMatchedTriggerObjects(
 
 				//now loop over all objects which passed  
 				for(unsigned int j=0; j<tracklessEleRefs.size() ; j++){
-
-					std::vector<float> untrackedEleParams;
-					std::vector<std::string> untrackedEleParamNames;
-					untrackedEleParamNames.push_back("pt");
-					untrackedEleParamNames.push_back("eta");
-					untrackedEleParamNames.push_back("ecal cluster shape");
-					untrackedEleParamNames.push_back("ecal cluster shape sigma IEta IEta");	//this is slightly different from "ecal cluster shape"
-					untrackedEleParamNames.push_back("ecal iso");
-					untrackedEleParamNames.push_back("H/E");
-					untrackedEleParamNames.push_back("hcal iso");
-
 					//for the trackless electron candidate: ecal iso cut <--> filter_index = 5, H/E cut <--> filter_index = 6, 
 					//hcal iso cut <--> filter_index = 7
-
-					untrackedEleParams.push_back( tracklessEleRefs[j]->energy()/( TMath::CosH(tracklessEleRefs[j]->eta() ) ) );
-					untrackedEleParams.push_back( tracklessEleRefs[j]->eta() );
-					std::vector<ecalCandToValMap> valMaps;
-					for(unsigned int q=0; q<untrackedHandles.size() ;q++){
-						if(untrackedHandles[q].isValid() ){
-							valMaps.push_back( *(untrackedHandles[q].product() ) );	//gets a map from the handle, puts map in the last element of a vector
-							untrackedEleParams.push_back( ( valMaps[valMaps.size()-1].find(tracklessEleRefs[j]) )->val ); //gets value of variable (ecal iso, H/E, etc) from map, and stores it in a vector
-
-						}
-
-					}//end loop over edm::Handle objects to collections tied to untracked electron candidates
 					
-					//eta and pT cut on trackless candidate, and dilepton mass cut on tracked+untracked electon candidates will be added later
-					//std::cout<<" "<<std::endl;
-					//std::cout<<"found a trackless electron candidate with "<<std::endl;
-					for(unsigned int w=0; w<untrackedEleParamNames.size() ;w++){
-						//std::cout<< untrackedEleParamNames[w] <<" equal to "<< untrackedEleParams[w] <<std::endl;
-					}
-					//std::cout<<" "<<std::endl;
-
 					if(filter_index == 7){
 						//filter_index = 7 corresponds to HCAL iso
-						if( std::fabs(tracklessEleRefs[j]->eta()) >= 2.4 && std::fabs(tracklessEleRefs[j]->eta()) < 3.0 ){
+						if( std::fabs(tracklessEleRefs[j]->eta()) >= 2.5 && std::fabs(tracklessEleRefs[j]->eta()) < 3.0 ){
 							numUnmatchedCandidates_ += 1.0;
-							if(deltaR(eta, phi, tracklessEleRefs[j]->eta(), tracklessEleRefs[j]->phi() )  <= dRForMatch && !incrementedTriggeredEvents){
-								matched_pT_=untrackedEleParams[0];
-								matched_eta_=untrackedEleParams[1];
-								matched_ecalClusterShape_=untrackedEleParams[2];
-								matched_ecalClusterShape_SigmaIEtaIEta_=untrackedEleParams[3];
-								matched_ecalIso_=untrackedEleParams[4];
-								matched_hOverE_=untrackedEleParams[5];
-								matched_hcalIso_=untrackedEleParams[6];
-	
-								incrementNumTriggeredEvents();
-								incrementedTriggeredEvents = true;	//guarantees numTriggeredEvents only gets incremented by at most once per iEvent object
-								std::cout<<"numTriggeredEvents equals "<< getNumTriggeredEvents() <<std::endl;
-								//if(genTriggeredEvent_ ==1) consistentGenAndHLTEvent_ = 1;
-								//std::cout<<"consistentGenAndHLTEvent_ equals "<< consistentGenAndHLTEvent_ << std::endl;
-
-								//now look to see if there is a reco EE supercluster matched to the trackless HLT object 
-								//if there is one, then save the kinematic info of the matched EE supercluster
-								for(std::vector<reco::SuperCluster>::const_iterator clstIt = eeSuperClusters->begin(); clstIt != eeSuperClusters->end() ; clstIt++){
-									//std::cout<<"supercluster pT = "<< clstIt->energy()/(TMath::CosH(clstIt->eta()) ) << std::endl;
-									if(deltaR(clstIt->eta(), clstIt->phi(), tracklessEleRefs[j]->eta(), tracklessEleRefs[j]->phi() ) <= 0.4 && !matchedClstr && std::fabs(clstIt->eta()) >= 2.5 ){
-										std::cout<<"found a matching EE supercluster"<<std::endl;
-										matchedClstr = true;
-										reco_untracked_pT_ = clstIt->energy()/(TMath::CosH(clstIt->eta() ) );
-										reco_untracked_eta_ = clstIt->eta();
-										reco_untracked_phi_ = clstIt->phi();
-									}
-
-								}//end loop over EE superclusters
-								
-
-							}//end deltaR matching filter and incrementedTriggeredEvents filter
+							double dR = deltaR(eta, phi, tracklessEleRefs[j]->eta(), tracklessEleRefs[j]->phi() );
+							fill("tracklessGENToHLTDeltaR", dR);
+   						   	if(dR < bestDeltaR){
+								//now the best match HLT object has been found
+								bestDeltaR = 0;
+								bestDeltaR += dR;
+								bestMatchPhotonId = 0;
+								bestMatchPhotonId += i;
+								bestMatchIndex = 0;
+								bestMatchIndex += j;
+							}
 
 						}//end requirement that REC be in trackless EE
 
@@ -705,6 +603,41 @@ void GetMatchedTriggerObjects(
 				}//end loop over all elements in tracklessEleRefs vector
 
 			}//end loop over photon id values
+
+			//now use bestMatchIndex and bestMatchPhotonId to save the pT, eta, phi, and trigger cut vars of the HLT object which fired the trackless leg
+			trigger::VRphoton tracklessEleRef;
+			trig_event->getObjects(filter_index, bestMatchPhotonId, tracklessEleRef);
+
+			for(unsigned int r=0; r<tracklessEleRef.size(); r++){
+				if(filter_index == 7 && r == bestMatchIndex){
+					//get and save the pT, eta, phi, and other trigger cut variables associated with the HLT object which fired the trackless leg
+   					std::vector<float> untrackedEleParams;
+					untrackedEleParams.push_back( tracklessEleRef[r]->energy()/( TMath::CosH(tracklessEleRef[r]->eta() ) ) );
+					untrackedEleParams.push_back( tracklessEleRef[r]->eta() );
+					std::vector<ecalCandToValMap> valMaps;
+					for(unsigned int q=0; q<untrackedHandles.size() ;q++){
+						if(untrackedHandles[q].isValid() ){
+							valMaps.push_back( *(untrackedHandles[q].product() ) );	//gets a map from the handle, puts map in the last element of a vector
+							untrackedEleParams.push_back( ( valMaps[valMaps.size()-1].find(tracklessEleRef[r]) )->val ); //gets value of variable (ecal iso, H/E, etc) from map, and stores it in a vector
+						}
+
+					}//end loop over edm::Handle objects to collections tied to untracked electron candidates
+
+					matched_pT_=untrackedEleParams[0];
+					matched_eta_=untrackedEleParams[1];
+					matched_phi_=tracklessEleRef[r]->phi();
+					matched_ecalClusterShape_=untrackedEleParams[2];
+					matched_ecalClusterShape_SigmaIEtaIEta_=untrackedEleParams[3];
+					matched_ecalIso_=untrackedEleParams[4];
+					matched_hOverE_=untrackedEleParams[5];
+					matched_hcalIso_=untrackedEleParams[6];
+
+					incrementNumTriggeredEvents();
+					std::cout<<"numTriggeredEvents equals "<< getNumTriggeredEvents() <<std::endl;
+					break;
+				}//end requirement that r == bestMatchIndex and filter_index == 7 (hcal iso cut)
+			
+			}//end loop over tracklessEleRef elements
 
 		}//end if(filter_index...)
 
@@ -761,24 +694,35 @@ void resetCounters(){
 	gen_tracked_pT_=-1;	//pT of gen electron in tracked ECAL
 	gen_tracked_eta_=-7;	//eta of gen electron in tracked ECAL
 	gen_tracked_phi_=-7;	//phi of gen electron in tracked ECAL
-	genTriggeredEvent_ = -1; 
-	consistentGenAndHLTEvent_ = -1;
-	numGenLeptonsFromZ_ = 0;
+	genTriggeredEvent_ = -1;
+   	genMLL_ = -1;
+	//consistentGenAndHLTEvent_ = -1;
+	//numGenLeptonsFromZ_ = 0;
+	//trackedGenToRecoMatch_ = 0;	//equals 1 if the tracked gen electron is matched to a reco gsf electron
 
 	matched_pT_=-1;
 	matched_eta_=-7;
+	matched_phi_=-7;
 	matched_ecalIso_=999;
 	matched_hcalIso_=999;
 	matched_hOverE_=999;
 	matched_ecalClusterShape_=999;
 	matched_ecalClusterShape_SigmaIEtaIEta_=999;
 	numUnmatchedCandidates_=0;
-	reco_tracked_pT_=-1;
-	reco_tracked_eta_=-7;
-	reco_tracked_phi_=-7;
-	reco_untracked_pT_=-1;
-	reco_untracked_eta_=-7;
-	reco_untracked_phi_=-7;
+
+	//needed to compute dilepton mass at trigger level with HLT objects firing tracked and trackless legs of trigger
+	matched_tracked_pT_=-1;
+	matched_tracked_eta_=-7;
+	matched_tracked_phi_=-7;
+
+	hlt_mLL_ = -1;
+
+	//reco_tracked_pT_=-1;
+	//reco_tracked_eta_=-7;
+	//reco_tracked_phi_=-7;
+	//reco_untracked_pT_=-1;
+	//reco_untracked_eta_=-7;
+	//reco_untracked_phi_=-7;
 
 
 }
@@ -813,7 +757,7 @@ double efficiencyDenominator=0;	//total number of events where there is one GEN 
 TTree * tree;
 
 //gen lepton variables going into TTree
-double numGenLeptonsFromZ_;		//number of generator e- or e+ which have Z boson mothers
+//double numGenLeptonsFromZ_;		//number of generator e- or e+ which have Z boson mothers
 double gen_l1_pT_;	//pT of leading gen electron
 double gen_l1_eta_;	//eta of leading gen electron
 double gen_l1_phi_;	//phi of leading gen electron
@@ -827,11 +771,18 @@ double gen_tracked_pT_;	//pT of gen electron in tracked ECAL
 double gen_tracked_eta_;	//eta of gen electron in tracked ECAL 
 double gen_tracked_phi_;	//phi of gen electron in tracked ECAL 
 double genTriggeredEvent_;	// equals +1 for events which should have fired trackless and tracked legs of trigger based on GEN lvl info, equals -1 otherwise
-double consistentGenAndHLTEvent_;	//equals +1 when GEN info is consistent with HLT firing, equals -1 otherwise
+
+//non-negative for events where there are two GEN electrons with a Z boson mother, one GEN electron is tracked with pT > 27, and other
+//GEN electron is in trackless EE with pT > 15 
+double genMLL_;
+
+//double consistentGenAndHLTEvent_;	//equals +1 when GEN info is consistent with HLT firing, equals -1 otherwise
+//int trackedGenToRecoMatch_;		//equals 1 when the tracked gen electron is matched to a reco gsf electron within deltaR = 0.2
 
 //variables corresponding to matched HLT object in trackless EE which will go into TTree
 double matched_pT_;
 double matched_eta_;
+double matched_phi_;
 double matched_ecalIso_;
 double matched_hcalIso_;
 double matched_hOverE_;
@@ -839,16 +790,13 @@ double matched_ecalClusterShape_;
 double matched_ecalClusterShape_SigmaIEtaIEta_;
 double numUnmatchedCandidates_;
 
-//variables corresponding to RECO GsfElectron (tracked) and PFSuperCluster (untracked) objects which
-//are matched to HLT objects which fire the trigger
-double reco_tracked_pT_;
-double reco_tracked_eta_;
-double reco_tracked_phi_;
-double reco_untracked_pT_;
-double reco_untracked_eta_;
-double reco_untracked_phi_;
+//pT, eta, phi of HLT object which fired tracked leg of trigger
+double matched_tracked_pT_;
+double matched_tracked_eta_;
+double matched_tracked_phi_;
 
-
+//dilepton mass of the tracked HLT object firing the tracked leg, and the trackless HLT object firing the trackless leg
+double hlt_mLL_;
 
 };
 
@@ -877,7 +825,15 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
 {
    //now do what ever initialization is needed
    edm::Service<TFileService> fs;
-
+   
+   //hists_["gsfElectronDeltaR"]=fs->make<TH1D>("gsfElectronDeltaR","#DeltaR gsfElectron to GEN tracked electron; #DeltaR;",100, 0., 0.6);
+   //hists_["superclusterDeltaR"]=fs->make<TH1D>("superclusterDeltaR","#DeltaR supercluster to GEN trackless electron in Z peak evts; #DeltaR;",100, 0., 0.6);
+   //hists_["superclusterHLTDeltaR"]=fs->make<TH1D>("superclusterHLTDeltaR","#DeltaR supercluster to no track HLT object; #DeltaR;",100,0.,0.6);
+   //hists_["gsfHLTDeltaR"]=fs->make<TH1D>("gsfHLTDeltaR","#DeltaR gsf electron to tracked HLT object; #DeltaR;",100,0.,0.6);
+   hists_["tracklessGENToHLTDeltaR"]=fs->make<TH1D>("tracklessGENToHLTDeltaR","#DeltaR gen trackless e- to ALL trackless HLT objects passing trigger; #DeltaR;",100,0.,0.4);
+   hists_["trackedGENToHLTDeltaR"]=fs->make<TH1D>("trackedGENToHLTDeltaR","#DeltaR gen tracked e- to ALL tracked HLT objects passing trigger; #DeltaR;",100,0.,0.4);
+  
+   
    /*
    hists_["GenEta_leadingEle"]=fs->make<TH1D>("GenEta_leadingEle","#eta of leading generator electron; electron #eta;",300,-3.0,3.0);
    hists_["GenEta_subLeadingEle"]=fs->make<TH1D>("GenEta_subLeadingEle","#eta of sub-leading generator electron; electron #eta;",300,-3.0,3.0);
@@ -901,7 +857,7 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
    */
    
    tree=fs->make<TTree>("doubleEleTrigger","Summary of trackless double electron trigger event info");
-   tree->Branch("numGenLeptonsFromZ_",&numGenLeptonsFromZ_,"numGenLeptonsFromZ_/D");
+   //tree->Branch("numGenLeptonsFromZ_",&numGenLeptonsFromZ_,"numGenLeptonsFromZ_/D");
    tree->Branch("gen_l1_pT_",&gen_l1_pT_,"gen_l1_pT_/D");
    tree->Branch("gen_l2_pT_",&gen_l2_pT_,"gen_l2_pT_/D");
    tree->Branch("gen_l2_eta_",&gen_l2_eta_,"gen_l2_eta_/D");
@@ -915,11 +871,14 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
    tree->Branch("gen_tracked_pT_",&gen_tracked_pT_,"gen_tracked_pT_/D");
    tree->Branch("gen_tracked_phi_",&gen_tracked_phi_,"gen_tracked_phi_/D");
    tree->Branch("genTriggeredEvent_",&genTriggeredEvent_,"genTriggeredEvent_/D");
-   tree->Branch("consistentGenAndHLTEvent_",&consistentGenAndHLTEvent_,"consistentGenAndHLTEvent_/D");
+   tree->Branch("genMLL_",&genMLL_,"genMLL_/D");
+   //tree->Branch("consistentGenAndHLTEvent_",&consistentGenAndHLTEvent_,"consistentGenAndHLTEvent_/D");
+   //tree->Branch("trackedGenToRecoMatch_",&trackedGenToRecoMatch_,"trackedGenToRecoMatch_/I");
 
 
    tree->Branch("matched_pT_",&matched_pT_,"matched_pT_/D");
    tree->Branch("matched_eta_",&matched_eta_,"matched_eta_/D");
+   tree->Branch("matched_phi_",&matched_phi_,"matched_phi_/D");
    tree->Branch("matched_ecalIso_",&matched_ecalIso_,"matched_ecalIso_/D");
    tree->Branch("matched_hcalIso_",&matched_hcalIso_,"matched_hcalIso_/D");
    tree->Branch("matched_ecalClusterShape_",&matched_ecalClusterShape_,"matched_ecalClusterShape_/D");
@@ -927,13 +886,11 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
    tree->Branch("matched_hOverE_",&matched_hOverE_,"matched_hOverE_/D");
    tree->Branch("numUnmatchedCandidates_",&numUnmatchedCandidates_,"numUnmatchedCandidates_/D");
 
-   tree->Branch("reco_tracked_pT_",&reco_tracked_pT_,"reco_tracked_pT_/D");
-   tree->Branch("reco_tracked_eta_",&reco_tracked_eta_,"reco_tracked_eta_/D");
-   tree->Branch("reco_tracked_phi_",&reco_tracked_phi_,"reco_tracked_phi_/D");
-   tree->Branch("reco_untracked_pT_",&reco_untracked_pT_,"reco_untracked_pT_/D");
-   tree->Branch("reco_untracked_eta_",&reco_untracked_eta_,"reco_untracked_eta_/D");
-   tree->Branch("reco_untracked_phi_",&reco_untracked_phi_,"reco_untracked_phi_/D");
+   tree->Branch("matched_tracked_pT_",&matched_tracked_pT_,"matched_tracked_pT_/D");
+   tree->Branch("matched_tracked_eta_",&matched_tracked_eta_,"matched_tracked_eta_/D");
+   tree->Branch("matched_tracked_phi_",&matched_tracked_phi_,"matched_tracked_phi_/D");
 
+   tree->Branch("hlt_mLL_",&hlt_mLL_,"hlt_mLL_/D");
 
 
 }
@@ -963,9 +920,6 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
 	//bool incrementedEffDenom = false;
 
-	//determines if this event has a reco gsf electron which is matched to an HLT object
-	//if there is such a gsf electron, the pT, eta, and phi of this electron is saved to the TTree
-	GetTrackedRecoMatchedTriggerObjects(iEvent);
 
 	/**/
 	std::vector<std::string> tracklessModNames;
@@ -980,13 +934,14 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	*/
 	tracklessModNames.push_back("hltEle15WPYYtracklessHcalIsoFilter");
 
-	//uncomment this when analyzing bkgnd files or unmatched signal files (to compute signal trigger rate)
-	GetMatchedTriggerObjects(iEvent, tracklessModNames, 0.0, 0.0, 20);
-
+	//uncomment these two lines when analyzing bkgnd files or unmatched signal files (to compute signal trigger rate)
+	//GetMatchedTriggerObjects(iEvent, tracklessModNames, 0.0, 0.0, 20);
+	//GetTrackedTriggerObjects(iEvent, 0.0, 0.0, 20);
+	
 
 	//uncomment this when analyzing matched signal files to determine Z->ee trigger efficiency
-	/*
-	double maxDRForMatch = 0.2;
+	/**/
+	double maxDRForMatch = 0.1;
 
 	InputTag genParticleTag("genParticles","","SIM");
 	Handle<std::vector<reco::GenParticle> > genPart;
@@ -1005,7 +960,7 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
 		//it seems each of the gen electrons and positrons only have 1 mother
 		if( std::fabs(genIt->pdgId()) == 11 && std::fabs(genIt->mother(0)->pdgId() ) == 23 ){
-			numGenLeptonsFromZ_ += 1.0;
+			//numGenLeptonsFromZ_ += 1.0;
 			gPt = genIt->pt();
 			addToPtSortedVector(genElectronPTs,gPt);	//the last element in genElectronPTs is the largest element in the vector
 		}//end filter which saves kinematic info for GEN electrons and positrons which came from a Z decay 
@@ -1030,21 +985,30 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
 	//see if the event contains the two necessary GEN electrons/positrons from a Z decay to fire the trigger 
 	bool haveTracklessEleCand = false;
+	unsigned int tracklessEleIndex = 0;
 	for(unsigned int i=0; i<length ; i++){
 		//see if the event contains a trackless EE gen electron which came from a Z boson with pT > 15.0
 		if(genElectronPTs[i] > 15.0 && std::fabs(genElectronEtas[i]) >= 2.5 && std::fabs(genElectronEtas[i]) < 3.0){
 			haveTracklessEleCand = true;
+			tracklessEleIndex += i;
 			break;
 		}
 	}
 	for(unsigned int i=0; i<length ; i++){
 		//see if the event contains a tracked gen electron which came from a Z boson with pT > 27.0
-		if(genElectronPTs[i] > 27.0 && std::fabs(genElectronEtas[i]) < 2.5 && haveTracklessEleCand){
+		if(genElectronPTs[i] > 27.0 && std::fabs(genElectronEtas[i]) < 2.5 && haveTracklessEleCand ){
+			//hasGenMatchedTrackedElectron(iEvent, genElectronEtas[i], genElectronPhis[i]);
 			incrementEfficiencyDenominator();
 			gen_tracked_pT_ = genElectronPTs[i];	//save the pT, eta, and phi of the tracked gen electron to calculate M_ee
 			gen_tracked_eta_ = genElectronEtas[i];
 			gen_tracked_phi_ = genElectronPhis[i];
+			gen_trackless_pT_ = genElectronPTs[tracklessEleIndex];	//save the pT, eta, and phi of the trackless gen electron to calculate M_ee
+			gen_trackless_eta_ = genElectronEtas[tracklessEleIndex];
+			gen_trackless_phi_ = genElectronPhis[tracklessEleIndex];
+			double mLLSqd = 2*gen_tracked_pT_*gen_trackless_pT_*(TMath::CosH(gen_tracked_eta_ - gen_trackless_eta_) - TMath::Cos(gen_tracked_phi_ - gen_trackless_phi_ )  );
+			if(mLLSqd > 0.) genMLL_ = TMath::Sqrt(mLLSqd);
 			genTriggeredEvent_ = 1.0;
+			GetTrackedTriggerObjects(iEvent, gen_tracked_eta_, gen_tracked_phi_, maxDRForMatch);
 			break;
 		}
 	}
@@ -1054,22 +1018,8 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	if(genTriggeredEvent_ ==1){
 		//if genTriggeredEvent_ = 1 then there is one GEN electron with pT > 15.0 in the trackless EE region ( 2.5 <= abs(eta) < 3.0 ) 
 		//and one GEN electron with pT > 27.0 in the tracker ( abs(eta) < 2.5)
-
-		if(std::fabs(genElectronEtas[length-1]) >= 2.5){
-			gen_trackless_pT_ = genElectronPTs[length-1];
-			gen_trackless_eta_ = genElectronEtas[length-1];
-			gen_trackless_phi_ = genElectronPhis[length-1];
-			GetMatchedTriggerObjects(iEvent, tracklessModNames, genElectronEtas[length-1], genElectronPhis[length-1], maxDRForMatch);
-			std::cout<<"# of events that should have fired trigger, based on GEN info, is "<< getEfficiencyDenominator() << std::endl;
-		}
-
-		else{
-			gen_trackless_pT_ = genElectronPTs[length-2];
-			gen_trackless_eta_ = genElectronEtas[length-2];
-			gen_trackless_phi_ = genElectronPhis[length-2];
-			GetMatchedTriggerObjects(iEvent, tracklessModNames, genElectronEtas[length-2], genElectronPhis[length-2], maxDRForMatch);
-			std::cout<<"# of events that should have fired trigger, based on GEN info, is "<< getEfficiencyDenominator() << std::endl;
-		}
+		GetMatchedTriggerObjects(iEvent, tracklessModNames, gen_trackless_eta_, gen_trackless_phi_, maxDRForMatch);
+		std::cout<<"# of events that should have fired trigger, based on GEN info, is "<< getEfficiencyDenominator() << std::endl;
 
 	}
 
@@ -1084,13 +1034,19 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 		gen_l1_pT_ = genElectronPTs[length-1];
 	}
 
-	*/
+	if(matched_tracked_pT_ > 0. && matched_pT_ > 0.){
+		//if this is true then compute the dilepton mass of the two HLT objects which fired the trigger
+		double hlt_mLLSqd = 2*matched_tracked_pT_*matched_pT_*(TMath::CosH(matched_tracked_eta_ - matched_eta_) - TMath::Cos(matched_tracked_phi_ - matched_phi_) );
+		if(hlt_mLLSqd > 0.) hlt_mLL_ = TMath::Sqrt(hlt_mLLSqd);
+
+	}
+
+	/**/
 	
 
 	//that's all folks!
 	tree->Fill();
 
-	
 
 	/*
 

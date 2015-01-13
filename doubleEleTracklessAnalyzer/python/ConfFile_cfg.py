@@ -12,16 +12,16 @@ process.source = cms.Source("PoolSource",
 		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_low_thresholds_1000evts.root'
 
 		#DY->ee files
-		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_1.root',
-		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_10.root',
-		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_2.root',
-		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_3.root',
-		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_4.root',
-		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_5.root',
-		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_6.root',
-		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_7.root',
-		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_8.root',
-		#'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_9.root',
+		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_1.root',
+		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_10.root',
+		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_2.root',
+		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_3.root',
+		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_4.root',
+		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_5.root',
+		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_6.root',
+		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_7.root',
+		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_8.root',
+		'root://cmsxrootd.fnal.gov//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_9.root',
 
 
 		#Neutrino gun with 40 PU files
@@ -49,7 +49,7 @@ process.demo = cms.EDAnalyzer('doubleEleTracklessAnalyzer',
 
 process.TFileService = cms.Service("TFileService",
 	#fileName = cms.string('trial.root')
-	#fileName = cms.string('/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_ALLevts_very_loose_trackless_leg.root')
+	fileName = cms.string('/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_ALLevts_very_loose_trackless_leg.root')
 	#fileName = cms.string('/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/bkgnd_ALLevts_very_loose_trackless_leg.root')
 	#fileName = cms.string('/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/unmatched_signal_ALLevts_very_loose_trackless_leg.root')
 	
