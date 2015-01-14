@@ -394,7 +394,7 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const double genTrackedE
 	trig_names.push_back("hltEle27WPXXTrackIsoFilter");
 	unsigned int bestMatchIndex = -1;
 	int bestMatchPhotonId = 0;
-	double bestDeltaR = maxDrForMatch;
+	double highPt = 0;
 
 	for (auto& trig_name : trig_names) {
 		//loop over the different filter modules that appear in the HLT path.  The names of these modules are specified in the input vector<std::string> called trig_names.
@@ -425,14 +425,15 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const double genTrackedE
 					if(filter_index == 16){//corresponds to track iso filter
 						if( std::fabs(tracklessEleRefs[j]->eta()) < 2.5 ){
 							double dR = deltaR(genTrackedEta, genTrackedPhi, tracklessEleRefs[j]->eta(), tracklessEleRefs[j]->phi() );
+							double pt = (tracklessEleRefs[j]->energy()/TMath::CosH(tracklessEleRefs[j]->eta() ) );
 							fill("trackedGENToHLTDeltaR", dR);
-							if(dR < bestDeltaR){
-								bestDeltaR = 0;
-								bestDeltaR += dR;
+							if(dR < maxDrForMatch && pt > highPt){
 								bestMatchIndex = 0;
 								bestMatchIndex += j;
 								bestMatchPhotonId = 0;
 								bestMatchPhotonId += i;
+								highPt = 0;
+								highPt += pt;
 							}
 
 						}//end requirement that REC fall within tracker coverage 
@@ -443,8 +444,9 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const double genTrackedE
 
 			}//end loop over photon id values
 
-			//now use the bestMatchPhotonId, bestMatchIndex, bestDeltaR, and deltaRVals objects to identify the tracked trigger object
-			//whose pT, eta, and phi should be saved
+			//now use the bestMatchPhotonId, bestMatchIndex, and highPt vars to identify the tracked trigger object
+			//whose pT, eta, and phi should be saved.  This trigger object must be within maxDrForMatch of the eta and
+			//phi values which were input to this function
 			trigger::VRphoton trackedEleRef;
 			trig_event->getObjects(filter_index, bestMatchPhotonId, trackedEleRef);
 			for(unsigned int q=0; q<trackedEleRef.size(); q++){
@@ -550,7 +552,7 @@ void GetMatchedTriggerObjects(
 
 	unsigned int bestMatchIndex=-1;
 	int bestMatchPhotonId=0;
-	double bestDeltaR=dRForMatch;
+	double highPt=0;
 
 	for (auto& trig_name : trig_names) {
 		//loop over the different filter modules that appear in the HLT path.  The names of these modules are specified in the input vector<std::string> called trig_names.
@@ -585,15 +587,16 @@ void GetMatchedTriggerObjects(
 						if( std::fabs(tracklessEleRefs[j]->eta()) >= 2.5 && std::fabs(tracklessEleRefs[j]->eta()) < 3.0 ){
 							numUnmatchedCandidates_ += 1.0;
 							double dR = deltaR(eta, phi, tracklessEleRefs[j]->eta(), tracklessEleRefs[j]->phi() );
+							double pt = (tracklessEleRefs[j]->energy()/TMath::CosH(tracklessEleRefs[j]->eta() ) );
 							fill("tracklessGENToHLTDeltaR", dR);
-   						   	if(dR < bestDeltaR){
+   						   	if(dR < dRForMatch && pt > highPt){
 								//now the best match HLT object has been found
-								bestDeltaR = 0;
-								bestDeltaR += dR;
 								bestMatchPhotonId = 0;
 								bestMatchPhotonId += i;
 								bestMatchIndex = 0;
 								bestMatchIndex += j;
+								highPt = 0;
+								highPt += pt;
 							}
 
 						}//end requirement that REC be in trackless EE
@@ -605,6 +608,7 @@ void GetMatchedTriggerObjects(
 			}//end loop over photon id values
 
 			//now use bestMatchIndex and bestMatchPhotonId to save the pT, eta, phi, and trigger cut vars of the HLT object which fired the trackless leg
+			//look for the highest pT HLT object within some dR of a specified point (the GEN electron in Z->ee evts, or an arbitrary point for general signal and bkgnd evts)
 			trigger::VRphoton tracklessEleRef;
 			trig_event->getObjects(filter_index, bestMatchPhotonId, tracklessEleRef);
 
