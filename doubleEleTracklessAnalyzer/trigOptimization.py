@@ -2,7 +2,7 @@ import ROOT
 import array
 import math
 
-def findOptimalCutValuesAndRateAndEff(matchedSigFile, unmatchedSigFile, bkgndFile, desiredRate, effDenom, sortedEtCutArr, sortedSigmaIEIECutArr, sortedEcalIsoCutArr, sortedHoverECutArr, sortedHcalIsoCutArr, totalBkgndEvts, numBkgndEvtsPassingTrigger, tupleForBkgndEvtsPassingTrig, totalUnmatchedSigEvts, numUnmatchedSigEvtsPassingTrig, tupleForUnmatchedSigEvts):
+def findOptimalCutValuesAndRateAndEff(desiredRate, effDenom, sortedEtCutArr, sortedSigmaIEIECutArr, sortedEcalIsoCutArr, sortedHoverECutArr, sortedHcalIsoCutArr, totalBkgndEvts, numBkgndEvtsPassingTrigger, tupleForBkgndEvtsPassingTrig, totalUnmatchedSigEvts, numUnmatchedSigEvtsPassingTrig, tupleForUnmatchedSigEvts, maxMatchedSigEvts, tupleForMatchedSigEvts):
 	#this function takes three file objects, the desired total trigger rate, and Z->ee trigger efficiency denominator, and five 1D vectors as inputs
 	#to speed up processing, this function also takes a 5D array capturing the characteristics of all bkgnd evts which fire the trigger, the number of entries in
 	#this 5D array, and the total number of bkgnd events which were analyzed and resulted in a small # of evts firing the trigger
@@ -12,10 +12,6 @@ def findOptimalCutValuesAndRateAndEff(matchedSigFile, unmatchedSigFile, bkgndFil
 	#numEventsToAnalyze equals the number of events to run over in each tree - 1000, 2000, etc
 	#this function calculates the total trigger rate and Z->ee trigger efficiency as a function of the cut variable values
 	#and returns a 1D vector with the value of the five cut variables which maximizes the Z->ee trig efficiency, the total trigger rate, and the Z->ee trigger efficiency
-	matchedSigTree = matchedSigFile.Get("demo/doubleEleTrigger")
-	#unmatchedSigTree = unmatchedSigFile.Get("demo/doubleEleTrigger")
-	#bkgndTree = bkgndFile.Get("demo/doubleEleTrigger")
-	#print 'declared the three TTree objects in findOptimalCutValuesAndRateAndEff'
 
 	#expected peak luminosity in 2015, in units of 1/(sec * cm^2)
 	value = 0.9
@@ -52,9 +48,9 @@ def findOptimalCutValuesAndRateAndEff(matchedSigFile, unmatchedSigFile, bkgndFil
 	#the first entry in this array will be larger than the second entry in this array
 	bkgndEvtsPassingAndRate = []
 	for s in xrange(numBkgndEvtsPassingTrigger):
-		print 'num bkgnd evts passing = ', (numBkgndEvtsPassingTrigger-s)
+		#print 'num bkgnd evts passing = ', (numBkgndEvtsPassingTrigger-s)
 		rate = (minBiasXSxn*peakLumi*(numBkgndEvtsPassingTrigger-s))/totalBkgndEvts
-		print 'rate = ', rate
+		#print 'rate = ', rate
 		bkgndEvtsPassingAndRate.append([(numBkgndEvtsPassingTrigger-s),rate])
 	
 	bkgndEvtsPassingAndRate.append([0,0.0])
@@ -67,11 +63,13 @@ def findOptimalCutValuesAndRateAndEff(matchedSigFile, unmatchedSigFile, bkgndFil
 	
 	#now quickly loop over the sorted lists of sigmaIEIE, EcalIso, HoverE, and HcalIso to find starting values of these four vars which only allow
 	#limitBkgndEvts to pass the cuts.  Save these starting values and use them in the higher accuracy but slower nested for loop system
-	startSigmaIEIE = 0. 
-	startEcalIso = 0.
-	startHoverE = 0.
-	startHcalIso = 0. 
-	exitCoarseLoops = False
+
+	#there will be several sets of initial values which will work
+	#save each set into a 4D list, and add a 5th nested for loop on top of the other four to the slow but accurate for loop system
+	#to iterate over this 4D list
+	allSetsOfInitialVals = []
+	foundASet = False
+	numEntriesInAllSets = 0
 
 	for r in xrange(5):
 		for t in xrange(5):
@@ -87,169 +85,183 @@ def findOptimalCutValuesAndRateAndEff(matchedSigFile, unmatchedSigFile, bkgndFil
 										if(tupleForBkgndEvtsPassingTrig[k][4] < sortedHcalIsoCutArr[(80*g)]):
 											numBkgEvts += 1.0
 					#end for loop over bkgnd evts which passed loose trigger
-					if((limitBkgndEvts - numBkgEvts) >= 0 and (limitBkgndEvts - numBkgEvts) <= 3):
-						print 'found trigger cut values which yield a reasonable bkgnd rate'
-						print 'limitBkgndEvts = ', limitBkgndEvts
-						print 'numBkgEvts = ', numBkgEvts
-						startHcalIso += sortedHcalIsoCutArr[(80*g)]
-						startHoverE += sortedHoverECutArr[(80*w)]
-						startEcalIso += sortedEcalIsoCutArr[(80*t)]
-						startSigmaIEIE += sortedSigmaIEIECutArr[(80*r)]
-						exitCoarseLoops = True
-						break #leave loop over hcalIso
+					if((limitBkgndEvts - numBkgEvts) >= 0 and (limitBkgndEvts - numBkgEvts) <= 1 and k == (numBkgndEvtsPassingTrigger-1) and sortedSigmaIEIECutArr[(80*r)] > 0. and sortedEcalIsoCutArr[(80*t)] > 0. and sortedHoverECutArr[(80*w)] > 0. and sortedHcalIsoCutArr[(80*g)] > 0.):
+						#print 'found trigger cut values which yield a reasonable bkgnd rate'
+						#print 'limitBkgndEvts = ', limitBkgndEvts
+						#print 'numBkgEvts = ', numBkgEvts
+						#print ' '
+						#print 'hcalIso iterator g = ', g
+						#print 'hOverE iterator w = ', w
+						#print 'ecalIso iterator t = ', t
+						#print 'sigmaIEIE iterator r = ', r
+						#print ' '
+						#print 'very loose sigmaIEIE = ', sortedSigmaIEIECutArr[0]
+						#print 'new initial sigmaIEIE = ', sortedSigmaIEIECutArr[(80*r)]
+						#print ' '
+						#print 'very loose ecalIso = ', sortedEcalIsoCutArr[0]
+						#print 'new initial ecalIso = ', sortedEcalIsoCutArr[(80*t)]
+						#print ' '
+						#print 'very loose hOverE = ', sortedHoverECutArr[0]
+						#print 'new initial hOverE = ', sortedHoverECutArr[(80*w)]
+						#print ' '
+						#print 'very loose hcalIso = ', sortedHcalIsoCutArr[0]
+						#print 'new initial hcalIso = ', sortedHcalIsoCutArr[(80*g)]
+
+						if(foundASet == False):
+							#foundASet will be false for as long as there is no entry into allSetsOfInitialVals
+							allSetsOfInitialVals.append([sortedSigmaIEIECutArr[(80*r)], sortedEcalIsoCutArr[(80*t)], sortedHoverECutArr[(80*w)], sortedHcalIsoCutArr[(80*g)] ] )
+							numEntriesInAllSets += 1
+							#print 'increased numEntriesInAllSets by one'
+						#end if(!foundASet)
+
+						if(foundASet == True):
+							#on the second or later addition to allSetsOfInitialVals I should check that the set of cut values being added to the list
+							#has at least one value which is greater than the last set of values enterred into the list
+							if(sortedSigmaIEIECutArr[(80*r)] > allSetsOfInitialVals[numEntriesInAllSets-1][0] or sortedEcalIsoCutArr[(80*t)] > allSetsOfInitialVals[numEntriesInAllSets-1][1] or sortedHoverECutArr[(80*w)] > allSetsOfInitialVals[numEntriesInAllSets-1][2] or sortedHcalIsoCutArr[(80*g)] > allSetsOfInitialVals[numEntriesInAllSets-1][3]):
+								allSetsOfInitialVals.append( [sortedSigmaIEIECutArr[(80*r)], sortedEcalIsoCutArr[(80*t)], sortedHoverECutArr[(80*w)], sortedHcalIsoCutArr[(80*g)] ] )
+								numEntriesInAllSets += 1
+								#print 'increased numEntriesInAllSets by one'
+					
+						foundASet = True 
 				#end loop over g (hcalIso)
-				if(exitCoarseLoops == True):
-					break #leave loop over w (hOverE)
 			#end loop over w (hOverE)
-			if(exitCoarseLoops == True):
-				break  #leave loop over t (ecalIso)
 		#end loop over t (ecalIso)
-		if(exitCoarseLoops == True):
-			break  #leave loop over r (sigmaIEIE)
 	#end loop over r (sigmaIEIE)
 
-	if(startSigmaIEIE == 0):
+	#print 'numEntriesInAllSets = ', numEntriesInAllSets
+
+	if(foundASet == False):
 		#if no reasonable cut values have been found at this point, then set the start* values to the first values in each sorted list
 		print 'no reasonable cut values found by using coarse step system of nested for loops shown above'
-		startHcalIso += sortedHcalIsoCutArr[0]
-		startHoverE += sortedHoverECutArr[0]
-		startEcalIso += sortedEcalIsoCutArr[0]
-		startSigmaIEIE += sortedSigmaIEIECutArr[0]
-
-	return
+		allSetsOfInitialVals.append([sortedSigmaIEIECutArr[0], sortedEcalIsoCutArr[0], sortedHoverECutArr[0], sortedHcalIsoCutArr[0] ] )
 	
+
 	#loop over all values of the five cut variables
 	#sortedEtCutArr, sortedSigmaIEIECutArr, sortedEcalIsoCutArr, sortedHoverECutArr, sortedHcalIsoCutArr
 	#for a in xrange( int(len(sortedEtCutArr)) ):
-	for b in xrange( int(len(sortedSigmaIEIECutArr)) ):
-		if(sortedSigmaIEIECutArr[b] > startSigmaIEIE):
-			continue
-		for c in xrange( int(len(sortedEcalIsoCutArr)) ):
-			if(sortedEcalIsoCutArr[c] > startEcalIso):
+	for n in xrange(numEntriesInAllSets):
+		#loop over all entries (about 30) in the list named allSetsOfInitialVals
+		print 'looking at set number ', n+1, 'out of a possible ', numEntriesInAllSets, ' sets'
+		for b in xrange( int(len(sortedSigmaIEIECutArr)) ):
+			if(sortedSigmaIEIECutArr[b] > allSetsOfInitialVals[n][0]):
 				continue
-			for d in xrange( int(len(sortedHoverECutArr)) ):
-				if(sortedHoverECutArr[d] > startHoverE):
+			for c in xrange( int(len(sortedEcalIsoCutArr)) ):
+				if(sortedEcalIsoCutArr[c] > allSetsOfInitialVals[n][1]):
 					continue
-				hcalIsoIt = 0
-				for f in xrange( int(len(sortedHcalIsoCutArr)) ):
-					if(hcalIsoIt > (int(len(sortedHcalIsoCutArr))-1) ):
-						break
-					if(sortedHcalIsoCutArr[hcalIsoIt] > startHcalIso):
-						hcalIsoIt += 1
+				for d in xrange( int(len(sortedHoverECutArr)) ):
+					if(sortedHoverECutArr[d] > allSetsOfInitialVals[n][2]):
 						continue
-					#three variables to count the number of bkgnd evts, unmatched sig evts, and matched sig evts pass all five filters
-					numUnmatchedSigEvts = 0.
-					numMatchedSigEvts = 0.
-					numBkgndEvts = 0.
-					#print 'declared the three counter variables which will be used to calculate signal rate, bkgnd rate, and Z->ee trig eff'
-					if(magnifyHcalIsoIterator):
-						magnifyHcalIsoIterator = False
-						increaseHcalIsoIterator = False
-						#print 'f equals ', f
-						#print 'old hcalIsoIt equals ', hcalIsoIt
-						hcalIsoIt += 100
-						#print 'new hcalIsoIt equals ', hcalIsoIt
-					if(increaseHcalIsoIterator):
-						increaseHcalIsoIterator = False
-						#print 'f equals ', f
-						#print 'old hcalIsoIt equals ', hcalIsoIt
-						hcalIsoIt += 20 
-						#print 'new hcalIsoIt equals ', hcalIsoIt
-	
-					if(hcalIsoIt > (int(len(sortedHcalIsoCutArr))-1) ):
-						break
-	
-					#loop over all signal evts where an HLT object is matched to a gen electron in trackless EE coming from a Z decay
-					for i in xrange(matchedSigTree.GetEntries()):
-						matchedSigTree.GetEntry(i)
-						if(matchedSigTree.genTriggeredEvent_ > 0.):
-							#calculate gen di-electron mass, and only analyze evts from matchedSigTree for M_ee btwn 81 and 101 GeV
-							genDileptonSquared = 0.
-							genDileptonSquared += (2)*(matchedSigTree.gen_tracked_pT_)*(matchedSigTree.gen_trackless_pT_)*(math.cosh(matchedSigTree.gen_tracked_eta_ - matchedSigTree.gen_trackless_eta_) - math.cos(matchedSigTree.gen_tracked_phi_ - matchedSigTree.gen_trackless_phi_) )
-							genDileptonMass = 0.
-							if(genDileptonSquared > 0.):
-								genDileptonMass += math.sqrt(genDileptonSquared)
-	
-							if(genDileptonMass > 60. and genDileptonMass < 120. and matchedSigTree.trackedGenToRecoMatch_ > 0):
-								if(matchedSigTree.matched_pT_ > minHltPT):
-									if(matchedSigTree.matched_ecalClusterShape_SigmaIEtaIEta_ < sortedSigmaIEIECutArr[b]):
-										if( (matchedSigTree.matched_ecalIso_/matchedSigTree.matched_pT_) < sortedEcalIsoCutArr[c]):
-											if( (matchedSigTree.matched_hOverE_/(matchedSigTree.matched_pT_*(math.cosh(matchedSigTree.matched_eta_)) )) < sortedHoverECutArr[d]):
-												if( (matchedSigTree.matched_hcalIso_/matchedSigTree.matched_pT_) < sortedHcalIsoCutArr[hcalIsoIt]):
-													numMatchedSigEvts += 1.0
-	
-					#end loop over matchedSigTree entries to determine # of events with gen M_ee near Z peak which fired trigger
-					#begin loop over unmatchedSigTree entries
-					for j in xrange(numUnmatchedSigEvtsPassingTrig):
-						if(tupleForUnmatchedSigEvts[j][0] > minHltPT):
-							if(tupleForUnmatchedSigEvts[j][1] < sortedSigmaIEIECutArr[b]):
-								if(tupleForUnmatchedSigEvts[j][2] < sortedEcalIsoCutArr[c]):
-									if(tupleForUnmatchedSigEvts[j][3] < sortedHoverECutArr[d]):
-										if(tupleForUnmatchedSigEvts[j][4] < sortedHcalIsoCutArr[hcalIsoIt]):
-											numUnmatchedSigEvts += 1.0
-	
-					#end loop over unmatchedSigTree entries to determine # of signal events which fired trigger
-					#begin loop over bkgndTree entries
-					for k in xrange(numBkgndEvtsPassingTrigger):
-						if(tupleForBkgndEvtsPassingTrig[k][0] > minHltPT):
-							if(tupleForBkgndEvtsPassingTrig[k][1] < sortedSigmaIEIECutArr[b]):
-								if(tupleForBkgndEvtsPassingTrig[k][2] < sortedEcalIsoCutArr[c]):
-									if(tupleForBkgndEvtsPassingTrig[k][3] < sortedHoverECutArr[d]):
-										if(tupleForBkgndEvtsPassingTrig[k][4] < sortedHcalIsoCutArr[hcalIsoIt]):
-											numBkgndEvts += 1.0
+					hcalIsoIt = 0
+					for f in xrange( int(len(sortedHcalIsoCutArr)) ):
+						if(hcalIsoIt > (int(len(sortedHcalIsoCutArr))-1) ):
+							break
+						if(sortedHcalIsoCutArr[hcalIsoIt] > allSetsOfInitialVals[n][3]):
+							hcalIsoIt += 1
+							continue
+						#three variables to count the number of bkgnd evts, unmatched sig evts, and matched sig evts pass all five filters
+						numUnmatchedSigEvts = 0.
+						numMatchedSigEvts = 0.
+						numBkgndEvts = 0.
+						#print 'declared the three counter variables which will be used to calculate signal rate, bkgnd rate, and Z->ee trig eff'
+						if(magnifyHcalIsoIterator):
+							magnifyHcalIsoIterator = False
+							increaseHcalIsoIterator = False
+							#print 'f equals ', f
+							#print 'old hcalIsoIt equals ', hcalIsoIt
+							hcalIsoIt += 100
+							#print 'new hcalIsoIt equals ', hcalIsoIt
+						if(increaseHcalIsoIterator):
+							increaseHcalIsoIterator = False
+							#print 'f equals ', f
+							#print 'old hcalIsoIt equals ', hcalIsoIt
+							hcalIsoIt += 20 
+							#print 'new hcalIsoIt equals ', hcalIsoIt
+		
+						if(hcalIsoIt > (int(len(sortedHcalIsoCutArr))-1) ):
+							break
+		
+						#loop over all Z->ee candidate evts (where GEN and RECO matching, and GEN kinematic requirements have been met)
+						for i in xrange(maxMatchedSigEvts):
+							if(tupleForMatchedSigEvts[i][0] > minHltPT):
+								if(tupleForMatchedSigEvts[i][1] < sortedSigmaIEIECutArr[b]):
+									if(tupleForMatchedSigEvts[i][2] < sortedEcalIsoCutArr[c]):
+										if(tupleForMatchedSigEvts[i][3] < sortedHoverECutArr[d]):
+											if(tupleForMatchedSigEvts[i][4] < sortedHcalIsoCutArr[hcalIsoIt]):
+												numMatchedSigEvts += 1.0
+		
+						#end loop over matchedSigTuple entries to determine # of events with gen M_ee near Z peak which fired trigger
+						#begin loop over unmatchedSigTree entries
+						for j in xrange(numUnmatchedSigEvtsPassingTrig):
+							if(tupleForUnmatchedSigEvts[j][0] > minHltPT):
+								if(tupleForUnmatchedSigEvts[j][1] < sortedSigmaIEIECutArr[b]):
+									if(tupleForUnmatchedSigEvts[j][2] < sortedEcalIsoCutArr[c]):
+										if(tupleForUnmatchedSigEvts[j][3] < sortedHoverECutArr[d]):
+											if(tupleForUnmatchedSigEvts[j][4] < sortedHcalIsoCutArr[hcalIsoIt]):
+												numUnmatchedSigEvts += 1.0
+		
+						#end loop over unmatchedSigTree entries to determine # of signal events which fired trigger
+						#begin loop over bkgndTree entries
+						for k in xrange(numBkgndEvtsPassingTrigger):
+							if(tupleForBkgndEvtsPassingTrig[k][0] > minHltPT):
+								if(tupleForBkgndEvtsPassingTrig[k][1] < sortedSigmaIEIECutArr[b]):
+									if(tupleForBkgndEvtsPassingTrig[k][2] < sortedEcalIsoCutArr[c]):
+										if(tupleForBkgndEvtsPassingTrig[k][3] < sortedHoverECutArr[d]):
+											if(tupleForBkgndEvtsPassingTrig[k][4] < sortedHcalIsoCutArr[hcalIsoIt]):
+												numBkgndEvts += 1.0
+						
+						#end loop over bkgndTree entries to determine # of bkgnd events which fired trigger
+						#now calculate total trigger rate.  If the calculated rate is btwn 0.8 and 1.0 times the desired rate, then calculate the Z->ee efficiency, and save
+						#the values of the five cut variables, the total rate, and the Z->ee trigger efficiency
+						#if(numBkgndEvts < 10):
+						#	break
+						bkgndRate = (minBiasXSxn*peakLumi*numBkgndEvts)/totalBkgndEvts
+						print 'bkgnd trigger rate equals ', bkgndRate
+						print 'num bkgnd evts passing trig = ', numBkgndEvts
+						print 'total num bkgnd evts analyzed = ', totalBkgndEvts
+						signalRate = (signalXSxn*peakLumi*numUnmatchedSigEvts)/totalUnmatchedSigEvts
+						print 'signal trigger rate equals ', signalRate
+						print 'num unmatched sig evts passing trig = ', numUnmatchedSigEvts
+						print 'total num unmatched sig evts analyzed = ', totalUnmatchedSigEvts
+						totalRate = 0.
+						totalRate += signalRate + bkgndRate
+						print 'total trigger rate = ', totalRate
+						print 'desired rate = ', desiredRate
+						print 'sigmaIEIE = ', sortedSigmaIEIECutArr[b]
+						print 'ecal iso/pT = ', sortedEcalIsoCutArr[c]
+						print '(had/em)/energy = ', sortedHoverECutArr[d]
+						print 'hcal iso/pT = ', sortedHcalIsoCutArr[hcalIsoIt]
+						if(totalRate > (5.0)*desiredRate):
+							#print 'total rate > 5 times desiredRate'
+							increaseHcalIsoIterator = True
+							if(totalRate > (20.0)*desiredRate):
+								#print 'total rate > 20 times desiredRate'
+								magnifyHcalIsoIterator = True
+						if(totalRate < (0.79)*desiredRate):
+							#print 'total rate < 89% of desired rate'
+							leftHcalIso = True
+							break
+						if(totalRate >= (0.8)*desiredRate and totalRate <= desiredRate and numBkgndEvts >= 0 and numUnmatchedSigEvts >= 1):
+							zEff = (numMatchedSigEvts/effDenom)
+							cutsRatesAndEffs.append([minHltPT, sortedSigmaIEIECutArr[b], sortedEcalIsoCutArr[c], sortedHoverECutArr[d], sortedHcalIsoCutArr[hcalIsoIt], totalRate, zEff, bkgndRate, numBkgndEvts, signalRate, numUnmatchedSigEvts])
+							addedElementToCutsRatesEffs += 1
+						hcalIsoIt += 1
 					
-					#end loop over bkgndTree entries to determine # of bkgnd events which fired trigger
-					#now calculate total trigger rate.  If the calculated rate is btwn 0.8 and 1.0 times the desired rate, then calculate the Z->ee efficiency, and save
-					#the values of the five cut variables, the total rate, and the Z->ee trigger efficiency
-					#if(numBkgndEvts < 10):
-					#	break
-					bkgndRate = (minBiasXSxn*peakLumi*numBkgndEvts)/totalBkgndEvts
-					print 'bkgnd trigger rate equals ', bkgndRate
-					print 'num bkgnd evts passing trig = ', numBkgndEvts
-					print 'total num bkgnd evts analyzed = ', totalBkgndEvts
-					signalRate = (signalXSxn*peakLumi*numUnmatchedSigEvts)/totalUnmatchedSigEvts
-					print 'signal trigger rate equals ', signalRate
-					print 'num unmatched sig evts passing trig = ', numUnmatchedSigEvts
-					print 'total num unmatched sig evts analyzed = ', totalUnmatchedSigEvts
-					totalRate = 0.
-					totalRate += signalRate + bkgndRate
-					print 'total trigger rate = ', totalRate
-					print 'desired rate = ', desiredRate
-					print 'sigmaIEIE = ', sortedSigmaIEIECutArr[b]
-					print 'ecal iso/pT = ', sortedEcalIsoCutArr[c]
-					print '(had/em)/energy = ', sortedHoverECutArr[d]
-					print 'hcal iso/pT = ', sortedHcalIsoCutArr[hcalIsoIt]
-					if(totalRate > (5.0)*desiredRate):
-						#print 'total rate > 5 times desiredRate'
-						increaseHcalIsoIterator = True
-						if(totalRate > (20.0)*desiredRate):
-							#print 'total rate > 20 times desiredRate'
-							magnifyHcalIsoIterator = True
-					if(totalRate < (0.79)*desiredRate):
-						#print 'total rate < 89% of desired rate'
-						leftHcalIso = True
+					#end loop over sortedHcalIsoCutArr values
+					if(leftHcalIso and d==0):
+						#print 'd equals zero and leftHcalIso is True'
+						leaveEcalIso = True
 						break
-					if(totalRate >= (0.8)*desiredRate and totalRate <= desiredRate and numBkgndEvts >= 0 and numUnmatchedSigEvts >= 1):
-						zEff = (numMatchedSigEvts/effDenom)
-						cutsRatesAndEffs.append([minHltPT, sortedSigmaIEIECutArr[b], sortedEcalIsoCutArr[c], sortedHoverECutArr[d], sortedHcalIsoCutArr[hcalIsoIt], totalRate, zEff, bkgndRate, numBkgndEvts, signalRate, numUnmatchedSigEvts])
-						addedElementToCutsRatesEffs += 1
-					hcalIsoIt += 1
-				
-				#end loop over sortedHcalIsoCutArr values
-				if(leftHcalIso and d==0):
-					#print 'd equals zero and leftHcalIso is True'
-					leaveEcalIso = True
+				#end loop over sortedHoverECutArr values
+				if(leaveEcalIso):
+					if(c==0):
+						#break out of loop over sortedSigmaIEIECutArr if c==0 and leaveEcalIso==True
+						leaveSigmaIEIE = True
 					break
-			#end loop over sortedHoverECutArr values
-			if(leaveEcalIso):
-				if(c==0):
-					#break out of loop over sortedSigmaIEIECutArr if c==0 and leaveEcalIso==True
-					leaveSigmaIEIE = True
+			#end loop over sortedEcalIsoCutArr values
+			if(leaveSigmaIEIE):
 				break
-		#end loop over sortedEcalIsoCutArr values
-		if(leaveSigmaIEIE):
-			break
-	#end loop over sortedSigmaIEIECutArr values
+		#end loop over sortedSigmaIEIECutArr values
+	#end loop over entries in the 4D list named allSetsOfInitialVals
 
 	#now that the 11D array named cutsRatesAndEffs is filled, I should find the values of the five cut variables which maximize the Z->ee trigger efficiency
 	maxEff = 0.
@@ -266,6 +278,8 @@ def findOptimalCutValuesAndRateAndEff(matchedSigFile, unmatchedSigFile, bkgndFil
 	optimalValues = []
 	for g in xrange(11):
 		optimalValues.append(cutsRatesAndEffs[indexOfMaxEff][g])
+		if(g == 0):
+			print 'max Z->ee trig efficiency = ', maxEff
 	
 	return optimalValues
 
@@ -433,7 +447,7 @@ t4 = f4.Get("demo/doubleEleTrigger")
 
 
 #array vars
-sigTuple = []
+matchedSigTuple = []
 sigEcalIso = []
 sigHcalIso = []
 sigHoverE = []
@@ -463,7 +477,7 @@ for w in xrange(t3.GetEntries()):
 	t3.GetEntry(w)
 	if(t3.matched_pT_ > 0.):
 		#print 'found a minBias evt which fired loose double electron trigger'
-		bkgndTuple.append([t3.matched_pT_, t3.matched_ecalClusterShape_SigmaIEtaIEta_, t3.matched_ecalIso_/t3.matched_pT_, t3.matched_hOverE_/(t3.matched_pT_*(math.cosh(t3.matched_eta_)) ), t3.matched_hcalIso_/t3.matched_pT_])
+		bkgndTuple.append([t3.matched_pT_, t3.matched_ecalClusterShape_SigmaIEtaIEta_, t3.matched_ecalIso_/t3.matched_pT_, t3.matched_hOverE_/(t3.matched_pT_*(math.cosh(t3.matched_eta_)) ), t3.matched_hcalIso_/t3.matched_pT_, t3.hlt_mLL_])
 		numBkgndEvtsFired += 1
 		bkgndHltMLL.append(t3.hlt_mLL_)
 		#bkgndPt.append(t3.matched_pT_)
@@ -480,7 +494,7 @@ for q in xrange(t2.GetEntries()):
 	t2.GetEntry(q)
 	if(t2.matched_pT_ > 0.):
 		#print 'found a minBias evt which fired loose double electron trigger'
-		unmatchedSigTuple.append([t2.matched_pT_, t2.matched_ecalClusterShape_SigmaIEtaIEta_, t2.matched_ecalIso_/t2.matched_pT_, t2.matched_hOverE_/(t2.matched_pT_*(math.cosh(t2.matched_eta_)) ), t2.matched_hcalIso_/t2.matched_pT_])
+		unmatchedSigTuple.append([t2.matched_pT_, t2.matched_ecalClusterShape_SigmaIEtaIEta_, t2.matched_ecalIso_/t2.matched_pT_, t2.matched_hOverE_/(t2.matched_pT_*(math.cosh(t2.matched_eta_)) ), t2.matched_hcalIso_/t2.matched_pT_, t2.hlt_mLL_])
 		numUnmatchedSigEvtsFired += 1
 
 #print 'the number of signal evts which fired the trigger = ', numUnmatchedSigEvtsFired
@@ -531,7 +545,7 @@ for z in xrange(analyzeThisManyEvents):
 		genTracklessPt.append(t1.gen_trackless_pT_)
 		if(t1.matched_pT_ > 0.):
 			#fill sigEcalIso, sigPt, and other sig lists if the trigger fires in t1.GetEntry(z) 
-			sigTuple.append([t1.matched_ecalClusterShape_SigmaIEtaIEta_, t1.matched_ecalIso_/t1.matched_pT_, t1.matched_hOverE_/(t1.matched_pT_*(math.cosh(t1.matched_eta_)) ), t1.matched_ecalIso_/t1.matched_pT_])
+			matchedSigTuple.append([t1.matched_pT_, t1.matched_ecalClusterShape_SigmaIEtaIEta_, t1.matched_ecalIso_/t1.matched_pT_, t1.matched_hOverE_/(t1.matched_pT_*(math.cosh(t1.matched_eta_)) ), t1.matched_hcalIso_/t1.matched_pT_, t1.hlt_mLL_])
 			sigEcalIso.append(t1.matched_ecalIso_/t1.matched_pT_)
 			sigHcalIso.append(t1.matched_hcalIso_/t1.matched_pT_)
 			sigHoverE.append(t1.matched_hOverE_/(t1.matched_pT_*(math.cosh(t1.matched_eta_)) ))
@@ -552,8 +566,8 @@ for z in xrange(analyzeThisManyEvents):
 #end loop over entries in TTree t1
 
 
-#sigTupleLen defined here is equal to the # of events which passed the trackless leg of the trigger
-sigTupleLen = float(len(sigTuple))
+#matchedSigTupleLen defined here is equal to the # of events which passed the trackless leg of the trigger
+matchedSigTupleLen = float(len(matchedSigTuple))
 sigPtLen = int(len(sigPt))
 #print 'sigPtLen equals ', sigPtLen
 recoDileptonLen = int(len(recoDileptonMass))
@@ -580,14 +594,14 @@ zEffErr = []
 totalTrigRate = []
 totalTrigRateErr = []
 
-#findOptimalCutValuesAndRateAndEff(f1, f2, f3, 100, efficiencyDenom, sortedPt, sortedSigmaIEIE, sortedEcalIso, sortedHoverE, sortedHcalIso, t3.GetEntries(), numBkgndEvtsFired, bkgndTuple, t2.GetEntries(), numUnmatchedSigEvtsFired, unmatchedSigTuple)
+findOptimalCutValuesAndRateAndEff(3, efficiencyDenom, sortedPt, sortedSigmaIEIE, sortedEcalIso, sortedHoverE, sortedHcalIso, t3.GetEntries(), numBkgndEvtsFired, bkgndTuple, t2.GetEntries(), numUnmatchedSigEvtsFired, unmatchedSigTuple, int(len(sigPt)), matchedSigTuple)
 
 #highRate = 100.
 #incrementRate = 100.
 #numDiffRates = 1 
 #for q in xrange(numDiffRates):
 #	targetRate = (highRate - q*incrementRate)
-#	optimizedCutsRateAndEff = findOptimalCutValuesAndRateAndEff(f1, f2, f3, targetRate, efficiencyDenom, sortedPt, sortedSigmaIEIE, sortedEcalIso, sortedHoverE, sortedHcalIso, t3.GetEntries(), numBkgndEvtsFired, bkgndTuple, t2.GetEntries(), numUnmatchedSigEvtsFired, unmatchedSigTuple)
+#	optimizedCutsRateAndEff = findOptimalCutValuesAndRateAndEff(targetRate, efficiencyDenom, sortedPt, sortedSigmaIEIE, sortedEcalIso, sortedHoverE, sortedHcalIso, t3.GetEntries(), numBkgndEvtsFired, bkgndTuple, t2.GetEntries(), numUnmatchedSigEvtsFired, unmatchedSigTuple, sigPtLen, matchedSigTuple)
 #	print 'q = ', q
 #	optimalCuts.append([optimizedCutsRateAndEff[0], optimizedCutsRateAndEff[1], optimizedCutsRateAndEff[2], optimizedCutsRateAndEff[3], optimizedCutsRateAndEff[4] ])
 #	totalTrigRate.append(optimizedCutsRateAndEff[5])
@@ -671,7 +685,7 @@ totalTrigRateErr = []
 #
 #makeAndSaveHisto(recoUntrackedEta, "recoUntrackedEtaCanv","eta of reco supercluster in trackless EE matched to an HLT object which fired trigger",100, -3.5, 3.5, "../triggerPlots/recoPlots/recoUntrackedEta_allEvts.png")
 
-makeAndSaveHisto(bkgndHltMLL, "bkgndHltMLLCanv","M_{LL} using HLT objects from bkgnd evts which pass trigger",100, 0., 150., "../triggerPlots/hltObjectPlots/bkgndHltMLL_allEvts.png")
+#makeAndSaveHisto(bkgndHltMLL, "bkgndHltMLLCanv","M_{LL} using HLT objects from bkgnd evts which pass trigger",100, 0., 150., "../triggerPlots/hltObjectPlots/bkgndHltMLL_allEvts.png")
 
 
 #makeAndSaveHisto(someArray, canvName, histTitle, numBins, xmin, xmax, outFilePath)
