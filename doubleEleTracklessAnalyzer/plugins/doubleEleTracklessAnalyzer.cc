@@ -939,12 +939,12 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	tracklessModNames.push_back("hltEle15WPYYtracklessHcalIsoFilter");
 
 	//uncomment these two lines when analyzing bkgnd files or unmatched signal files (to compute signal trigger rate)
-	//GetMatchedTriggerObjects(iEvent, tracklessModNames, 0.0, 0.0, 20);
-	//GetTrackedTriggerObjects(iEvent, 0.0, 0.0, 20);
+	GetMatchedTriggerObjects(iEvent, tracklessModNames, 0.0, 0.0, 20);
+	GetTrackedTriggerObjects(iEvent, 0.0, 0.0, 20);
 	
 
 	//uncomment this when analyzing matched signal files to determine Z->ee trigger efficiency
-	/**/
+	/*
 	double maxDRForMatch = 0.1;
 
 	InputTag genParticleTag("genParticles","","SIM");
@@ -1027,6 +1027,7 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
 	}
 
+	
 	//save the pT and eta of the two gen electrons, even if their pT and/or eta values are not sufficient to fire the trigger
 	if(length >= 2){
 		gen_l2_eta_ = genElectronEtas[length-2];
@@ -1038,6 +1039,8 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 		gen_l1_pT_ = genElectronPTs[length-1];
 	}
 
+	*/
+	
 	if(matched_tracked_pT_ > 0. && matched_pT_ > 0.){
 		//if this is true then compute the dilepton mass of the two HLT objects which fired the trigger
 		double hlt_mLLSqd = 2*matched_tracked_pT_*matched_pT_*(TMath::CosH(matched_tracked_eta_ - matched_eta_) - TMath::Cos(matched_tracked_phi_ - matched_phi_) );
@@ -1045,8 +1048,6 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
 	}
 
-	/**/
-	
 
 	//that's all folks!
 	tree->Fill();
