@@ -36,7 +36,7 @@ def findOptimalCutValuesAndRateAndEff(desiredRate, effDenom, sortedEtCutArr, sor
 	addedElementToCutsRatesEffs = 0
 
 	#vars used in optimization algorithm
-	minHltPT = 15.
+	minHltPT = 20.
 	totalRate = -0.01
 	leftHcalIso = False
 	leaveEcalIso = False
@@ -60,7 +60,27 @@ def findOptimalCutValuesAndRateAndEff(desiredRate, effDenom, sortedEtCutArr, sor
 		if( bkgndEvtsPassingAndRate[q][1] <= (2)*desiredRate ):
 			limitBkgndEvts += bkgndEvtsPassingAndRate[q][0]
 			break
-	
+
+	#totalUnmatchedSigEvts, numUnmatchedSigEvtsPassingTrig, tupleForUnmatchedSigEvts
+	#repeat the same process done above for DY->ee evts which fire the loose trigger
+	#only when limitBkgndEvts = 0
+	#dyEvtsPassingAndRate[row=0][0] = 0, increases as row increases
+	dyEvtsPassingAndRate = []
+	for v in xrange(numUnmatchedSigEvtsPassingTrig):
+		if(limitBkgndEvts > 0.5):
+			break
+		sRate = (signalXSxn*peakLumi*v)/totalUnmatchedSigEvts
+		dyEvtsPassingAndRate.append([v,sRate])
+
+	#now loop over dyEvtsPassingAndRate and identify the fewest # of DY->ee evts which yields a signal trigger rate >= 0.5 times the desired total rate
+	limitSigEvts = 0.
+	for h in xrange(numUnmatchedSigEvtsPassingTrig):
+		if(limitBkgndEvts > 0.5):
+			break
+		if(dyEvtsPassingAndRate[h][1] >= (0.5)*desiredRate):
+			limitSigEvts += dyEvtsPassingAndRate[h][0]
+			break
+
 	#now quickly loop over the sorted lists of sigmaIEIE, EcalIso, HoverE, and HcalIso to find starting values of these four vars which only allow
 	#limitBkgndEvts to pass the cuts.  Save these starting values and use them in the higher accuracy but slower nested for loop system
 
@@ -72,6 +92,11 @@ def findOptimalCutValuesAndRateAndEff(desiredRate, effDenom, sortedEtCutArr, sor
 	numEntriesInAllSets = 0
 
 	for r in xrange(5):
+		if(limitBkgndEvts < 0.5):
+			#use a different system of coarse step, nested for loops to determine initial threshold values
+			#if the target number of bkgnd evts is zero
+			print 'skipped correct system of coarse step, nested for loops'
+			break
 		for t in xrange(5):
 			for w in xrange(5):
 				for g in xrange(5):
@@ -85,6 +110,7 @@ def findOptimalCutValuesAndRateAndEff(desiredRate, effDenom, sortedEtCutArr, sor
 										if(tupleForBkgndEvtsPassingTrig[k][4] < sortedHcalIsoCutArr[(80*g)]):
 											numBkgEvts += 1.0
 					#end for loop over bkgnd evts which passed loose trigger
+		
 					if((limitBkgndEvts - numBkgEvts) >= 0 and (limitBkgndEvts - numBkgEvts) <= 1 and k == (numBkgndEvtsPassingTrigger-1) and sortedSigmaIEIECutArr[(80*r)] > 0. and sortedEcalIsoCutArr[(80*t)] > 0. and sortedHoverECutArr[(80*w)] > 0. and sortedHcalIsoCutArr[(80*g)] > 0.):
 						#print 'found trigger cut values which yield a reasonable bkgnd rate'
 						#print 'limitBkgndEvts = ', limitBkgndEvts
@@ -109,7 +135,7 @@ def findOptimalCutValuesAndRateAndEff(desiredRate, effDenom, sortedEtCutArr, sor
 
 						if(foundASet == False):
 							#foundASet will be false for as long as there is no entry into allSetsOfInitialVals
-							allSetsOfInitialVals.append([sortedSigmaIEIECutArr[(80*r)], sortedEcalIsoCutArr[(80*t)], sortedHoverECutArr[(80*w)], sortedHcalIsoCutArr[(80*g)] ] )
+							allSetsOfInitialVals.append([minHltPT, sortedSigmaIEIECutArr[(80*r)], sortedEcalIsoCutArr[(80*t)], sortedHoverECutArr[(80*w)], sortedHcalIsoCutArr[(80*g)] ] )
 							numEntriesInAllSets += 1
 							#print 'increased numEntriesInAllSets by one'
 						#end if(!foundASet)
@@ -118,7 +144,7 @@ def findOptimalCutValuesAndRateAndEff(desiredRate, effDenom, sortedEtCutArr, sor
 							#on the second or later addition to allSetsOfInitialVals I should check that the set of cut values being added to the list
 							#has at least one value which is greater than the last set of values enterred into the list
 							if(sortedSigmaIEIECutArr[(80*r)] > allSetsOfInitialVals[numEntriesInAllSets-1][0] or sortedEcalIsoCutArr[(80*t)] > allSetsOfInitialVals[numEntriesInAllSets-1][1] or sortedHoverECutArr[(80*w)] > allSetsOfInitialVals[numEntriesInAllSets-1][2] or sortedHcalIsoCutArr[(80*g)] > allSetsOfInitialVals[numEntriesInAllSets-1][3]):
-								allSetsOfInitialVals.append( [sortedSigmaIEIECutArr[(80*r)], sortedEcalIsoCutArr[(80*t)], sortedHoverECutArr[(80*w)], sortedHcalIsoCutArr[(80*g)] ] )
+								allSetsOfInitialVals.append( [minHltPT, sortedSigmaIEIECutArr[(80*r)], sortedEcalIsoCutArr[(80*t)], sortedHoverECutArr[(80*w)], sortedHcalIsoCutArr[(80*g)] ] )
 								numEntriesInAllSets += 1
 								#print 'increased numEntriesInAllSets by one'
 					
@@ -128,49 +154,163 @@ def findOptimalCutValuesAndRateAndEff(desiredRate, effDenom, sortedEtCutArr, sor
 		#end loop over t (ecalIso)
 	#end loop over r (sigmaIEIE)
 
-	#print 'numEntriesInAllSets = ', numEntriesInAllSets
+	maxRange = 14 
+	multiplier = 21 
+	for r in xrange(maxRange):
+		if(limitBkgndEvts > 0.5):
+			#dont use this system of coarse step, nested for loops to determine initial threshold values
+			#if the target number of bkgnd evts is one or greater 
+			break
+		if(r==0):
+			print 'in correct system of nested for loops'
+		if(multiplier*r > (int(len(sortedSigmaIEIECutArr))-1) ):
+			break
+		for t in xrange(maxRange):
+			if(multiplier*t > (int(len(sortedEcalIsoCutArr))-1) ):
+				break
+			for w in xrange(maxRange):
+				if(multiplier*w > (int(len(sortedHoverECutArr))-1) ):
+					break
+				for g in xrange(maxRange):
+					if(multiplier*g > (int(len(sortedHcalIsoCutArr))-1) ):
+						break
+					numBkgEvts = 0.  #reset numBkgEvts to zero before looping over all bkgnd evts which pass the trigger!
+					numGoodEvts = 0.
+					numGoldenEvts = 0.
+					#begin for loop over bkgnd evts which passed loose trigger
+					for k in xrange(numBkgndEvtsPassingTrigger):
+						if(tupleForBkgndEvtsPassingTrig[k][0] > minHltPT):
+							if(tupleForBkgndEvtsPassingTrig[k][1] < sortedSigmaIEIECutArr[(multiplier*r)]):
+								if(tupleForBkgndEvtsPassingTrig[k][2] < sortedEcalIsoCutArr[(multiplier*t)]):
+									if(tupleForBkgndEvtsPassingTrig[k][3] < sortedHoverECutArr[(multiplier*w)]):
+										if(tupleForBkgndEvtsPassingTrig[k][4] < sortedHcalIsoCutArr[(multiplier*g)]):
+											numBkgEvts += 1.0
+					#end for loop over bkgnd evts which passed loose trigger
+		
+					#begin loop over DY->ee evts which passed loose trigger
+					for s in xrange(numUnmatchedSigEvtsPassingTrig):
+						if(tupleForUnmatchedSigEvts[s][0] > minHltPT):
+							if(tupleForUnmatchedSigEvts[s][1] < sortedSigmaIEIECutArr[(multiplier*r)]):
+								if(tupleForUnmatchedSigEvts[s][2] < sortedEcalIsoCutArr[(multiplier*t)]):
+									if(tupleForUnmatchedSigEvts[s][3] < sortedHoverECutArr[(multiplier*w)]):
+										if(tupleForUnmatchedSigEvts[s][4] < sortedHcalIsoCutArr[(multiplier*g)]):
+											numGoodEvts += 1.0
+					#end for loop over DY->ee evts which passed loose trigger
+					
+					#begin for loop over Z->ee candidate evts
+					for i in xrange(maxMatchedSigEvts):
+						if(tupleForMatchedSigEvts[i][0] > minHltPT):
+							if(tupleForMatchedSigEvts[i][1] < sortedSigmaIEIECutArr[multiplier*r]):
+								if(tupleForMatchedSigEvts[i][2] < sortedEcalIsoCutArr[multiplier*t]):
+									if(tupleForMatchedSigEvts[i][3] < sortedHoverECutArr[multiplier*w]):
+										if(tupleForMatchedSigEvts[i][4] < sortedHcalIsoCutArr[multiplier*g]):
+											numGoldenEvts += 1.0
+	
+					#require that a reasonable number of DY->ee evts pass the cuts 
+					if(numBkgEvts < 1 and (numGoodEvts - limitSigEvts) >= 0 and s == (numUnmatchedSigEvtsPassingTrig-1) and sortedSigmaIEIECutArr[(multiplier*r)] > 0. and sortedEcalIsoCutArr[(multiplier*t)] > 0. and sortedHoverECutArr[(multiplier*w)] > 0. and sortedHcalIsoCutArr[(multiplier*g)] > 0.):
+
+						#if numBkgEvts = 0, then the total rate = the signal rate
+						totRate = (signalXSxn*peakLumi*numGoodEvts)/totalUnmatchedSigEvts
+						zedEff = (numGoldenEvts/effDenom)
+						
+						if(foundASet == False):
+							#foundASet will be false for as long as there is no entry into allSetsOfInitialVals
+							allSetsOfInitialVals.append([minHltPT, sortedSigmaIEIECutArr[(multiplier*r)], sortedEcalIsoCutArr[(multiplier*t)], sortedHoverECutArr[(multiplier*w)], sortedHcalIsoCutArr[(multiplier*g)], totRate, zedEff, 0., numBkgEvts, totRate, numGoodEvts, multiplier*r, multiplier*t, multiplier*w, multiplier*g] )
+							numEntriesInAllSets += 1
+							print ' '
+							print 'signal trigger rate = ', totRate 
+							print 'very loose sigmaIEIE = ', sortedSigmaIEIECutArr[0]
+							print 'new initial sigmaIEIE = ', sortedSigmaIEIECutArr[(multiplier*r)]
+							print ' '
+							print 'very loose ecalIso = ', sortedEcalIsoCutArr[0]
+							print 'new initial ecalIso = ', sortedEcalIsoCutArr[(multiplier*t)]
+							print ' '
+							print 'very loose hOverE = ', sortedHoverECutArr[0]
+							print 'new initial hOverE = ', sortedHoverECutArr[(multiplier*w)]
+							print ' '
+							print 'very loose hcalIso = ', sortedHcalIsoCutArr[0]
+							print 'new initial hcalIso = ', sortedHcalIsoCutArr[(multiplier*g)]
+							#print 'increased numEntriesInAllSets by one'
+						#end if(!foundASet)
+
+						if(foundASet == True):
+							#on the second or later addition to allSetsOfInitialVals I should check that the set of cut values being added to the list
+							#has at least one value which is greater than the last set of values enterred into the list
+							if(sortedSigmaIEIECutArr[(multiplier*r)] > allSetsOfInitialVals[numEntriesInAllSets-1][1] or sortedEcalIsoCutArr[(multiplier*t)] > allSetsOfInitialVals[numEntriesInAllSets-1][2] or sortedHoverECutArr[(multiplier*w)] > allSetsOfInitialVals[numEntriesInAllSets-1][3] or sortedHcalIsoCutArr[(multiplier*g)] > allSetsOfInitialVals[numEntriesInAllSets-1][4]):
+
+								allSetsOfInitialVals.append([minHltPT, sortedSigmaIEIECutArr[(multiplier*r)], sortedEcalIsoCutArr[(multiplier*t)], sortedHoverECutArr[(multiplier*w)], sortedHcalIsoCutArr[(multiplier*g)], totRate, zedEff, 0., numBkgEvts, totRate, numGoodEvts, multiplier*r, multiplier*t, multiplier*w, multiplier*g] )
+
+								print ' '
+								print 'signal trigger rate = ', totRate 
+								print 'very loose sigmaIEIE = ', sortedSigmaIEIECutArr[0]
+								print 'new initial sigmaIEIE = ', sortedSigmaIEIECutArr[(multiplier*r)]
+								print ' '
+								print 'very loose ecalIso = ', sortedEcalIsoCutArr[0]
+								print 'new initial ecalIso = ', sortedEcalIsoCutArr[(multiplier*t)]
+								print ' '
+								print 'very loose hOverE = ', sortedHoverECutArr[0]
+								print 'new initial hOverE = ', sortedHoverECutArr[(multiplier*w)]
+								print ' '
+								print 'very loose hcalIso = ', sortedHcalIsoCutArr[0]
+								print 'new initial hcalIso = ', sortedHcalIsoCutArr[(multiplier*g)]
+								
+								numEntriesInAllSets += 1
+								#print 'increased numEntriesInAllSets by one'
+					
+						foundASet = True 
+				#end loop over g (hcalIso)
+			#end loop over w (hOverE)
+		#end loop over t (ecalIso)
+	#end loop over r (sigmaIEIE)
+
+	print 'numEntriesInAllSets = ', numEntriesInAllSets
 
 	if(foundASet == False):
 		#if no reasonable cut values have been found at this point, then set the start* values to the first values in each sorted list
 		print 'no reasonable cut values found by using coarse step system of nested for loops shown above'
 		allSetsOfInitialVals.append([sortedSigmaIEIECutArr[0], sortedEcalIsoCutArr[0], sortedHoverECutArr[0], sortedHcalIsoCutArr[0] ] )
-	
 
-	
+
+	minRateFraction = 0.4
+	maxRateFraction = 2.0
+	stepSize = 12 
 	#loop over all values of the five cut variables
 	#sortedEtCutArr, sortedSigmaIEIECutArr, sortedEcalIsoCutArr, sortedHoverECutArr, sortedHcalIsoCutArr
 	#for a in xrange( int(len(sortedEtCutArr)) ):
 	for n in xrange(numEntriesInAllSets):
 		#loop over all entries (about 30) in the list named allSetsOfInitialVals
+		if(numEntriesInAllSets==1):
+			print 'there is only one entry in allSetsOfInitialVals. Skip to the last system of nested for loops.'
+			break
 		print 'looking at set number ', n+1, 'out of a possible ', numEntriesInAllSets, ' sets'
 		print 'found ', addedElementToCutsRatesEffs ,' interesting sets of cut threshold values'
 		sigmaIEIEIt = 0
 		for b in xrange( int(len(sortedSigmaIEIECutArr)) ):
 			if(sigmaIEIEIt > ( int(len(sortedSigmaIEIECutArr))-1 ) ):
 				break
-			if(sortedSigmaIEIECutArr[sigmaIEIEIt] > allSetsOfInitialVals[n][0] or sortedSigmaIEIECutArr[sigmaIEIEIt] < 0.):
+			if(sortedSigmaIEIECutArr[sigmaIEIEIt] > allSetsOfInitialVals[n][1] or sortedSigmaIEIECutArr[sigmaIEIEIt] < 0.):
 				sigmaIEIEIt += 4 
 				continue
 			ecalIsoIt = 0
 			for c in xrange( int(len(sortedEcalIsoCutArr)) ):
 				if(ecalIsoIt > ( int(len(sortedEcalIsoCutArr))-1 ) ):
 					break
-				if(sortedEcalIsoCutArr[ecalIsoIt] > allSetsOfInitialVals[n][1] or sortedEcalIsoCutArr[ecalIsoIt] < 0.):
-					ecalIsoIt += 8 
+				if(sortedEcalIsoCutArr[ecalIsoIt] > allSetsOfInitialVals[n][2] or sortedEcalIsoCutArr[ecalIsoIt] < 0.):
+					ecalIsoIt += stepSize 
 					continue
 				hOverEIt = 0
 				for d in xrange( int(len(sortedHoverECutArr)) ):
 					if(hOverEIt > ( int(len(sortedHoverECutArr))-1 ) ):
 						break
-					if(sortedHoverECutArr[hOverEIt] > allSetsOfInitialVals[n][2] or sortedHoverECutArr[hOverEIt] < 0.):
-						hOverEIt += 8 
+					if(sortedHoverECutArr[hOverEIt] > allSetsOfInitialVals[n][3] or sortedHoverECutArr[hOverEIt] < 0.):
+						hOverEIt += stepSize 
 						continue
 					hcalIsoIt = 0
 					for f in xrange( int(len(sortedHcalIsoCutArr)) ):
 						if(hcalIsoIt > ( int(len(sortedHcalIsoCutArr))-1 ) ):
 							break
-						if(sortedHcalIsoCutArr[hcalIsoIt] > allSetsOfInitialVals[n][3] or sortedHcalIsoCutArr[hcalIsoIt] < 0.):
-							hcalIsoIt += 8 
+						if(sortedHcalIsoCutArr[hcalIsoIt] > allSetsOfInitialVals[n][4] or sortedHcalIsoCutArr[hcalIsoIt] < 0.):
+							hcalIsoIt += stepSize 
 							continue
 						#three variables to count the number of bkgnd evts, unmatched sig evts, and matched sig evts pass all five filters
 						numUnmatchedSigEvts = 0.
@@ -243,30 +383,30 @@ def findOptimalCutValuesAndRateAndEff(desiredRate, effDenom, sortedEtCutArr, sor
 							if(totalRate > (20.0)*desiredRate):
 								#print 'total rate > 20 times desiredRate'
 								magnifyHcalIsoIterator = True
-						if(totalRate < (0.39)*desiredRate):
+						if(totalRate < minRateFraction*desiredRate):
 							#print 'total rate < 89% of desired rate'
 							leftHcalIso = True
 							break
-						if(totalRate >= (0.4)*desiredRate and totalRate <= (3.0)*desiredRate):
+						if(totalRate >= minRateFraction*desiredRate and totalRate <= maxRateFraction*desiredRate):
 							zEff = (numMatchedSigEvts/effDenom)
 							cutsRatesAndEffs.append([minHltPT, sortedSigmaIEIECutArr[sigmaIEIEIt], sortedEcalIsoCutArr[ecalIsoIt], sortedHoverECutArr[hOverEIt], sortedHcalIsoCutArr[hcalIsoIt], totalRate, zEff, bkgndRate, numBkgndEvts, signalRate, numUnmatchedSigEvts, sigmaIEIEIt, ecalIsoIt, hOverEIt, hcalIsoIt])
 							addedElementToCutsRatesEffs += 1
 							#print 'increased addedElementToCutsRatesEffs by one'
-						hcalIsoIt += 8 
+						hcalIsoIt += stepSize 
 					
 					#end loop over sortedHcalIsoCutArr values
 					if(leftHcalIso and d==0):
 						#print 'd equals zero and leftHcalIso is True'
 						leaveEcalIso = True
 						break
-					hOverEIt += 8 
+					hOverEIt += stepSize 
 				#end loop over sortedHoverECutArr values
 				if(leaveEcalIso == True):
 					if(c==0):
 						#break out of loop over sortedSigmaIEIECutArr if c==0 and leaveEcalIso==True
 						leaveSigmaIEIE = True
 					break
-				ecalIsoIt += 8 
+				ecalIsoIt += stepSize 
 			#end loop over sortedEcalIsoCutArr values
 			if(leaveSigmaIEIE == True):
 				break
@@ -279,6 +419,8 @@ def findOptimalCutValuesAndRateAndEff(desiredRate, effDenom, sortedEtCutArr, sor
 	indexOfMaxEff = 0
 	#print 'there are this many entries in the list cutsRatesAndEffs ', addedElementToCutsRatesEffs
 	for i in xrange(addedElementToCutsRatesEffs):
+		if(numEntriesInAllSets==1):
+			break
 		if(cutsRatesAndEffs[i][6] > maxEff):
 			maxEff = 0.
 			maxEff += cutsRatesAndEffs[i][6]
@@ -286,6 +428,15 @@ def findOptimalCutValuesAndRateAndEff(desiredRate, effDenom, sortedEtCutArr, sor
 			indexOfMaxEff += i
 	
 	#end loop over cutsRatesAndEffs
+	#totalRate, zEff, bkgndRate, numBkgndEvts, signalRate, numUnmatchedSigEvts
+	
+	#allSetsOfInitialVals.append([minHltPT, sortedSigmaIEIECutArr[(multiplier*r)], sortedEcalIsoCutArr[(multiplier*t)], sortedHoverECutArr[(multiplier*w)], sortedHcalIsoCutArr[(multiplier*g)], totRate, zedEff, 0., numBkgEvts, totRate, numGoodEvts, multiplier*r, multiplier*t, multiplier*w, multiplier*g] )
+	
+	if(numEntriesInAllSets==1):
+		#move values from allSetsOfInitialVals list to cutsRatesAndEffs list
+		cutsRatesAndEffs.append([allSetsOfInitialVals[0][0], allSetsOfInitialVals[0][1],allSetsOfInitialVals[0][2],allSetsOfInitialVals[0][3],allSetsOfInitialVals[0][4],allSetsOfInitialVals[0][5],allSetsOfInitialVals[0][6],allSetsOfInitialVals[0][7],allSetsOfInitialVals[0][8],allSetsOfInitialVals[0][9],allSetsOfInitialVals[0][10],allSetsOfInitialVals[0][11],allSetsOfInitialVals[0][12],allSetsOfInitialVals[0][13],allSetsOfInitialVals[0][14]])
+
+
 
 	#now that a local maximum in Z->ee eff has been found, look in the neighborhood of the optimal cut threshold values to find a settings which
 	#maximize Z->ee efficiency, and bring the calculated rate as close as possible to the desired rate
@@ -361,7 +512,7 @@ def findOptimalCutValuesAndRateAndEff(desiredRate, effDenom, sortedEtCutArr, sor
 					#	print 'hOvrEmIndex = ', hOvrEmIndex
 					#	print 'hcalIndex = ', hcalIndex
 					#	print 'total trigger rate = ', refinedTotalRate
-					if(refinedTotalRate >= (0.4)*desiredRate and refinedTotalRate <= (3.0)*desiredRate):
+					if(refinedTotalRate >= minRateFraction*desiredRate and refinedTotalRate <= maxRateFraction*desiredRate):
 						refinedZeff = (numZeeEvts/effDenom)
 						refinedCutsRatesAndEffs.append([minHltPT, sortedSigmaIEIECutArr[sigmaIndex], sortedEcalIsoCutArr[ecalIndex], sortedHoverECutArr[hOvrEmIndex], sortedHcalIsoCutArr[hcalIndex], refinedTotalRate, refinedZeff, refinedBkgndRate, numBgEvts, refinedSignalRate, numDyEvts, sigmaIndex, ecalIndex, hOvrEmIndex, hcalIndex])
 						numInterestingSets += 1
@@ -692,11 +843,37 @@ print 'max Z->ee trig eff = ', maxEff
 #make sorted arrays of sigPt, sigSigmaIEIE, sigEcalIso, sigHoverE, and sigHcalIso
 #all arrays except sigPt and sigHltMll will be sorted from high to low (last element is smallest value)
 sortedPt = sorted(sigPt)
-sortedSigmaIEIE = sorted(sigSigmaIEIE, reverse=True)
-sortedEcalIso = sorted(sigEcalIso, reverse=True)
-sortedHoverE = sorted(sigHoverE, reverse=True)
-sortedHcalIso = sorted(sigHcalIso, reverse=True)
-sortedHltMll = sorted(sigHltMll)
+tempSortedSigmaIEIE = sorted(sigSigmaIEIE, reverse=True)
+tempSortedEcalIso = sorted(sigEcalIso, reverse=True)
+tempSortedHoverE = sorted(sigHoverE, reverse=True)
+tempSortedHcalIso = sorted(sigHcalIso, reverse=True)
+tempSortedHltMll = sorted(sigHltMll)
+
+#dont include very large or very small values in sorted lists
+sortedSigmaIEIE = []
+sortedEcalIso = []
+sortedHoverE = []
+sortedHcalIso = []
+sortedHltMll = []
+
+maxSigmaIEIE = 0.048
+maxEcalIso = 0.31
+maxHoverE = 0.11
+maxHcalIso = 0.3
+minHltMll = 95.
+
+for y in xrange( int(len(sigPt)) ):
+	if(tempSortedSigmaIEIE[y] < maxSigmaIEIE):
+		sortedSigmaIEIE.append(tempSortedSigmaIEIE[y])
+	if(tempSortedEcalIso[y] < maxEcalIso):
+		sortedEcalIso.append(tempSortedEcalIso[y])
+	if(tempSortedHoverE[y] < maxHoverE):
+		sortedHoverE.append(tempSortedHoverE[y])
+	if(tempSortedHcalIso[y] < maxHcalIso):
+		sortedHcalIso.append(tempSortedHcalIso[y])
+	if(tempSortedHltMll[y] > minHltMll):
+		sortedHltMll.append(tempSortedHltMll[y])
+#end loop over y
 
 #returned array contains these elements in this exact order:
 #pT, sigmaIEIE, ecal iso/pT, (had/em)/energy, hcal iso/pT, total rate, Z->ee efficiency, bkgnd rate, bkgnd evts passing trig, signal rate, signal evts passing trig
@@ -706,33 +883,36 @@ optimalCuts = []	#a 5D array which stores the values of the 5 cut variables used
 zEff = []
 zEffErr = []
 totalTrigRate = []
-totalTrigRateErr = []
+#totalTrigRateErr = []
 
-findOptimalCutValuesAndRateAndEff(0.8, efficiencyDenom, sortedPt, sortedSigmaIEIE, sortedEcalIso, sortedHoverE, sortedHcalIso, t3.GetEntries(), numBkgndEvtsFired, bkgndTuple, t2.GetEntries(), numUnmatchedSigEvtsFired, unmatchedSigTuple, int(len(sigPt)), matchedSigTuple)
+#good values to use are targetRate <= 1.0 
+#bad values to use are targetRate > 1.25
+findOptimalCutValuesAndRateAndEff(1.0, efficiencyDenom, sortedPt, sortedSigmaIEIE, sortedEcalIso, sortedHoverE, sortedHcalIso, t3.GetEntries(), numBkgndEvtsFired, bkgndTuple, t2.GetEntries(), numUnmatchedSigEvtsFired, unmatchedSigTuple, int(len(sigPt)), matchedSigTuple)
 
-#highRate = 100.
-#incrementRate = 100.
+#highRate = 0.95 
+#incrementRate = 0.1 
 #numDiffRates = 1 
 #for q in xrange(numDiffRates):
 #	targetRate = (highRate - q*incrementRate)
-#	optimizedCutsRateAndEff = findOptimalCutValuesAndRateAndEff(targetRate, efficiencyDenom, sortedPt, sortedSigmaIEIE, sortedEcalIso, sortedHoverE, sortedHcalIso, t3.GetEntries(), numBkgndEvtsFired, bkgndTuple, t2.GetEntries(), numUnmatchedSigEvtsFired, unmatchedSigTuple, sigPtLen, matchedSigTuple)
+#	optimizedCutsRateAndEff = findOptimalCutValuesAndRateAndEff(targetRate, efficiencyDenom, sortedPt, sortedSigmaIEIE, sortedEcalIso, sortedHoverE, sortedHcalIso, t3.GetEntries(), numBkgndEvtsFired, bkgndTuple, t2.GetEntries(), numUnmatchedSigEvtsFired, unmatchedSigTuple, int(len(sigPt)), matchedSigTuple)
+#
 #	print 'q = ', q
 #	optimalCuts.append([optimizedCutsRateAndEff[0], optimizedCutsRateAndEff[1], optimizedCutsRateAndEff[2], optimizedCutsRateAndEff[3], optimizedCutsRateAndEff[4] ])
 #	totalTrigRate.append(optimizedCutsRateAndEff[5])
-#	bkgndRateErr = optimizedCutsRateAndEff[7]/math.sqrt(optimizedCutsRateAndEff[8])
-#	signalRateErr = optimizedCutsRateAndEff[9]/math.sqrt(optimizedCutsRateAndEff[10])
-#	totalTrigRateErr.append(math.sqrt( math.pow(bkgndRateErr,2) + math.pow(signalRateErr,2) ) )
+#	#bkgndRateErr = optimizedCutsRateAndEff[7]/math.sqrt(optimizedCutsRateAndEff[8])
+#	#signalRateErr = optimizedCutsRateAndEff[9]/math.sqrt(optimizedCutsRateAndEff[10])
+#	#totalTrigRateErr.append(math.sqrt( math.pow(bkgndRateErr,2) + math.pow(signalRateErr,2) ) )
 #	zEff.append(optimizedCutsRateAndEff[6])
 #	zEffErr.append(0.0)
 #	print ' '
 #	print 'Z->ee trig eff = ', zEff[q]
 #	print 'total trig rate = ', totalTrigRate[q]
-#	print 'total trig rate err = ', totalTrigRateErr[q]
-#	print 'min ET = ', optimalCuts[q][0]
+#	#print 'total trig rate err = ', totalTrigRateErr[q]
+#	print 'min PT = ', optimalCuts[q][0]
 #	print 'max sigmaIEIE = ', optimalCuts[q][1]
-#	print 'max ecal iso/ET = ', optimalCuts[q][2]
+#	print 'max ecal iso/PT = ', optimalCuts[q][2]
 #	print 'max had/em / Energy = ', optimalCuts[q][3]
-#	print 'max hcal iso/ET = ', optimalCuts[q][4]
+#	print 'max hcal iso/PT = ', optimalCuts[q][4]
 #	print ' '
 
 
