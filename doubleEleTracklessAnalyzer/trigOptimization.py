@@ -766,7 +766,7 @@ for w in xrange(t3.GetEntries()):
 	t3.GetEntry(w)
 	if(t3.matched_pT_ > 0.):
 		#print 'found a minBias evt which fired loose double electron trigger'
-		bkgndTuple.append([t3.matched_pT_, t3.matched_ecalClusterShape_SigmaIEtaIEta_, t3.matched_ecalIso_/t3.matched_pT_, t3.matched_hOverE_/(t3.matched_pT_*(math.cosh(t3.matched_eta_)) ), t3.matched_hcalIso_/t3.matched_pT_, t3.hlt_mLL_])
+		bkgndTuple.append([t3.matched_pT_, t3.matched_ecalClusterShape_SigmaIEtaIEta_, t3.matched_ecalIso_, t3.matched_hOverE_, t3.matched_hcalIso_, t3.hlt_mLL_])
 		numBkgndEvtsFired += 1
 		bkgndHltMLL.append(t3.hlt_mLL_)
 		#bkgndPt.append(t3.matched_pT_)
@@ -786,7 +786,7 @@ for q in xrange(t2.GetEntries()):
 	t2.GetEntry(q)
 	if(t2.matched_pT_ > 0.):
 		#print 'found a DY->ee evt which fired loose double electron trigger'
-		unmatchedSigTuple.append([t2.matched_pT_, t2.matched_ecalClusterShape_SigmaIEtaIEta_, t2.matched_ecalIso_/t2.matched_pT_, t2.matched_hOverE_/(t2.matched_pT_*(math.cosh(t2.matched_eta_)) ), t2.matched_hcalIso_/t2.matched_pT_, t2.hlt_mLL_])
+		unmatchedSigTuple.append([t2.matched_pT_, t2.matched_ecalClusterShape_SigmaIEtaIEta_, t2.matched_ecalIso_, t2.matched_hOverE_, t2.matched_hcalIso_, t2.hlt_mLL_])
 		numUnmatchedSigEvtsFired += 1
 
 print 'the number of DY->ee evts which fired the trigger = ', numUnmatchedSigEvtsFired
@@ -837,10 +837,10 @@ for z in xrange(analyzeThisManyEvents):
 		genTracklessPt.append(t1.gen_trackless_pT_)
 		if(t1.matched_pT_ > 0.):
 			#fill sigEcalIso, sigPt, and other sig lists if the trigger fires in t1.GetEntry(z) 
-			matchedSigTuple.append([t1.matched_pT_, t1.matched_ecalClusterShape_SigmaIEtaIEta_, t1.matched_ecalIso_/t1.matched_pT_, t1.matched_hOverE_/(t1.matched_pT_*(math.cosh(t1.matched_eta_)) ), t1.matched_hcalIso_/t1.matched_pT_, t1.hlt_mLL_])
-			sigEcalIso.append(t1.matched_ecalIso_/t1.matched_pT_)
-			sigHcalIso.append(t1.matched_hcalIso_/t1.matched_pT_)
-			sigHoverE.append(t1.matched_hOverE_/(t1.matched_pT_*(math.cosh(t1.matched_eta_)) ))
+			matchedSigTuple.append([t1.matched_pT_, t1.matched_ecalClusterShape_SigmaIEtaIEta_, t1.matched_ecalIso_, t1.matched_hOverE_, t1.matched_hcalIso_, t1.hlt_mLL_])
+			sigEcalIso.append(t1.matched_ecalIso_)
+			sigHcalIso.append(t1.matched_hcalIso_)
+			sigHoverE.append(t1.matched_hOverE_)
 			sigSigmaIEIE.append(t1.matched_ecalClusterShape_SigmaIEtaIEta_)
 			sigPt.append(t1.matched_pT_)
 			sigEta.append(t1.matched_eta_)
