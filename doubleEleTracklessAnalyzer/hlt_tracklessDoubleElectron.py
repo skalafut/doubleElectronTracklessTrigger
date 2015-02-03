@@ -4908,15 +4908,15 @@ process.genEle = cms.EDFilter("CandViewSelector",
 
 process.genEleTrack = cms.EDFilter("CandSelector",
 		src = cms.InputTag("genEle"),
-		#ORIGINAL cut = cms.string("pt> 27 && eta < 2.5 && eta > -2.5"),
-		cut = cms.string("pt> 27"),
+		cut = cms.string("pt> 27 && eta < 2.5 && eta > -2.5"),
+		#cut = cms.string("pt> 27"),
 		
 		)
 
 process.genUntrack = cms.EDFilter("CandSelector",
 		src = cms.InputTag("genEle"),
-		#ORIGINAL cut = cms.string("(eta < 3.0 && eta > 2.5 ) || (eta < -2.5 && eta > -3.0)"),
-		cut = cms.string(""),
+		cut = cms.string("(eta < 3.0 && eta > 2.5 ) || (eta < -2.5 && eta > -3.0)"),
+		#cut = cms.string(""),
 		
 		)
 
