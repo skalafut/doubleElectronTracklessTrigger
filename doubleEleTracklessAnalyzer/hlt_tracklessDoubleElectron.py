@@ -5073,7 +5073,7 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 #This .root file can then be analyzed by the trigger optimization script
 process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
     #fileName = cms.untracked.string( "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_low_thresholds_oneFile.root" ),
-    fileName = cms.untracked.string("signalTest.root"),
+    fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signalTest.root"),
 	fastCloning = cms.untracked.bool( False ),
     dataset = cms.untracked.PSet(
         dataTier = cms.untracked.string( 'RECO' ),

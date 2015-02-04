@@ -715,9 +715,13 @@ f1 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_AL
 
 f2 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/unmatched_signal_ALLevts_very_loose_trackless_leg.root")
 
-#f3 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/biggest_sample_bkgnd_evts_very_loose_trackless_leg.root")
-f3 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_all_bkgnd_evts.root")
+#used two different datasets to estimate bkgnd rate.  One dataset of QCD dijet pt 20 to 30 EM enriched with 1M evts, and
+#one dataset of QCD dijet pt 30 to 80 EM enriched with 1M evts.  These processes have different cross sections, so I must
+#treat them separately.
+f3 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_QCD_Pt_20_to_30_bkgnd_evts.root")
+f5 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_QCD_Pt_30_to_80_bkgnd_evts.root")
 
+#f4 is not needed as of January 30 2015
 f4 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/biggest_signal_sample_AOD_data.root")
 
 
@@ -727,8 +731,10 @@ t1 = f1.Get("demo/doubleEleTrigger")
 #tree for signal evts which fire the trigger but are not matched to gen electrons
 t2 = f2.Get("demo/doubleEleTrigger")
 
-#tree for bkgnd evts which fire the trigger
+#trees for QCD bkgnd evts (both 20 to 30 GeV, and 30 to 80 GeV pT) which fire the trigger
 t3 = f3.Get("demo/doubleEleTrigger")
+t5 = f5.Get("demo/doubleEleTrigger")
+
 
 #tree for signal evts with AOD data
 t4 = f4.Get("demo/doubleEleTrigger")
@@ -743,7 +749,6 @@ sigSigmaIEIE = []
 sigPt = []
 sigEta = []
 sigHltMll = []  #hlt_mLL_ for Z->ee evts
-bkgndHltMLL = []
 genTracklessPt = []
 genTrackedPt = []
 recoTrackedPt = []
@@ -753,30 +758,38 @@ recoUntrackedEta = []
 recoDileptonMass = []
 
 
-#pT, sigmaIEIE, ecal iso/pT, had/em / energy, hcal iso/pT for bkgnd evts which fire the very loose trigger
-bkgndTuple = []
-numBkgndEvtsFired = 0
-#bkgndPt = []
-#bkgndSigmaIEIE = []
-#bkgndEcalIso = []
-#bkgndHoverE = []
-#bkgndHcalIso = []
+#pT, sigmaIEIE, ecal iso/pT, had/em / energy, hcal iso/pT for QCD pt 20 to 30 evts which fire the very loose trigger
+bkgndTupleLowPt = []
+numBkgndEvtsFiredLowPt = 0
+bkgndLowPtHltMLL = []
 
 for w in xrange(t3.GetEntries()):
 	t3.GetEntry(w)
 	if(t3.matched_pT_ > 0.):
 		#print 'found a minBias evt which fired loose double electron trigger'
-		bkgndTuple.append([t3.matched_pT_, t3.matched_ecalClusterShape_SigmaIEtaIEta_, t3.matched_ecalIso_, t3.matched_hOverE_, t3.matched_hcalIso_, t3.hlt_mLL_])
-		numBkgndEvtsFired += 1
-		bkgndHltMLL.append(t3.hlt_mLL_)
-		#bkgndPt.append(t3.matched_pT_)
-		#bkgndSigmaIEIE.append(t3.matched_ecalClusterShape_SigmaIEtaIEta_)
-		#bkgndEcalIso.append(t3.matched_ecalIso_/t3.matched_pT_)
-		#bkgndHoverE.append(t3.matched_hOverE_/(t3.matched_pT_*(math.cosh(t3.matched_eta_)) ))
-		#bkgndHcalIso.append(t3.matched_hcalIso_/t3.matched_pT_)
+		bkgndTupleLowPt.append([t3.matched_pT_, t3.matched_ecalClusterShape_SigmaIEtaIEta_, t3.matched_ecalIso_, t3.matched_hOverE_, t3.matched_hcalIso_, t3.hlt_mLL_])
+		numBkgndEvtsFiredLowPt += 1
+		bkgndLowPtHltMLL.append(t3.hlt_mLL_)
 
-print 'the number of minBias evts which fired the trigger = ', numBkgndEvtsFired
-print 'the total number of minBias evts which were passed through the trigger = ', t3.GetEntries()
+print 'the number of QCD pt 20 to 30 evts which fired the trigger = ', numBkgndEvtsFiredLowPt
+print 'the total number of QCD pt 20 to 30 evts which were passed through the trigger = ', t3.GetEntries()
+
+
+#pT, sigmaIEIE, ecal iso/pT, had/em / energy, hcal iso/pT for QCD pt 30 to 80 evts which fire the very loose trigger
+bkgndHighPtHltMLL = []
+bkgndTupleHighPt = []
+numBkgndEvtsFiredHighPt = 0
+
+for g in xrange(t5.GetEntries()):
+	t5.GetEntry(g)
+	if(t5.matched_pT_ > 0.):
+		#print 'found a minBias evt which fired loose double electron trigger'
+		bkgndTupleHighPt.append([t5.matched_pT_, t5.matched_ecalClusterShape_SigmaIEtaIEta_, t5.matched_ecalIso_, t5.matched_hOverE_, t5.matched_hcalIso_, t5.hlt_mLL_])
+		numBkgndEvtsFiredHighPt += 1
+		bkgndHighPtHltMLL.append(t5.hlt_mLL_)
+
+print 'the number of QCD pt 30 to 80 evts which fired the trigger = ', numBkgndEvtsFiredHighPt
+print 'the total number of QCD pt 30 to 80 evts which were passed through the trigger = ', t5.GetEntries()
 
 #pT, sigmaIEIE, ecal iso/pT, had/em / energy, hcal iso/pT for sig evts not matched to gen electrons which fire the very loose trigger
 unmatchedSigTuple = []
@@ -792,19 +805,14 @@ for q in xrange(t2.GetEntries()):
 print 'the number of DY->ee evts which fired the trigger = ', numUnmatchedSigEvtsFired
 print 'the total number of DY->ee evts which were passed through the trigger = ', t2.GetEntries()
 
-#go through TTree with AOD data and get useful quantities from Z->ee candidate signal evts
-#genMLL_, reco_mLL_, pT and eta of both GEN electrons and matched reco objects (GSF electron, EE supercluster)
-#in evts where genTriggeredEvent_ > 0., genMLL_ btwn 60. and 120., a reco GSF electron matched to the GEN tracked electron, and
-#a reco EE supercluster is matched to the GEN trackless electron
-#if reco_tracked_pT_ > 0 then there is a reco GSF electron matched to the GEN tracked electron in the event
-#if reco_untracked_pT_ > 0 then there is a reco EE supercluster matched to the GEN trackless electron in the event
-numAodZedPeakEvts = 0
-aodTuple = []  #contains useful GEN and RECO info from Z->ee candidate signal evts
-for y in xrange(t4.GetEntries()):
-	t4.GetEntry(y)
-	if(t4.genTriggeredEvent_ > 0. and t4.genMLL_ > 60. and t4.genMLL_ < 120. and t4.reco_tracked_pT_ > 0. and t4.reco_untracked_pT_ > 0.):
-		numAodZedPeakEvts += 1
-		aodTuple.append([t4.gen_trackless_pT_, t4.gen_trackless_eta_, t4.gen_tracked_pT_, t4.gen_tracked_eta_, t4.genMLL_, t4.reco_tracked_pT_, t4.reco_tracked_eta_, t4.reco_untracked_pT_, t4.reco_untracked_eta_, t4.reco_mLL_ ])
+
+#numAodZedPeakEvts = 0
+#aodTuple = []  #contains useful GEN and RECO info from Z->ee candidate signal evts
+#for y in xrange(t4.GetEntries()):
+#	t4.GetEntry(y)
+#	if(t4.genTriggeredEvent_ > 0. and t4.genMLL_ > 60. and t4.genMLL_ < 120. and t4.reco_tracked_pT_ > 0. and t4.reco_untracked_pT_ > 0.):
+#		numAodZedPeakEvts += 1
+#		aodTuple.append([t4.gen_trackless_pT_, t4.gen_trackless_eta_, t4.gen_tracked_pT_, t4.gen_tracked_eta_, t4.genMLL_, t4.reco_tracked_pT_, t4.reco_tracked_eta_, t4.reco_untracked_pT_, t4.reco_untracked_eta_, t4.reco_mLL_ ])
 
 
 #denominator of Z->ee trigger efficiency
@@ -816,21 +824,7 @@ analyzeThisManyEvents = t1.GetEntries() #the number of TTree entries to inspect
 for z in xrange(analyzeThisManyEvents):
 	#loop over all events that were analyzed to make signal.root
 	t1.GetEntry(z)
-	foundMatchingAodEvt = False
-	#calculate two dilepton mass values for the signal event (dy->ee)
-	#one value uses GEN electron kinematics, while the other value uses RECO gsf electron and supercluster kinematics
-	if(t1.genTriggeredEvent_ > 0. and t1.genMLL_ > 60. and t1.genMLL_ < 120.):
-		matchingAodTupleIndex = 0	#value of c where aodTuple[c][] matches t1.GetEntry(z)
-		for c in xrange(numAodZedPeakEvts):
-			#see if there is an entry in aodTuple with GEN electrons which match the GEN electrons in t1.GetEntry(z)
-			#the aodTuple is only filled with events where genTriggeredEvent_ > 0, genMLL_ btwn 60 and 120, and where a reco GSF electron
-			#is matched to the GEN tracked electron, and a reco EE supercluster is matched to the GEN trackless electron
-			if(t1.gen_trackless_pT_ == aodTuple[c][0] and t1.gen_trackless_eta_ == aodTuple[c][1] and t1.gen_tracked_pT_ == aodTuple[c][2] and t1.gen_tracked_eta_ == aodTuple[c][3]):
-				foundMatchingAodEvt = True
-				matchingAodTupleIndex += c
-				break  #leave loop over c (aodTuple entries)
-	#end filter on genTriggeredEvent_ and genMLL_
-	if(foundMatchingAodEvt):
+	if(t1.genTriggeredEvent_ > 0.):
 		#increment efficiency denominator
 		efficiencyDenom += 1.
 		genTrackedPt.append(t1.gen_tracked_pT_)
@@ -845,14 +839,13 @@ for z in xrange(analyzeThisManyEvents):
 			sigPt.append(t1.matched_pT_)
 			sigEta.append(t1.matched_eta_)
 			sigHltMll.append(t1.hlt_mLL_)
-			#use matchingAodTupleIndex here to pull any information from the AOD TTree
-			if(aodTuple[matchingAodTupleIndex][9] > 0.):
-				#if reco_mLL_ > 0. then a reco GSF electron and EE supercluster matched to the two GEN electrons were found in t1.GetEntry(z)
-				recoDileptonMass.append(aodTuple[matchingAodTupleIndex][9])
-				recoTrackedPt.append(aodTuple[matchingAodTupleIndex][5])
-				recoTrackedEta.append(aodTuple[matchingAodTupleIndex][6])
-				recoUntrackedPt.append(aodTuple[matchingAodTupleIndex][7])
-				recoUntrackedEta.append(aodTuple[matchingAodTupleIndex][8])
+#			if(aodTuple[matchingAodTupleIndex][9] > 0.):
+#				#if reco_mLL_ > 0. then a reco GSF electron and EE supercluster matched to the two GEN electrons were found in t1.GetEntry(z)
+#				recoDileptonMass.append(aodTuple[matchingAodTupleIndex][9])
+#				recoTrackedPt.append(aodTuple[matchingAodTupleIndex][5])
+#				recoTrackedEta.append(aodTuple[matchingAodTupleIndex][6])
+#				recoUntrackedPt.append(aodTuple[matchingAodTupleIndex][7])
+#				recoUntrackedEta.append(aodTuple[matchingAodTupleIndex][8])
 			#end if(reco_mLL_ > 0.)
 		#end requirement that the trigger is fired in t1.GetEntry(z)
 	#end filter on foundMatchingAodEvt
