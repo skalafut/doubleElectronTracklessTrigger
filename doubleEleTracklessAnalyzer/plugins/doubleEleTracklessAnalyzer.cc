@@ -752,23 +752,22 @@ void GetMatchedTriggerObjects(
 
 	//std::cout<<"declared handles to trackless reco ecal candidate object maps"<<std::endl;
  
-	float hltEta = 0;
 	float hltPhi = 0;
 	float maxPt = 0;
 	unsigned int indexOfMaxPt = 0;
 	int numPassingEtaCut = 0;
 	double dR = 0;
+	bool hasChanged = false;
 
 	for(unsigned int i=0; i<recoRefs.size(); i++){
-		hltEta = recoRefs[i]->eta();
-
-		if(std::fabs(hltEta) > 2.4 && std::fabs(hltEta) < 3.0){
+		if(std::fabs(recoRefs[i]->eta()) > 2.4 && std::fabs(recoRefs[i]->eta()) < 3.0){
 			numPassingEtaCut += 1;
 			hltPhi = recoRefs[i]->phi();
-			dR = deltaR(eta, phi, hltEta, hltPhi);
+			dR = deltaR(eta, phi, recoRefs[i]->eta(), hltPhi);
 			fill("tracklessGENToHLTDeltaR", dR);
 			if(recoRefs[i]->pt() > maxPt && dR < dRForMatch ){
 				//std::cout<<"called pt() on an object from recoRefs vector"<<std::endl;
+				hasChanged = true;
 				maxPt = 0;
 				indexOfMaxPt = 0;
 				maxPt += recoRefs[i]->pt();
@@ -782,6 +781,7 @@ void GetMatchedTriggerObjects(
 	numRecoEcalCands_ = numPassingEtaCut;
 
 	if(numRecoEcalCands_ == 0) return;
+	if(!hasChanged) return;
 
 	//now that the highest pT, dR matched RecoEcalCandidate has been found, record the relative calo iso, (had/em)/energy, and sigmaIEIE
 	//values associated with this RecoEcalCandidate
