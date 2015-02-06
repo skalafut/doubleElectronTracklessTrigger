@@ -2290,8 +2290,7 @@ process.hltBoolEnd = cms.EDFilter( "HLTBool",
     result = cms.bool( True )
 )
 process.hltL1sL1SingleEG20ORL1SingleEG22 = cms.EDFilter( "HLTLevel1GTSeed",
-#ORIGINAL L1_SingleEG22 causes problems    L1SeedsLogicalExpression = cms.string( "L1_SingleEG20 OR L1_SingleEG22" ),
-    L1SeedsLogicalExpression = cms.string( "L1_SingleEG20" ),
+    L1SeedsLogicalExpression = cms.string( "L1_SingleEG20 OR L1_SingleEG22" ),
     saveTags = cms.bool( True ),
     L1MuonCollectionTag = cms.InputTag( "hltL1extraParticles" ),
     L1UseL1TriggerObjectMaps = cms.bool( True ),
@@ -4410,12 +4409,12 @@ process.hltEle15WPYYtracklessClusterShapeFilter = cms.EDFilter( "HLTEgammaGeneri
     saveTags = cms.bool( True ),
     thrOverE2EB = cms.double( -1.0 ),
     #ORIGINAL thrRegularEE = cms.double( 0.031 ),
-    thrRegularEE = cms.double( 0.095 ),
+    thrRegularEE = cms.double( 0.11 ),
 	thrOverEEE = cms.double( -1.0 ),
     L1IsoCand = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
     thrOverEEB = cms.double( -1.0 ),
     #ORIGINAL thrRegularEB = cms.double( 0.011 ),
-    thrRegularEB = cms.double( 0.095 ),
+    thrRegularEB = cms.double( 0.11 ),
 	lessThan = cms.bool( True ),
     useEt = cms.bool( False ),
     ncandcut = cms.int32( 2 ),
@@ -4448,10 +4447,10 @@ process.hltEle15WPYYtracklessEcalIsoFilter = cms.EDFilter( "HLTEgammaGenericFilt
     thrOverE2EB = cms.double( -1.0 ),
     thrRegularEE = cms.double( -1.0 ),
     #ORIGINAL thrOverEEE = cms.double( 0.2 ),
-    thrOverEEE = cms.double( 0.6 ),
+    thrOverEEE = cms.double( 0.9 ),
 	L1IsoCand = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
     #ORIGINAL thrOverEEB = cms.double( 0.2 ),
-    thrOverEEB = cms.double( 0.6 ),
+    thrOverEEB = cms.double( 0.9 ),
 	thrRegularEB = cms.double( -1.0 ),
     lessThan = cms.bool( True ),
     useEt = cms.bool( True ),
@@ -4725,11 +4724,11 @@ process.hltEle15WPYYtracklessHEFilter = cms.EDFilter( "HLTEgammaGenericFilter",
     thrOverE2EB = cms.double( -1.0 ),
     thrRegularEE = cms.double( -1.0 ),
     #ORIGINAL thrOverEEE = cms.double( 0.075 ),
-    thrOverEEE = cms.double( 0.85 ),
+    thrOverEEE = cms.double( 1.2 ),
     
 	L1IsoCand = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
     #ORIGINAL thrOverEEB = cms.double( 0.1 ),
-    thrOverEEB = cms.double( 0.85 ),
+    thrOverEEB = cms.double( 1.2 ),
     
 	thrRegularEB = cms.double( -1.0 ),
     lessThan = cms.bool( True ),
@@ -4767,11 +4766,11 @@ process.hltEle15WPYYtracklessHcalIsoFilter = cms.EDFilter( "HLTEgammaGenericFilt
     thrOverE2EB = cms.double( -1.0 ),
     thrRegularEE = cms.double( -1.0 ),
     #ORIGINAL thrOverEEE = cms.double( 0.2 ),
-    thrOverEEE = cms.double( 0.8 ),
+    thrOverEEE = cms.double( 1.6 ),
     
 	L1IsoCand = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
     #ORIGINAL thrOverEEB = cms.double( 0.2 ),
-    thrOverEEB = cms.double( 0.8 ),
+    thrOverEEB = cms.double( 1.6 ),
     
 	thrRegularEB = cms.double( -1.0 ),
     lessThan = cms.bool( True ),
@@ -4948,11 +4947,12 @@ process.HLTBeginSequence
 
 process.HLTriggerFinalPath = cms.Path( process.hltGtDigis + process.hltScalersRawToDigi + process.hltFEDSelector + process.hltTriggerSummaryAOD + process.hltTriggerSummaryRAW )
 
+
 #using LFN and xrootd
 process.source = cms.Source( "PoolSource",
     fileNames = cms.untracked.vstring(
 		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/063C87E4-476B-E311-9697-00259081A2C8.root'
-		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_dataset.root'
+		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset.root'
 		#'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00000/063C87E4-476B-E311-9697-00259081A2C8.root',
         #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00000/14FB9BF8-476B-E311-960B-00266CF33288.root',
         #'root://xrootd.ba.infn.it//store/mc/Fall13dr/DYToEE_Tune4C_13TeV-pythia8/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00000/4C6900EE-476B-E311-814B-0025907FD424.root',
@@ -5073,7 +5073,7 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 #This .root file can then be analyzed by the trigger optimization script
 process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
     #fileName = cms.untracked.string( "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_low_thresholds_oneFile.root" ),
-    fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signalTest.root"),
+    fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signalTest_contains_HLT_objects.root"),
 	fastCloning = cms.untracked.bool( False ),
     dataset = cms.untracked.PSet(
         dataTier = cms.untracked.string( 'RECO' ),
@@ -5088,7 +5088,7 @@ process.FULLOutput = cms.EndPath( process.hltOutputFULL )
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(50)
 )
 
 # enable the TrigReport and TimeReport

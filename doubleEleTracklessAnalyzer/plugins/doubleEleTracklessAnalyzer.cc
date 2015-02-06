@@ -501,7 +501,7 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const double genTrackedE
 	}//end loop over trackedRecoRefs
 
 	//now get the pT, eta, and phi of the highest pT RecoEcalCandidate object in this event which passed the track iso filter
-	matched_tracked_pT_=maxPt;
+	matched_tracked_pT_=trackedRecoRefs[indexOfMaxPt]->pt();
 	matched_tracked_eta_=trackedRecoRefs[indexOfMaxPt]->eta();
 	matched_tracked_phi_=trackedRecoRefs[indexOfMaxPt]->phi();
 
@@ -845,13 +845,40 @@ unsigned int addToPtSortedVector(std::vector<double>& genElePts,double& genPT){
 }	
 
 void resetCounters(){
-	//reset all of the private member vars which are saved to TTree to zero
+	//reset all of the private member vars which are saved to the TTree 
+
+	//there are never more than 2 gen electrons/positrons in the event
+	//cut zero = no cuts
+	gen_l1_pT_cutZero_= -1;
+	gen_l1_eta_cutZero_ = -7;
+	gen_l2_pT_cutZero_= -1;
+	gen_l2_eta_cutZero_ = -7;
+
+	//cut one = two gen electrons from Z boson mother, both with pT > 15 
+	gen_l1_pT_cutOne_= -1;
+	gen_l1_eta_cutOne_ = -7;
+	gen_l2_pT_cutOne_= -1;
+	gen_l2_eta_cutOne_ = -7;
+
+	//cut two = cut one + one tracked gen electron with pT > 27  
+	gen_l1_pT_cutTwo_= -1;
+	gen_l1_eta_cutTwo_ = -7;
+	gen_l2_pT_cutTwo_= -1;
+	gen_l2_eta_cutTwo_ = -7;
+
+
+	//cut three = cut two + one untracked gen electron
+	gen_l1_pT_cutThree_= -1;
+	gen_l1_eta_cutThree_ = -7;
+	gen_l2_pT_cutThree_= -1;
+	gen_l2_eta_cutThree_ = -7;
+
+
 	numEvents_cutLvlZero_=0;	//the total number of events which were analyzed, no cuts on anything
     numEvents_cutLvlOne_=0;	//the total number of events where two gen electrons are found with a Z boson mother
     numEvents_cutLvlTwo_=0;	//total # of evts with two gen electrons coming from a Z boson, and passing pT cuts (27, 15) 
     numEvents_cutLvlThree_=0;  //total # evts passing gen mother, pT, and eta cuts
     numEvents_cutLvlFour_=0;	//total # evts passing gen mother, pT, eta, and dR(tracked HLT to GEN) cuts
-    numEvents_cutLvlFive_=0;	//total # evts passing gen mother, pT, eta, and both dR (tracked and trackless) cuts
 
 	gen_trackless_pT_=-1;	//pT of gen electron in trackless EE
 	gen_trackless_eta_=-7;	//eta of gen electron in trackless EE
@@ -910,6 +937,30 @@ double numTriggeredEvents=0;
 double efficiencyDenominator=0;	//total number of events where there is one GEN electron with pT > 15 GeV in the trackless region, and one tracked electron
 
 TTree * tree;
+//cut zero = no cuts
+double gen_l1_pT_cutZero_;
+double gen_l1_eta_cutZero_;
+double gen_l2_pT_cutZero_;
+double gen_l2_eta_cutZero_;
+
+//cut one = two gen electrons from Z boson mother, both with pT > 15 
+double gen_l1_pT_cutOne_;
+double gen_l1_eta_cutOne_;
+double gen_l2_pT_cutOne_;
+double gen_l2_eta_cutOne_;
+
+//cut two = cut one + one tracked gen electron with pT > 27  
+double gen_l1_pT_cutTwo_;
+double gen_l1_eta_cutTwo_;
+double gen_l2_pT_cutTwo_;
+double gen_l2_eta_cutTwo_;
+
+//cut three = cut two + one untracked gen electron
+double gen_l1_pT_cutThree_;
+double gen_l1_eta_cutThree_;
+double gen_l2_pT_cutThree_;
+double gen_l2_eta_cutThree_;
+
 
 //vars used to study # of evts passing different levels of cuts
 //nomenclature example: cutLvlThree includes all of the cuts made in cutLvlTwo 
@@ -918,7 +969,6 @@ int numEvents_cutLvlOne_;	//the total number of events where two gen electrons a
 int numEvents_cutLvlTwo_;	//total # of evts with two gen electrons coming from a Z boson, and passing pT cuts (27, 15) 
 int numEvents_cutLvlThree_;  //total # evts passing gen mother, pT, and eta cuts
 int numEvents_cutLvlFour_;	//total # evts passing gen mother, pT, eta, and dR(tracked HLT to GEN) cuts
-int numEvents_cutLvlFive_;	//total # evts passing gen mother, pT, eta, and both dR (tracked and trackless) cuts
 
 
 //gen lepton variables going into TTree
@@ -952,6 +1002,22 @@ double matched_tracked_phi_;
 
 //dilepton mass of the tracked HLT object firing the tracked leg, and the trackless HLT object firing the trackless leg
 double hlt_mLL_;
+
+//lots of events which satisfy the GEN Z->ee requirements are not getting past the tracked leg of the trigger
+//about 40% of the evts are lost
+//the following variables are used to count the number of evts which are killed by each filter in the tracked leg
+//of the trigger
+/*
+int enteredTrackedLeg_;			//counts the number of times the GetTrackMatchedTriggerObjects() method is called
+int passedL1Filter_;			//equal to one if the event passes the L1 requirements, zero otherwise
+int passedTrackedEtFilter_;		//equals 1 if the event passes the tracked Et filter, zero otherwise
+int passedTrackedClusterShapeFilter_;	//equals 1 if the event passes the tracked cluster shape filter, zero otherwise
+int passedTrackedHEFilter_;		//equals 1 if the event passes the tracked (had/em)/E filter, zero otherwise
+int passedTrackedEcalIsoFilter_;	//equals 1 if the event passes the tracked ecalIso/pT filter, zero otherwise
+int passedTrackedHcalIsoFilter_;	//equals 1 if the event passes the tracked hcalIso/pT filter, zero otherwise
+int passedTrackedPixelMatchFilter_;		//equals 1 if the evt passes the pixel match filter, zero otherwise
+*/
+
 
 };
 
@@ -995,12 +1061,32 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
    
    tree=fs->make<TTree>("doubleEleTrigger","Summary of trackless double electron trigger event info");
 
+   tree->Branch("gen_l1_pT_cutZero_",&gen_l1_pT_cutZero_,"gen_l1_pT_cutZero_/D");
+   tree->Branch("gen_l1_eta_cutZero_",&gen_l1_eta_cutZero_,"gen_l1_eta_cutZero_/D");
+   tree->Branch("gen_l2_pT_cutZero_",&gen_l2_pT_cutZero_,"gen_l2_pT_cutZero_/D");
+   tree->Branch("gen_l2_eta_cutZero_",&gen_l2_eta_cutZero_,"gen_l2_eta_cutZero_/D");
+ 
+   tree->Branch("gen_l1_pT_cutOne_",&gen_l1_pT_cutOne_,"gen_l1_pT_cutOne_/D");
+   tree->Branch("gen_l1_eta_cutOne_",&gen_l1_eta_cutOne_,"gen_l1_eta_cutOne_/D");
+   tree->Branch("gen_l2_pT_cutOne_",&gen_l2_pT_cutOne_,"gen_l2_pT_cutOne_/D");
+   tree->Branch("gen_l2_eta_cutOne_",&gen_l2_eta_cutOne_,"gen_l2_eta_cutOne_/D");
+ 
+   tree->Branch("gen_l1_pT_cutTwo_",&gen_l1_pT_cutTwo_,"gen_l1_pT_cutTwo_/D");
+   tree->Branch("gen_l1_eta_cutTwo_",&gen_l1_eta_cutTwo_,"gen_l1_eta_cutTwo_/D");
+   tree->Branch("gen_l2_pT_cutTwo_",&gen_l2_pT_cutTwo_,"gen_l2_pT_cutTwo_/D");
+   tree->Branch("gen_l2_eta_cutTwo_",&gen_l2_eta_cutTwo_,"gen_l2_eta_cutTwo_/D");
+ 
+   tree->Branch("gen_l1_pT_cutThree_",&gen_l1_pT_cutThree_,"gen_l1_pT_cutThree_/D");
+   tree->Branch("gen_l1_eta_cutThree_",&gen_l1_eta_cutThree_,"gen_l1_eta_cutThree_/D");
+   tree->Branch("gen_l2_pT_cutThree_",&gen_l2_pT_cutThree_,"gen_l2_pT_cutThree_/D");
+   tree->Branch("gen_l2_eta_cutThree_",&gen_l2_eta_cutThree_,"gen_l2_eta_cutThree_/D");
+
+
    tree->Branch("numEvents_cutLvlZero_",&numEvents_cutLvlZero_,"numEvents_cutLvlZero_/I");
    tree->Branch("numEvents_cutLvlOne_",&numEvents_cutLvlOne_,"numEvents_cutLvlOne_/I");
    tree->Branch("numEvents_cutLvlTwo_",&numEvents_cutLvlTwo_,"numEvents_cutLvlTwo_/I");
    tree->Branch("numEvents_cutLvlThree_",&numEvents_cutLvlThree_,"numEvents_cutLvlThree_/I");
    tree->Branch("numEvents_cutLvlFour_",&numEvents_cutLvlFour_,"numEvents_cutLvlFour_/I");
-   tree->Branch("numEvents_cutLvlFive_",&numEvents_cutLvlFive_,"numEvents_cutLvlFive_/I");
 
 
    tree->Branch("gen_trackless_eta_",&gen_trackless_eta_,"gen_trackless_eta_/D");
@@ -1066,6 +1152,30 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
 	//uncomment this when analyzing matched signal files to determine Z->ee trigger efficiency
 
+	InputTag genParticleTag("genParticles","","HLT");
+	Handle<std::vector<reco::GenParticle> > genPart;
+	iEvent.getByLabel(genParticleTag, genPart);
+
+	std::vector<double> genPts;
+
+	for(std::vector<reco::GenParticle>::const_iterator genIt = genPart->begin(); genIt != genPart->end(); genIt++){
+		double genPt = genIt->pt();
+		addToPtSortedVector(genPts, genPt);
+	}//end loop over GenParticle collection
+
+	for(std::vector<reco::GenParticle>::const_iterator genIt = genPart->begin(); genIt != genPart->end(); genIt++){
+		if(genIt->pt() == genPts[genPts.size()-2] ){
+			gen_l2_pT_cutZero_ = genIt->pt();
+		   	gen_l2_eta_cutZero_ = genIt->eta();
+		}
+		if(genIt->pt() == genPts[genPts.size()-1] ){
+			gen_l1_pT_cutZero_ = genIt->pt();
+		   	gen_l1_eta_cutZero_ = genIt->eta();
+		}
+
+	}//end loop over GenParticle collection to find leading and subleading GEN leptons
+
+
 	InputTag zBosonMomTag("genEle","","TEST");
 	Handle<edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> > > leptonsFromZHandle;
    	iEvent.getByLabel(zBosonMomTag, leptonsFromZHandle);
@@ -1076,7 +1186,29 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 		return;
 	}
 
-	if(leptonsFromZHandle->size() > 1) numEvents_cutLvlOne_ += 1;
+	if(leptonsFromZHandle->size() > 1){
+		numEvents_cutLvlOne_ += 1;
+		std::vector<double> genPtsCutOne;
+		for(edm::OwnVector<reco::Candidate>::const_iterator leptonFromZedIt = leptonsFromZHandle->begin(); leptonFromZedIt != leptonsFromZHandle->end(); leptonFromZedIt++){
+			double lepPt = leptonFromZedIt->pt();
+			addToPtSortedVector(genPtsCutOne, lepPt);
+		}//end loop over collection of GEN electrons/positrons with pt > 15 and Z boson mother
+
+		for(edm::OwnVector<reco::Candidate>::const_iterator leptonFromZedIt = leptonsFromZHandle->begin(); leptonFromZedIt != leptonsFromZHandle->end(); leptonFromZedIt++){
+			if(leptonFromZedIt->pt() == genPtsCutOne[genPtsCutOne.size()-2] ){
+				gen_l2_pT_cutOne_ = leptonFromZedIt->pt();
+				gen_l2_eta_cutOne_ = leptonFromZedIt->eta();
+			}
+
+			if(leptonFromZedIt->pt() == genPtsCutOne[genPtsCutOne.size()-1] ){
+				gen_l1_pT_cutOne_ = leptonFromZedIt->pt();
+				gen_l1_eta_cutOne_ = leptonFromZedIt->eta();
+			}
+
+		}//end loop over collection of GEN electrons/positrons with pt > 15 and Z boson mother
+
+	}
+
 
 	InputTag trackedLeptTag("genEleTrack","","TEST");
 	Handle<edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> > > trackedLeptHandle;
@@ -1089,9 +1221,58 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 		return;
 	}
 
-	if(trackedLeptHandle->size() > 0){
+	if(trackedLeptHandle->size() > 0 && leptonsFromZHandle->size() > 1){
 		numEvents_cutLvlTwo_ += 1;
-	}
+
+		//there will never be more than 2 gen electrons in an event
+		//if trackedLeptHandle->size() == 2, then both gen_l1 and gen_l2 will come from trackedLeptHandle
+		std::vector<double> genPtsCutTwo;
+		if(trackedLeptHandle->size() == 2){
+			for(edm::OwnVector<reco::Candidate>::const_iterator trackedLeptIt = trackedLeptHandle->begin(); trackedLeptIt != trackedLeptHandle->end(); trackedLeptIt++){
+				double lepPt = trackedLeptIt->pt();
+				addToPtSortedVector(genPtsCutTwo, lepPt);
+			}//end loop over collection of tracked GEN electrons/positrons 
+
+			for(edm::OwnVector<reco::Candidate>::const_iterator trackedLeptIt = trackedLeptHandle->begin(); trackedLeptIt != trackedLeptHandle->end(); trackedLeptIt++){
+				if(trackedLeptIt->pt() == genPtsCutTwo[genPtsCutTwo.size()-1] ){
+					gen_l1_pT_cutTwo_ = trackedLeptIt->pt();
+					gen_l1_eta_cutTwo_ = trackedLeptIt->eta();
+				}
+
+				if(trackedLeptIt->pt() == genPtsCutTwo[genPtsCutTwo.size()-2] ){
+					gen_l2_pT_cutTwo_ = trackedLeptIt->pt();
+					gen_l2_eta_cutTwo_ = trackedLeptIt->eta();
+				}
+
+
+			}//end loop over collection of tracked GEN electrons/positrons
+
+		}//end if(trackedLeptHandle->size() == 2)
+
+		//if trackedLeptHandle->size() == 1, then I should loop over leptonsFromZHandle and find
+		//the tracked lepton with pT > 27, and the untracked lepton with pT > 15
+		if(trackedLeptHandle->size() == 1){
+			for(edm::OwnVector<reco::Candidate>::const_iterator leptIt = leptonsFromZHandle->begin(); leptIt != leptonsFromZHandle->end(); leptIt++){
+				double lepPt = leptIt->pt();
+				addToPtSortedVector(genPtsCutTwo, lepPt);
+			}//end loop over leptonsFromZHandle
+
+			for(edm::OwnVector<reco::Candidate>::const_iterator leptIt = leptonsFromZHandle->begin(); leptIt != leptonsFromZHandle->end(); leptIt++){
+				if(leptIt->pt() == genPtsCutTwo[genPtsCutTwo.size()-1] ){
+					gen_l1_pT_cutTwo_ = leptIt->pt();
+					gen_l1_eta_cutTwo_ = leptIt->eta();
+				}
+
+				if(leptIt->pt() == genPtsCutTwo[genPtsCutTwo.size()-2] ){
+					gen_l2_pT_cutTwo_ = leptIt->pt();
+					gen_l2_eta_cutTwo_ = leptIt->eta();
+				}
+
+			}//end loop over leptonsFromZHandle
+
+		}//end if(trackedLeptHandle->size() == 1)
+
+	}//end if(trackedLeptHandle->size() > 0)
 
 	InputTag untrackedLeptTag("genUntrack","","TEST");
 	Handle<edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> > > untrackedLeptHandle;
@@ -1104,12 +1285,28 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 		return;
 	}
 
-	if(untrackedLeptHandle->size() > 0){
+	if(untrackedLeptHandle->size() > 0 && trackedLeptHandle->size() > 0){
 		numEvents_cutLvlThree_ += 1;
-	}
+		std::vector<double> genPtsCutThree;
+		for(edm::OwnVector<reco::Candidate>::const_iterator leptIt = leptonsFromZHandle->begin(); leptIt != leptonsFromZHandle->end(); leptIt++){
+			double lepPt = leptIt->pt();
+			addToPtSortedVector(genPtsCutThree, lepPt);
+		}//end loop over leptonsFromZHandle
 
-	//combined object made from tracked GEN lepton ("genEleTrack") and trackless GEN lepton ("genUntrack") with mass btwn 40 and 140 GeV
-	//vector<reco::CompositeCandidate>      "combEle"                   ""                "TEST"    
+		for(edm::OwnVector<reco::Candidate>::const_iterator leptIt = leptonsFromZHandle->begin(); leptIt != leptonsFromZHandle->end(); leptIt++){
+			if(leptIt->pt() == genPtsCutThree[genPtsCutThree.size()-1] ){
+				gen_l1_pT_cutThree_ = leptIt->pt();
+				gen_l1_eta_cutThree_ = leptIt->eta();
+			}
+
+			if(leptIt->pt() == genPtsCutThree[genPtsCutThree.size()-2] ){
+				gen_l2_pT_cutThree_ = leptIt->pt();
+				gen_l2_eta_cutThree_ = leptIt->eta();
+			}
+
+		}//end loop over leptonsFromZHandle
+
+	}
 
 	InputTag genZedTag("combEle","","TEST");
 	Handle<std::vector<reco::CompositeCandidate> > genZedHandle;
@@ -1154,8 +1351,8 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
 		}//end loop over tracked gen electrons and positrons
 
-		GetMatchedTriggerObjects(iEvent, gen_trackless_eta_, gen_trackless_phi_, 0.4);
-		GetTrackedTriggerObjects(iEvent, gen_tracked_eta_, gen_tracked_phi_, 0.4);
+		GetMatchedTriggerObjects(iEvent, gen_trackless_eta_, gen_trackless_phi_, 5);
+		GetTrackedTriggerObjects(iEvent, gen_tracked_eta_, gen_tracked_phi_, 5);
 	}
 
 

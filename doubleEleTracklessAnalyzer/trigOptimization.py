@@ -804,7 +804,9 @@ def calcEff(isUpperLimit, inputArray, critValFromInputArray, effDenom):
 
 
 
-f1 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/all_Zee_signal_evt_tuples_early_Febr_2015.root")
+#f1 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/all_Zee_signal_evt_tuples_early_Febr_2015.root")
+f1 = ROOT.TFile("/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_2_0/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/experiment.root")
+
 
 f2 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/all_DY_to_ee_evt_tuples_early_Febr_2015.root")
 
@@ -841,12 +843,14 @@ sigEta = []
 sigHltMll = []  #hlt_mLL_ for Z->ee evts
 genTracklessPt = []
 genTrackedPt = []
-recoTrackedPt = []
-recoTrackedEta = []
-recoUntrackedPt = []
-recoUntrackedEta = []
-recoDileptonMass = []
 
+#arrays for pT and eta of tracked HLT object in Z->ee triggered evts
+matchedPtAfterTrackedLeg = []   #pT of tracked HLT object matched to gen tracked lepton before trackless leg is studied
+matchedEtaAfterTrackedLeg = []  #eta of tracked HLT object matched to gen tracked lepton before trackless leg is studied
+passedTrackedLeg = 0
+
+sigTrackedPt = []
+sigTrackedEta = []
 
 #pT, sigmaIEIE, ecal iso/pT, had/em / energy, hcal iso/pT for QCD pt 20 to 30 evts which fire the very loose trigger
 bkgndTupleLowPt = []
@@ -908,12 +912,25 @@ print 'the total number of DY->ee evts which were passed through the trigger = '
 #denominator of Z->ee trigger efficiency
 #equal to # of events with one untracked EE gen e- (pT > 15), one tracked gen e- (pT > 27), and GEN dilepton mass btwn 60. and 120. GeV
 efficiencyDenom = 0	
+passedCutZero = 0 
+passedCutOne = 0 
+passedCutTwo = 0 
+passedCutThree = 0 
 
 analyzeThisManyEvents = t1.GetEntries() #the number of TTree entries to inspect
 #eventually swap 2000 for t1.GetEntries()
 for z in xrange(analyzeThisManyEvents):
 	#loop over all events that were analyzed to make signal.root
 	t1.GetEntry(z)
+	if(t1.numEvents_cutLvlZero_ ==1):
+		passedCutZero += 1
+	if(t1.numEvents_cutLvlOne_ ==1):
+		passedCutOne += 1
+	if(t1.numEvents_cutLvlTwo_ ==1):
+		passedCutTwo += 1
+	if(t1.numEvents_cutLvlThree_ ==1):
+		passedCutThree += 1
+
 	if(t1.genTriggeredEvent_ > 0.):
 		#if genTriggeredEvent_ is > 0. then this DY->ee event had, at GEN lvl, a tracked (untracked) electron/positron with pt > 27 (15)
 		#and with a Z boson mother.  In addition, these two GEN electrons had an invariant mass between 40 and 140 GeV.
@@ -928,7 +945,12 @@ for z in xrange(analyzeThisManyEvents):
 			efficiencyDenom += 1.
 			genTrackedPt.append(t1.gen_tracked_pT_)
 			genTracklessPt.append(t1.gen_trackless_pT_)
-			if(t1.matched_pT_ > 0.):
+			if(t1.matched_tracked_pT_ > 0.):
+				passedTrackedLeg += 1
+				matchedPtAfterTrackedLeg.append(t1.matched_tracked_pT_)
+				matchedEtaAfterTrackedLeg.append(t1.matched_tracked_eta_)
+
+			if(t1.matched_pT_ > 0. and t1.matched_tracked_pT_ > 0.):
 				#fill sigEcalIso, sigPt, and other sig lists if the trigger fires in t1.GetEntry(z) 
 				matchedSigTuple.append([t1.matched_pT_, t1.matched_ecalClusterShape_SigmaIEtaIEta_, t1.matched_ecalIso_, t1.matched_hOverE_, t1.matched_hcalIso_, t1.hlt_mLL_])
 				sigEcalIso.append(t1.matched_ecalIso_)
@@ -938,99 +960,107 @@ for z in xrange(analyzeThisManyEvents):
 				sigPt.append(t1.matched_pT_)
 				sigEta.append(t1.matched_eta_)
 				sigHltMll.append(t1.hlt_mLL_)
+				sigTrackedPt.append(t1.matched_tracked_pT_)
+				sigTrackedEta.append(t1.matched_tracked_eta_)
 			#end filter which requires that the trigger is fired in the event t1.GetEntry(z)
 		#end filter which requires gen_mll to be btwn 60 and 120 GeV
 	#end requirement that the GEN Z->ee cuts are passed 
 #end loop over entries in TTree t1
 
+print 'total number of DY->ee events analyzed = ', passedCutZero
+print 'num of DY->ee evts with two gen electrons coming from a Z, both with pT > 15 = ', passedCutOne
+print 'num of DY->ee evts with two gen electrons, and one is tracked with pT > 27 = ', passedCutTwo
+print 'num of DY->ee evts with a tracked gen electron, and a trackless gen electron = ', passedCutThree
+print 'num of golden Z->ee evts where tracked leg fires and tracked HLT object is matched to GEN tracked electron = ', passedTrackedLeg 
+print 'num of golden Z->ee evts where tracked and trackless leg fire, and both HLT objects are matched to GEN = ', len(sigPt)
 
 #matchedSigTupleLen defined here is equal to the # of events which passed the trackless leg of the trigger
-matchedSigTupleLen = float(len(matchedSigTuple))
-sigPtLen = int(len(sigPt))
-#print 'sigPtLen equals ', sigPtLen
-maxEff = float(len(sigPt))*(100)/efficiencyDenom
-print 'Z->ee trig eff denominator = ', efficiencyDenom
-print 'max Z->ee trig eff numerator = ', len(sigPt)
-print 'max Z->ee trig eff = ', maxEff
+#matchedSigTupleLen = float(len(matchedSigTuple))
+#sigPtLen = int(len(sigPt))
+##print 'sigPtLen equals ', sigPtLen
+#maxEff = float(len(sigPt))*(100)/efficiencyDenom
+#print 'Z->ee trig eff denominator = ', efficiencyDenom
+#print 'max Z->ee trig eff numerator = ', len(sigPt)
+#print 'max Z->ee trig eff = ', maxEff
 
 
 #make sorted arrays of sigPt, sigSigmaIEIE, sigEcalIso, sigHoverE, and sigHcalIso
 #all arrays except sigPt and sigHltMll will be sorted from high to low (last element is smallest value)
-sortedPt = sorted(sigPt)
-tempSortedSigmaIEIE = sorted(sigSigmaIEIE, reverse=True)
-tempSortedEcalIso = sorted(sigEcalIso, reverse=True)
-tempSortedHoverE = sorted(sigHoverE, reverse=True)
-tempSortedHcalIso = sorted(sigHcalIso, reverse=True)
-tempSortedHltMll = sorted(sigHltMll)
-
-#dont include very large or very small values in sorted lists
-sortedSigmaIEIE = []
-sortedEcalIso = []
-sortedHoverE = []
-sortedHcalIso = []
-sortedHltMll = []
-
-maxSigmaIEIE = 0.057
-maxEcalIso = 0.477
-maxHoverE = 0.38 
-maxHcalIso = 0.8
-minHltMll = 70.
-
-for y in xrange( int(len(sigPt)) ):
-	if(tempSortedSigmaIEIE[y] < maxSigmaIEIE):
-		sortedSigmaIEIE.append(tempSortedSigmaIEIE[y])
-	if(tempSortedEcalIso[y] < maxEcalIso):
-		sortedEcalIso.append(tempSortedEcalIso[y])
-	if(tempSortedHoverE[y] < maxHoverE):
-		sortedHoverE.append(tempSortedHoverE[y])
-	if(tempSortedHcalIso[y] < maxHcalIso):
-		sortedHcalIso.append(tempSortedHcalIso[y])
-	if(tempSortedHltMll[y] > minHltMll):
-		sortedHltMll.append(tempSortedHltMll[y])
-#end loop over y
-
-#returned array contains these elements in this exact order:
-#pT, sigmaIEIE, ecal iso/pT, (had/em)/energy, hcal iso/pT, total rate, Z->ee efficiency, bkgnd rate, bkgnd evts passing trig, signal rate, signal evts passing trig
-#the last six elements should be used to plot Z->ee efficiency as a function of total rate + uncertainty
-
-optimalCuts = []	#a 6D array which stores the values of the 5 cut variables used in the trackless leg of the trigger
-zEff = []
-zEffErr = []
-totalTrigRate = []
-totalTrigRateErr = []
-
-#findOptimalCutValuesAndRateAndEff(9.0, efficiencyDenom, sortedPt, sortedSigmaIEIE, sortedEcalIso, sortedHoverE, sortedHcalIso, sortedHltMll, t3.GetEntries(), numBkgndEvtsFiredLowPt, bkgndTupleLowPt, t5.GetEntries(), numBkgndEvtsFiredHighPt, bkgndTupleHighPt, t2.GetEntries(), numUnmatchedSigEvtsFired, unmatchedSigTuple, int(len(sigPt)), matchedSigTuple)
-
-highRate = 8.0 
-incrementRate = 1.0 
-numDiffRates = 6 
-for q in xrange(numDiffRates):
-	targetRate = (highRate - q*incrementRate)
-	optimizedCutsRateAndEff = findOptimalCutValuesAndRateAndEff(targetRate, efficiencyDenom, sortedPt, sortedSigmaIEIE, sortedEcalIso, sortedHoverE, sortedHcalIso, sortedHltMll, t3.GetEntries(), numBkgndEvtsFiredLowPt, bkgndTupleLowPt, t5.GetEntries(), numBkgndEvtsFiredHighPt, bkgndTupleHighPt, t2.GetEntries(), numUnmatchedSigEvtsFired, unmatchedSigTuple, int(len(sigPt)), matchedSigTuple)
-
-	print 'q = ', q
-	optimalCuts.append([optimizedCutsRateAndEff[0], optimizedCutsRateAndEff[1], optimizedCutsRateAndEff[2], optimizedCutsRateAndEff[3], optimizedCutsRateAndEff[4] ])
-	totalTrigRate.append(optimizedCutsRateAndEff[5])
-	bkgndRateErrLowPt = optimizedCutsRateAndEff[7]/math.sqrt(optimizedCutsRateAndEff[8])
-	bkgndRateErrHighPt = optimizedCutsRateAndEff[9]/math.sqrt(optimizedCutsRateAndEff[10])
-	signalRateErr = optimizedCutsRateAndEff[11]/math.sqrt(optimizedCutsRateAndEff[12])
-	totalTrigRateErr.append(math.sqrt( math.pow(bkgndRateErrLowPt,2) + math.pow(bkgndRateErrHighPt,2) + math.pow(signalRateErr,2) ) )
-	zEff.append(optimizedCutsRateAndEff[6])
-	zEffErr.append(0.0)
-	print ' '
-	print 'Z->ee trig eff = ', zEff[q]
-	print 'total trig rate = ', totalTrigRate[q]
-	print 'total trig rate err = ', totalTrigRateErr[q]
-	print 'min PT = ', optimalCuts[q][0]
-	print 'max sigmaIEIE = ', optimalCuts[q][1]
-	print 'max ecal iso/PT = ', optimalCuts[q][2]
-	print 'max had/em / Energy = ', optimalCuts[q][3]
-	print 'max hcal iso/PT = ', optimalCuts[q][4]
-	#print 'min hlt mLL = ', optimalCuts[q][5]
-	print ' '
-
-
-effVsRateGraph(zEff, zEffErr, totalTrigRate, totalTrigRateErr, "Z->ee trigger efficiency vs total trigger rate","../triggerPlots/efficiencies/optimizedZtoEE_eff_vs_trigRate_allEvts.png" )
+#sortedPt = sorted(sigPt)
+#tempSortedSigmaIEIE = sorted(sigSigmaIEIE, reverse=True)
+#tempSortedEcalIso = sorted(sigEcalIso, reverse=True)
+#tempSortedHoverE = sorted(sigHoverE, reverse=True)
+#tempSortedHcalIso = sorted(sigHcalIso, reverse=True)
+#tempSortedHltMll = sorted(sigHltMll)
+#
+##dont include very large or very small values in sorted lists
+#sortedSigmaIEIE = []
+#sortedEcalIso = []
+#sortedHoverE = []
+#sortedHcalIso = []
+#sortedHltMll = []
+#
+#maxSigmaIEIE = 0.057
+#maxEcalIso = 0.477
+#maxHoverE = 0.38 
+#maxHcalIso = 0.8
+#minHltMll = 70.
+#
+#for y in xrange( int(len(sigPt)) ):
+#	if(tempSortedSigmaIEIE[y] < maxSigmaIEIE):
+#		sortedSigmaIEIE.append(tempSortedSigmaIEIE[y])
+#	if(tempSortedEcalIso[y] < maxEcalIso):
+#		sortedEcalIso.append(tempSortedEcalIso[y])
+#	if(tempSortedHoverE[y] < maxHoverE):
+#		sortedHoverE.append(tempSortedHoverE[y])
+#	if(tempSortedHcalIso[y] < maxHcalIso):
+#		sortedHcalIso.append(tempSortedHcalIso[y])
+#	if(tempSortedHltMll[y] > minHltMll):
+#		sortedHltMll.append(tempSortedHltMll[y])
+##end loop over y
+#
+##returned array contains these elements in this exact order:
+##pT, sigmaIEIE, ecal iso/pT, (had/em)/energy, hcal iso/pT, total rate, Z->ee efficiency, bkgnd rate, bkgnd evts passing trig, signal rate, signal evts passing trig
+##the last six elements should be used to plot Z->ee efficiency as a function of total rate + uncertainty
+#
+#optimalCuts = []	#a 6D array which stores the values of the 5 cut variables used in the trackless leg of the trigger
+#zEff = []
+#zEffErr = []
+#totalTrigRate = []
+#totalTrigRateErr = []
+#
+##findOptimalCutValuesAndRateAndEff(9.0, efficiencyDenom, sortedPt, sortedSigmaIEIE, sortedEcalIso, sortedHoverE, sortedHcalIso, sortedHltMll, t3.GetEntries(), numBkgndEvtsFiredLowPt, bkgndTupleLowPt, t5.GetEntries(), numBkgndEvtsFiredHighPt, bkgndTupleHighPt, t2.GetEntries(), numUnmatchedSigEvtsFired, unmatchedSigTuple, int(len(sigPt)), matchedSigTuple)
+#
+#highRate = 8.0 
+#incrementRate = 1.0 
+#numDiffRates = 6 
+#for q in xrange(numDiffRates):
+#	targetRate = (highRate - q*incrementRate)
+#	optimizedCutsRateAndEff = findOptimalCutValuesAndRateAndEff(targetRate, efficiencyDenom, sortedPt, sortedSigmaIEIE, sortedEcalIso, sortedHoverE, sortedHcalIso, sortedHltMll, t3.GetEntries(), numBkgndEvtsFiredLowPt, bkgndTupleLowPt, t5.GetEntries(), numBkgndEvtsFiredHighPt, bkgndTupleHighPt, t2.GetEntries(), numUnmatchedSigEvtsFired, unmatchedSigTuple, int(len(sigPt)), matchedSigTuple)
+#
+#	print 'q = ', q
+#	optimalCuts.append([optimizedCutsRateAndEff[0], optimizedCutsRateAndEff[1], optimizedCutsRateAndEff[2], optimizedCutsRateAndEff[3], optimizedCutsRateAndEff[4] ])
+#	totalTrigRate.append(optimizedCutsRateAndEff[5])
+#	bkgndRateErrLowPt = optimizedCutsRateAndEff[7]/math.sqrt(optimizedCutsRateAndEff[8])
+#	bkgndRateErrHighPt = optimizedCutsRateAndEff[9]/math.sqrt(optimizedCutsRateAndEff[10])
+#	signalRateErr = optimizedCutsRateAndEff[11]/math.sqrt(optimizedCutsRateAndEff[12])
+#	totalTrigRateErr.append(math.sqrt( math.pow(bkgndRateErrLowPt,2) + math.pow(bkgndRateErrHighPt,2) + math.pow(signalRateErr,2) ) )
+#	zEff.append(optimizedCutsRateAndEff[6])
+#	zEffErr.append(0.0)
+#	print ' '
+#	print 'Z->ee trig eff = ', zEff[q]
+#	print 'total trig rate = ', totalTrigRate[q]
+#	print 'total trig rate err = ', totalTrigRateErr[q]
+#	print 'min PT = ', optimalCuts[q][0]
+#	print 'max sigmaIEIE = ', optimalCuts[q][1]
+#	print 'max ecal iso/PT = ', optimalCuts[q][2]
+#	print 'max had/em / Energy = ', optimalCuts[q][3]
+#	print 'max hcal iso/PT = ', optimalCuts[q][4]
+#	#print 'min hlt mLL = ', optimalCuts[q][5]
+#	print ' '
+#
+#
+#effVsRateGraph(zEff, zEffErr, totalTrigRate, totalTrigRateErr, "Z->ee trigger efficiency vs total trigger rate","../triggerPlots/efficiencies/optimizedZtoEE_eff_vs_trigRate_allEvts.png" )
 
 
 #sigEff_EcalIso = []
@@ -1066,10 +1096,12 @@ effVsRateGraph(zEff, zEffErr, totalTrigRate, totalTrigRateErr, "Z->ee trigger ef
 #makeAndSaveHisto(sigHcalIso, "HcalIsoHistoCanv","HcalIso/HLT PT of trackless HLT objects in Z->ee trig events",100,-0.3,0.5, "../triggerPlots/hltObjectPlots/signal_HcalIsoHisto_low_thresholds_allEvts.png")
 #makeAndSaveHisto(sigHoverE, "HoverEHistoCanv","HoverE/HLT E of trackless HLT objects in Z->ee trig events",100,0.,1, "../triggerPlots/hltObjectPlots/signal_HoverEHisto_low_thresholds_allEvts.png")
 #makeAndSaveHisto(sigPt, "PtHistoCanv","P_{T} of trackless HLT objects in Z->ee trig events",100,0.,250., "../triggerPlots/hltObjectPlots/signal_HLT_matched_PtHisto_low_thresholds_allEvts.png")
+#makeAndSaveHisto(sigEta, "EtaHistoCanv","#eta of trackless HLT objects in Z->ee trig events",100,-3.,3., "../triggerPlots/hltObjectPlots/signal_HLT_matched_EtaHisto_low_thresholds_allEvts.png")
 #makeAndSaveHisto(sigHltMll, "HltMllHistoCanv","M_{LL} of HLT objects firing trigger in Z->ee events",200,0.,300., "../triggerPlots/hltObjectPlots/signal_HLT_matched_HltMllHisto_low_thresholds_allEvts.png")
-#
-#
-#
+#makeAndSaveHisto(sigTrackedEta, "TrackedEtaHistoCanv","#eta of tracked HLT objects in Z->ee trig events",100,-3.,3., "../triggerPlots/hltObjectPlots/signal_HLT_matched_TrackedEtaHisto_low_thresholds_allEvts.png")
+#makeAndSaveHisto(sigTrackedPt, "TrackedPtHistoCanv","P_{T} of tracked HLT objects in Z->ee trig events",100,0.,250., "../triggerPlots/hltObjectPlots/signal_HLT_matched_TrackedPtHisto_low_thresholds_allEvts.png")
+
+
 #makeAndSaveHisto(genTracklessPt, "genTracklessPtHistoCanv","P_{T} of trackless gen electron from Z->ee decay",100,0.,150., "../triggerPlots/genParticlePlots/signal_gen_trackless_PtHisto_low_thresholds_allEvts.png")
 #
 #makeAndSaveHisto(genTrackedPt, "genTrackedPtHistoCanv","P_{T} of tracked gen electron from Z->ee decay",100,0.,150., "../triggerPlots/genParticlePlots/signal_gen_tracked_PtHisto_low_thresholds_allEvts.png")
