@@ -467,6 +467,40 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const double genTrackedE
 */
 
 void GetTrackedTriggerObjects(const edm::Event& iEvent, const double genTrackedEta, const double genTrackedPhi, const double maxDrForMatch){
+/*int numEvts_passing_L1Seed_;		//looks for L1_SingleEG20 seed
+int numEvts_passing_L1Filter_;	//after L1Seed requirement, not sure what this filter does
+int numEvts_passing_EtFilter_;	//requires one tracked electron with ET > 27, after L1Filter
+int numEvts_passing_ClusterShapeFilter_;	//cuts on sigmaIEIE, after EtFilter
+int numEvts_passing_HEFilter_;	//cuts on (had/em)/energy, after ClusterShapeFilter
+int numEvts_passing_EcalIsoFilter_;	//cuts on ecalIso/pT, after HEFilter
+int numEvts_passing_HcalIsoFilter_;	//cuts on hcalIso/pT, after EcalIsoFilter 
+int numEvts_passing_PixelMatchFilter_;	//after HcalIsoFilter, cuts on pixel detector vars
+int numEvts_passing_E_P_Filter_;		//cuts on (1/E)-(1/P), after PixelMatchFilter
+int numEvts_passing_DetaFilter_;		//cuts on dEta btwn candidate and track, after (1/E)-(1/P) filter
+int numEvts_passing_DphiFilter_;		//cuts on dPhi, after dEta filter.  This is the 2nd to last filter in the tracked leg
+*/
+
+	edm::InputTag l1SeedTag("hltL1sL1SingleEG20ORL1SingleEG22","","TEST");
+	edm::Handle<trigger::TriggerFilterObjectWithRefs> l1SeedHandle;
+	iEvent.getByLabel(l1SeedTag, l1SeedHandle);
+
+	if(!l1SeedHandle.isValid() ){
+		return;
+	}
+	numEvts_passing_L1Seed_ += 1;
+
+
+	edm::InputTag l1FiltTag("hltEGL1SingleEG20ORL1SingleEG22Filter","","TEST");
+	edm::Handle<trigger::TriggerFilterObjectWithRefs> l1FiltHandle;
+	iEvent.getByLabel(l1FiltTag, l1FiltHandle);
+
+	if(!l1FiltHandle.isValid() ){
+		return;
+	}
+	numEvts_passing_L1Filter_ += 1;
+
+
+
 	edm::InputTag trackIsoFilterTag("hltEle27WPXXTrackIsoFilter", "", "TEST");
 	edm::Handle<trigger::TriggerFilterObjectWithRefs> trackIsoFilterHandle;
 	iEvent.getByLabel(trackIsoFilterTag, trackIsoFilterHandle);
@@ -878,7 +912,21 @@ void resetCounters(){
     numEvents_cutLvlOne_=0;	//the total number of events where two gen electrons are found with a Z boson mother
     numEvents_cutLvlTwo_=0;	//total # of evts with two gen electrons coming from a Z boson, and passing pT cuts (27, 15) 
     numEvents_cutLvlThree_=0;  //total # evts passing gen mother, pT, and eta cuts
-    numEvents_cutLvlFour_=0;	//total # evts passing gen mother, pT, eta, and dR(tracked HLT to GEN) cuts
+	numEvents_cutLvlFour_=0;	//total # evts passing gen mother, pT, eta, and dR(tracked HLT to GEN) cuts
+
+	//vars to explore which filters are tightest in tracked leg
+	//these variables will help explain why there is a large drop btwn numEvents_cutLvlThree_ and numEvents_cutLvlFour_
+	numEvts_passing_L1Seed_=0;		//looks for L1_SingleEG20 seed
+	numEvts_passing_L1Filter_=0;	//after L1Seed requirement, not sure what this filter does
+	numEvts_passing_EtFilter_=0;	//requires one tracked electron with ET > 27, after L1Filter
+   	numEvts_passing_ClusterShapeFilter_=0;	//cuts on sigmaIEIE, after EtFilter
+   	numEvts_passing_HEFilter_=0;	//cuts on (had/em)/energy, after ClusterShapeFilter
+  	numEvts_passing_EcalIsoFilter_=0;	//cuts on ecalIso/pT, after HEFilter
+	numEvts_passing_HcalIsoFilter_=0;	//cuts on hcalIso/pT, after EcalIsoFilter 
+	numEvts_passing_PixelMatchFilter_=0;	//after HcalIsoFilter, cuts on pixel detector vars
+   	numEvts_passing_E_P_Filter_=0;		//cuts on (1/E)-(1/P), after PixelMatchFilter
+	numEvts_passing_DetaFilter_=0;		//cuts on dEta btwn candidate and track, after (1/E)-(1/P) filter
+	numEvts_passing_DphiFilter_=0;		//cuts on dPhi, after dEta filter.  This is the 2nd to last filter in the tracked leg
 
 	gen_trackless_pT_=-1;	//pT of gen electron in trackless EE
 	gen_trackless_eta_=-7;	//eta of gen electron in trackless EE
@@ -971,6 +1019,21 @@ int numEvents_cutLvlThree_;  //total # evts passing gen mother, pT, and eta cuts
 int numEvents_cutLvlFour_;	//total # evts passing gen mother, pT, eta, and dR(tracked HLT to GEN) cuts
 
 
+//vars to explore which filters are tightest in tracked leg
+//these variables will help explain why there is a large drop btwn numEvents_cutLvlThree_ and numEvents_cutLvlFour_
+int numEvts_passing_L1Seed_;		//looks for L1_SingleEG20 seed
+int numEvts_passing_L1Filter_;	//after L1Seed requirement, not sure what this filter does
+int numEvts_passing_EtFilter_;	//requires one tracked electron with ET > 27, after L1Filter
+int numEvts_passing_ClusterShapeFilter_;	//cuts on sigmaIEIE, after EtFilter
+int numEvts_passing_HEFilter_;	//cuts on (had/em)/energy, after ClusterShapeFilter
+int numEvts_passing_EcalIsoFilter_;	//cuts on ecalIso/pT, after HEFilter
+int numEvts_passing_HcalIsoFilter_;	//cuts on hcalIso/pT, after EcalIsoFilter 
+int numEvts_passing_PixelMatchFilter_;	//after HcalIsoFilter, cuts on pixel detector vars
+int numEvts_passing_E_P_Filter_;		//cuts on (1/E)-(1/P), after PixelMatchFilter
+int numEvts_passing_DetaFilter_;		//cuts on dEta btwn candidate and track, after (1/E)-(1/P) filter
+int numEvts_passing_DphiFilter_;		//cuts on dPhi, after dEta filter.  This is the 2nd to last filter in the tracked leg
+
+
 //gen lepton variables going into TTree
 double gen_trackless_pT_;	//pT of gen electron in trackless EE
 double gen_trackless_eta_;	//eta of gen electron in trackless EE
@@ -1002,22 +1065,6 @@ double matched_tracked_phi_;
 
 //dilepton mass of the tracked HLT object firing the tracked leg, and the trackless HLT object firing the trackless leg
 double hlt_mLL_;
-
-//lots of events which satisfy the GEN Z->ee requirements are not getting past the tracked leg of the trigger
-//about 40% of the evts are lost
-//the following variables are used to count the number of evts which are killed by each filter in the tracked leg
-//of the trigger
-/*
-int enteredTrackedLeg_;			//counts the number of times the GetTrackMatchedTriggerObjects() method is called
-int passedL1Filter_;			//equal to one if the event passes the L1 requirements, zero otherwise
-int passedTrackedEtFilter_;		//equals 1 if the event passes the tracked Et filter, zero otherwise
-int passedTrackedClusterShapeFilter_;	//equals 1 if the event passes the tracked cluster shape filter, zero otherwise
-int passedTrackedHEFilter_;		//equals 1 if the event passes the tracked (had/em)/E filter, zero otherwise
-int passedTrackedEcalIsoFilter_;	//equals 1 if the event passes the tracked ecalIso/pT filter, zero otherwise
-int passedTrackedHcalIsoFilter_;	//equals 1 if the event passes the tracked hcalIso/pT filter, zero otherwise
-int passedTrackedPixelMatchFilter_;		//equals 1 if the evt passes the pixel match filter, zero otherwise
-*/
-
 
 };
 
@@ -1087,6 +1134,19 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
    tree->Branch("numEvents_cutLvlTwo_",&numEvents_cutLvlTwo_,"numEvents_cutLvlTwo_/I");
    tree->Branch("numEvents_cutLvlThree_",&numEvents_cutLvlThree_,"numEvents_cutLvlThree_/I");
    tree->Branch("numEvents_cutLvlFour_",&numEvents_cutLvlFour_,"numEvents_cutLvlFour_/I");
+
+
+   tree->Branch("numEvts_passing_L1Seed_",&numEvts_passing_L1Seed_,"numEvts_passing_L1Seed_/I");
+   tree->Branch("numEvts_passing_L1Filter_",&numEvts_passing_L1Filter_,"numEvts_passing_L1Filter_/I");
+   tree->Branch("numEvts_passing_EtFilter_",&numEvts_passing_EtFilter_,"numEvts_passing_EtFilter_/I");
+   tree->Branch("numEvts_passing_ClusterShapeFilter_",&numEvts_passing_ClusterShapeFilter_,"numEvts_passing_ClusterShapeFilter_/I");
+   tree->Branch("numEvts_passing_HEFilter_",&numEvts_passing_HEFilter_,"numEvts_passing_HEFilter_/I");
+   tree->Branch("numEvts_passing_EcalIsoFilter_",&numEvts_passing_EcalIsoFilter_,"numEvts_passing_EcalIsoFilter_/I");
+   tree->Branch("numEvts_passing_HcalIsoFilter_",&numEvts_passing_HcalIsoFilter_,"numEvts_passing_HcalIsoFilter_/I");
+   tree->Branch("numEvts_passing_PixelMatchFilter_",&numEvts_passing_PixelMatchFilter_,"numEvts_passing_PixelMatchFilter_/I");
+   tree->Branch("numEvts_passing_E_P_Filter_",&numEvts_passing_E_P_Filter_,"numEvts_passing_E_P_Filter_/I");
+   tree->Branch("numEvts_passing_DetaFilter_",&numEvts_passing_DetaFilter_,"numEvts_passing_DetaFilter_/I");
+   tree->Branch("numEvts_passing_DphiFilter_",&numEvts_passing_DphiFilter_,"numEvts_passing_DphiFilter_/I");
 
 
    tree->Branch("gen_trackless_eta_",&gen_trackless_eta_,"gen_trackless_eta_/D");

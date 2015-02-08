@@ -1,0 +1,1130 @@
+DQMStore: MultiThread option is enabled
+08-Feb-2015 09:06:44 CET  Initiating request to open file file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset.root
+08-Feb-2015 09:06:46 CET  Successfully opened file file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset.root
+disableME1a = 0
+%MSG-w SimpleTrackListMerger:   SimpleTrackListMerger:hltIter1ElectronsTrackSelectionHighPurity@ctor  08-Feb-2015 09:06:57 CET pre-events
+this class is obsolete, please use TrackListMerger
+%MSG
+%MSG-w SimpleTrackListMerger:   SimpleTrackListMerger:hltIter1MergedForElectrons@ctor 08-Feb-2015 09:06:57 CET  pre-events
+this class is obsolete, please use TrackListMerger
+%MSG
+%MSG-w SimpleTrackListMerger:   SimpleTrackListMerger:hltIter2MergedForElectrons@ctor 08-Feb-2015 09:06:57 CET  pre-events
+this class is obsolete, please use TrackListMerger
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 66 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 100 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 102 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 104 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 106 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 109 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 80 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 82 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 83 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 84 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 85 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 86 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 77 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 109 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 104 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 86 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 85 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 85 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 84 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 84 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 83 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 73 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 70 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 68 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 67 (max strips = 64); skipping it... +++
+
+%MSG
+%MSG-w L1CSCTPEmulatorWrongInput:   CSCTriggerPrimitivesProducer:cscReEmulTriggerPrimitiveDigis  08-Feb-2015 09:07:55 CET Run: 1 Event: 2700371
++++ Found comparator digi with wrong strip number = 67 (max strips = 64); skipping it... +++
+
+%MSG
+----- Begin Fatal Exception 08-Feb-2015 09:07:56 CET-----------------------
+An exception of category 'FailModule' occurred while
+   [0] Processing run: 1 lumi: 36992 event: 2700371
+   [1] Running path 'HLT_Ele27_WPXX_Ele15_WPYY_trackless_v1'
+   [2] Calling event method for module HLTLevel1GTSeed/'hltL1sL1SingleEG20ORL1SingleEG22'
+Exception Message:
+
+Algorithm  L1_SingleEG22, requested as seed by a HLT path, not found in the L1 trigger menu
+   L1Menu_Collisions2015_25ns_v2/L1T_Scales_20141121/Imp0
+Incompatible L1 and HLT menus.
+
+----- End Fatal Exception -------------------------------------------------
+FastReport for run 1, process TEST
+FastReport                0.000504  Pre-Event
+FastReport                0.587309  Event
+FastReport                0.000000  all Paths
+FastReport                0.000000  all EndPaths
+FastReport                0.000257  between paths
+
+FastReport for run 1, over all subprocesses
+FastReport                0.000974  Pre-Source
+FastReport                0.002175  Source
+FastReport                0.000504  Pre-Event
+FastReport                0.587309  Event
+
+08-Feb-2015 09:07:56 CET  Closed file file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset.root
+
+TriggerSummaryProducerAOD::endJob - accumulated tags:
+ Overall number of Collections/Filters: 0/0
+ The collections: 0
+ The filters:0
+TriggerSummaryProducerAOD::endJob.
+
+
+TrigReport ---------- Event  Summary ------------
+TrigReport Events total = 1 passed = 0 failed = 1
+
+TrigReport ---------- Path   Summary ------------
+TrigReport  Trig Bit#        Run     Passed     Failed      Error Name
+TrigReport     1    0          1          0          1          0 HLTriggerFirstPath
+TrigReport     1    1          1          0          0          1 HLT_Ele27_WPXX_Ele15_WPYY_trackless_v1
+TrigReport     1    2          0          0          0          0 HLTriggerFinalPath
+
+TrigReport -------End-Path   Summary ------------
+TrigReport  Trig Bit#        Run     Passed     Failed      Error Name
+TrigReport     0    0          0          0          0          0 FULLOutput
+TrigReport     0    1          0          0          0          0 DQMOutput
+
+TrigReport ---------- Modules in Path: HLTriggerFirstPath ------------
+TrigReport  Trig Bit#    Visited     Passed     Failed      Error Name
+TrigReport     1    0          1          1          0          0 genEle
+TrigReport     1    1          1          1          0          0 genEleTrack
+TrigReport     1    2          1          1          0          0 genUntrack
+TrigReport     1    3          1          1          0          0 combEle
+TrigReport     1    4          1          1          0          0 hltGetConditions
+TrigReport     1    5          1          1          0          0 hltGetRaw
+TrigReport     1    6          1          0          1          0 hltBoolFalse
+
+TrigReport ---------- Modules in Path: HLT_Ele27_WPXX_Ele15_WPYY_trackless_v1 ------------
+TrigReport  Trig Bit#    Visited     Passed     Failed      Error Name
+TrigReport     1    0          1          1          0          0 hltTriggerType
+TrigReport     1    1          1          1          0          0 csctfDigis
+TrigReport     1    2          1          1          0          0 dttfDigis
+TrigReport     1    3          1          1          0          0 gctDigis
+TrigReport     1    4          1          1          0          0 gtDigis
+TrigReport     1    5          1          1          0          0 gtEvmDigis
+TrigReport     1    6          1          1          0          0 siPixelDigis
+TrigReport     1    7          1          1          0          0 siStripDigis
+TrigReport     1    8          1          1          0          0 ecalDigis
+TrigReport     1    9          1          1          0          0 ecalPreshowerDigis
+TrigReport     1   10          1          1          0          0 hcalDigis
+TrigReport     1   11          1          1          0          0 muonCSCDigis
+TrigReport     1   12          1          1          0          0 muonDTDigis
+TrigReport     1   13          1          1          0          0 muonRPCDigis
+TrigReport     1   14          1          1          0          0 castorDigis
+TrigReport     1   15          1          1          0          0 scalersRawToDigi
+TrigReport     1   16          1          1          0          0 hcalDigis
+TrigReport     1   17          1          1          0          0 simHcalTriggerPrimitiveDigis
+TrigReport     1   18          1          1          0          0 ecalDigis
+TrigReport     1   19          1          1          0          0 simRctDigis
+TrigReport     1   20          1          1          0          0 simRctUpgradeFormatDigis
+TrigReport     1   21          1          1          0          0 simCaloStage1Digis
+TrigReport     1   22          1          1          0          0 simCaloStage1FinalDigis
+TrigReport     1   23          1          1          0          0 simCaloStage1LegacyFormatDigis
+TrigReport     1   24          1          1          0          0 rpcTriggerReEmulDigis
+TrigReport     1   25          1          1          0          0 cscReEmulTriggerPrimitiveDigis
+TrigReport     1   26          1          1          0          0 csctfReEmulTrackDigis
+TrigReport     1   27          1          1          0          0 csctfReEmulDigis
+TrigReport     1   28          1          1          0          0 dttfReEmulDigis
+TrigReport     1   29          1          1          0          0 gmtReEmulDigis
+TrigReport     1   30          1          1          0          0 simGtDigis
+TrigReport     1   31          1          1          0          0 hltL1GtObjectMap
+TrigReport     1   32          1          1          0          0 hltL1extraParticles
+TrigReport     1   33          1          1          0          0 hltScalersRawToDigi
+TrigReport     1   34          1          1          0          0 hltOnlineBeamSpot
+TrigReport     1   35          1          0          0          1 hltL1sL1SingleEG20ORL1SingleEG22
+TrigReport     1   36          0          0          0          0 hltPreEle27WPXXEle15WPYYtrackless
+TrigReport     1   37          0          0          0          0 hltEcalDigis
+TrigReport     1   38          0          0          0          0 hltEcalPreshowerDigis
+TrigReport     1   39          0          0          0          0 hltEcalUncalibRecHit
+TrigReport     1   40          0          0          0          0 hltEcalDetIdToBeRecovered
+TrigReport     1   41          0          0          0          0 hltEcalRecHit
+TrigReport     1   42          0          0          0          0 hltEcalPreshowerRecHit
+TrigReport     1   43          0          0          0          0 hltRechitInRegionsECAL
+TrigReport     1   44          0          0          0          0 hltRechitInRegionsES
+TrigReport     1   45          0          0          0          0 hltParticleFlowRecHitECALL1Seeded
+TrigReport     1   46          0          0          0          0 hltParticleFlowRecHitPSL1Seeded
+TrigReport     1   47          0          0          0          0 hltParticleFlowClusterPSL1Seeded
+TrigReport     1   48          0          0          0          0 hltParticleFlowClusterECALUncorrectedL1Seeded
+TrigReport     1   49          0          0          0          0 hltParticleFlowClusterECALL1Seeded
+TrigReport     1   50          0          0          0          0 hltParticleFlowSuperClusterECALL1Seeded
+TrigReport     1   51          0          0          0          0 hltEgammaCandidates
+TrigReport     1   52          0          0          0          0 hltEGL1SingleEG20ORL1SingleEG22Filter
+TrigReport     1   53          0          0          0          0 hltEG27WPXXEtFilter
+TrigReport     1   54          0          0          0          0 hltEgammaClusterShape
+TrigReport     1   55          0          0          0          0 hltEle27WPXXClusterShapeFilter
+TrigReport     1   56          0          0          0          0 hltHcalDigis
+TrigReport     1   57          0          0          0          0 hltHbhereco
+TrigReport     1   58          0          0          0          0 hltHfreco
+TrigReport     1   59          0          0          0          0 hltHoreco
+TrigReport     1   60          0          0          0          0 hltTowerMakerForAll
+TrigReport     1   61          0          0          0          0 hltRegionalTowerForEgamma
+TrigReport     1   62          0          0          0          0 hltParticleFlowRecHitHCALForEgamma
+TrigReport     1   63          0          0          0          0 hltParticleFlowClusterHCALForEgamma
+TrigReport     1   64          0          0          0          0 hltFixedGridRhoFastjetAllCaloForMuons
+TrigReport     1   65          0          0          0          0 hltEgammaHoverE
+TrigReport     1   66          0          0          0          0 hltEle27WPXXHEFilter
+TrigReport     1   67          0          0          0          0 hltEgammaEcalPFClusterIso
+TrigReport     1   68          0          0          0          0 hltEle27WPXXEcalIsoFilter
+TrigReport     1   69          0          0          0          0 hltEgammaHcalPFClusterIso
+TrigReport     1   70          0          0          0          0 hltEle27WPXXHcalIsoFilter
+TrigReport     1   71          0          0          0          0 hltSiPixelDigis
+TrigReport     1   72          0          0          0          0 hltSiPixelClusters
+TrigReport     1   73          0          0          0          0 hltSiPixelClustersCache
+TrigReport     1   74          0          0          0          0 hltSiPixelRecHits
+TrigReport     1   75          0          0          0          0 hltSiStripExcludedFEDListProducer
+TrigReport     1   76          0          0          0          0 hltSiStripRawToClustersFacility
+TrigReport     1   77          0          0          0          0 hltSiStripClusters
+TrigReport     1   78          0          0          0          0 hltMixedLayerPairs
+TrigReport     1   79          0          0          0          0 hltEgammaElectronPixelSeeds
+TrigReport     1   80          0          0          0          0 hltEle27WPXXPixelMatchFilter
+TrigReport     1   81          0          0          0          0 hltEgammaCkfTrackCandidatesForGSF
+TrigReport     1   82          0          0          0          0 hltEgammaGsfTracks
+TrigReport     1   83          0          0          0          0 hltEgammaGsfElectrons
+TrigReport     1   84          0          0          0          0 hltEgammaGsfTrackVars
+TrigReport     1   85          0          0          0          0 hltEle27WPXXOneOEMinusOneOPFilter
+TrigReport     1   86          0          0          0          0 hltEle27WPXXDetaFilter
+TrigReport     1   87          0          0          0          0 hltEle27WPXXDphiFilter
+TrigReport     1   88          0          0          0          0 hltElectronsVertex
+TrigReport     1   89          0          0          0          0 hltSiPixelDigis
+TrigReport     1   90          0          0          0          0 hltSiPixelClusters
+TrigReport     1   91          0          0          0          0 hltSiPixelClustersCache
+TrigReport     1   92          0          0          0          0 hltSiPixelRecHits
+TrigReport     1   93          0          0          0          0 hltPixelLayerTriplets
+TrigReport     1   94          0          0          0          0 hltPixelTracksElectrons
+TrigReport     1   95          0          0          0          0 hltPixelVerticesElectrons
+TrigReport     1   96          0          0          0          0 hltSiStripExcludedFEDListProducer
+TrigReport     1   97          0          0          0          0 hltSiStripRawToClustersFacility
+TrigReport     1   98          0          0          0          0 hltSiStripClusters
+TrigReport     1   99          0          0          0          0 hltIter0ElectronsPixelSeedsFromPixelTracks
+TrigReport     1  100          0          0          0          0 hltIter0ElectronsCkfTrackCandidates
+TrigReport     1  101          0          0          0          0 hltIter0ElectronsCtfWithMaterialTracks
+TrigReport     1  102          0          0          0          0 hltIter0ElectronsTrackSelectionHighPurity
+TrigReport     1  103          0          0          0          0 hltIter1ElectronsClustersRefRemoval
+TrigReport     1  104          0          0          0          0 hltIter1ElectronsMaskedMeasurementTrackerEvent
+TrigReport     1  105          0          0          0          0 hltIter1ElectronsPixelLayerTriplets
+TrigReport     1  106          0          0          0          0 hltIter1ElectronsPixelSeeds
+TrigReport     1  107          0          0          0          0 hltIter1ElectronsCkfTrackCandidates
+TrigReport     1  108          0          0          0          0 hltIter1ElectronsCtfWithMaterialTracks
+TrigReport     1  109          0          0          0          0 hltIter1ElectronsTrackSelectionHighPurityLoose
+TrigReport     1  110          0          0          0          0 hltIter1ElectronsTrackSelectionHighPurityTight
+TrigReport     1  111          0          0          0          0 hltIter1ElectronsTrackSelectionHighPurity
+TrigReport     1  112          0          0          0          0 hltIter1MergedForElectrons
+TrigReport     1  113          0          0          0          0 hltIter2ElectronsClustersRefRemoval
+TrigReport     1  114          0          0          0          0 hltIter2ElectronsMaskedMeasurementTrackerEvent
+TrigReport     1  115          0          0          0          0 hltIter2ElectronsPixelLayerPairs
+TrigReport     1  116          0          0          0          0 hltIter2ElectronsPixelSeeds
+TrigReport     1  117          0          0          0          0 hltIter2ElectronsCkfTrackCandidates
+TrigReport     1  118          0          0          0          0 hltIter2ElectronsCtfWithMaterialTracks
+TrigReport     1  119          0          0          0          0 hltIter2ElectronsTrackSelectionHighPurity
+TrigReport     1  120          0          0          0          0 hltIter2MergedForElectrons
+TrigReport     1  121          0          0          0          0 hltEgammaEleGsfTrackIso
+TrigReport     1  122          0          0          0          0 hltEle27WPXXTrackIsoFilter
+TrigReport     1  123          0          0          0          0 hltEcalDigis
+TrigReport     1  124          0          0          0          0 hltEcalPreshowerDigis
+TrigReport     1  125          0          0          0          0 hltEcalUncalibRecHit
+TrigReport     1  126          0          0          0          0 hltEcalDetIdToBeRecovered
+TrigReport     1  127          0          0          0          0 hltEcalRecHit
+TrigReport     1  128          0          0          0          0 hltEcalPreshowerRecHit
+TrigReport     1  129          0          0          0          0 hltParticleFlowRecHitECALUnseeded
+TrigReport     1  130          0          0          0          0 hltParticleFlowRecHitPSUnseeded
+TrigReport     1  131          0          0          0          0 hltParticleFlowClusterPSUnseeded
+TrigReport     1  132          0          0          0          0 hltParticleFlowClusterECALUncorrectedUnseeded
+TrigReport     1  133          0          0          0          0 hltParticleFlowClusterECALUnseeded
+TrigReport     1  134          0          0          0          0 hltParticleFlowSuperClusterECALUnseeded
+TrigReport     1  135          0          0          0          0 hltEgammaCandidatesUnseeded
+TrigReport     1  136          0          0          0          0 hltEgammaCandidatesWrapperUnseeded
+TrigReport     1  137          0          0          0          0 hltEG15WPYYtracklessEtFilterUnseeded
+TrigReport     1  138          0          0          0          0 hltEgammaClusterShapeUnseeded
+TrigReport     1  139          0          0          0          0 hltEle15WPYYtracklessClusterShapeFilter
+TrigReport     1  140          0          0          0          0 hltEgammaEcalPFClusterIsoUnseeded
+TrigReport     1  141          0          0          0          0 hltEle15WPYYtracklessEcalIsoFilter
+TrigReport     1  142          0          0          0          0 hltParticleFlowRecHitHCALForEgammaUnseeded
+TrigReport     1  143          0          0          0          0 hltParticleFlowClusterHCALForEgammaUnseeded
+TrigReport     1  144          0          0          0          0 hltParticleFlowClusterHFEMForEgammaUnseeded
+TrigReport     1  145          0          0          0          0 hltParticleFlowClusterHFHADForEgammaUnseeded
+TrigReport     1  146          0          0          0          0 hltEgammaHoverEUnseeded
+TrigReport     1  147          0          0          0          0 hltEle15WPYYtracklessHEFilter
+TrigReport     1  148          0          0          0          0 hltEgammaHcalPFClusterIsoUnseeded
+TrigReport     1  149          0          0          0          0 hltEle15WPYYtracklessHcalIsoFilter
+TrigReport     1  150          0          0          0          0 hltEgammaNoTrackerCandidates
+TrigReport     1  151          0          0          0          0 hltEgammaNoTrackerEtaPtFilter
+TrigReport     1  152          0          0          0          0 hltEgammaNoTrackerNCandidatesFilter
+TrigReport     1  153          0          0          0          0 hltBoolEnd
+
+TrigReport ---------- Modules in Path: HLTriggerFinalPath ------------
+TrigReport  Trig Bit#    Visited     Passed     Failed      Error Name
+TrigReport     1    0          0          0          0          0 csctfDigis
+TrigReport     1    1          0          0          0          0 dttfDigis
+TrigReport     1    2          0          0          0          0 gctDigis
+TrigReport     1    3          0          0          0          0 gtDigis
+TrigReport     1    4          0          0          0          0 gtEvmDigis
+TrigReport     1    5          0          0          0          0 siPixelDigis
+TrigReport     1    6          0          0          0          0 siStripDigis
+TrigReport     1    7          0          0          0          0 ecalDigis
+TrigReport     1    8          0          0          0          0 ecalPreshowerDigis
+TrigReport     1    9          0          0          0          0 hcalDigis
+TrigReport     1   10          0          0          0          0 muonCSCDigis
+TrigReport     1   11          0          0          0          0 muonDTDigis
+TrigReport     1   12          0          0          0          0 muonRPCDigis
+TrigReport     1   13          0          0          0          0 castorDigis
+TrigReport     1   14          0          0          0          0 scalersRawToDigi
+TrigReport     1   15          0          0          0          0 hcalDigis
+TrigReport     1   16          0          0          0          0 simHcalTriggerPrimitiveDigis
+TrigReport     1   17          0          0          0          0 ecalDigis
+TrigReport     1   18          0          0          0          0 simRctDigis
+TrigReport     1   19          0          0          0          0 simRctUpgradeFormatDigis
+TrigReport     1   20          0          0          0          0 simCaloStage1Digis
+TrigReport     1   21          0          0          0          0 simCaloStage1FinalDigis
+TrigReport     1   22          0          0          0          0 simCaloStage1LegacyFormatDigis
+TrigReport     1   23          0          0          0          0 rpcTriggerReEmulDigis
+TrigReport     1   24          0          0          0          0 cscReEmulTriggerPrimitiveDigis
+TrigReport     1   25          0          0          0          0 csctfReEmulTrackDigis
+TrigReport     1   26          0          0          0          0 csctfReEmulDigis
+TrigReport     1   27          0          0          0          0 dttfReEmulDigis
+TrigReport     1   28          0          0          0          0 gmtReEmulDigis
+TrigReport     1   29          0          0          0          0 simGtDigis
+TrigReport     1   30          0          0          0          0 hltScalersRawToDigi
+TrigReport     1   31          0          0          0          0 hltFEDSelector
+TrigReport     1   32          0          0          0          0 hltTriggerSummaryAOD
+TrigReport     1   33          0          0          0          0 hltTriggerSummaryRAW
+
+TrigReport ------ Modules in End-Path: FULLOutput ------------
+TrigReport  Trig Bit#    Visited     Passed     Failed      Error Name
+TrigReport     0    0          0          0          0          0 hltOutputFULL
+
+TrigReport ------ Modules in End-Path: DQMOutput ------------
+TrigReport  Trig Bit#    Visited     Passed     Failed      Error Name
+TrigReport     0    0          0          0          0          0 dqmOutput
+
+TrigReport ---------- Module Summary ------------
+TrigReport    Visited        Run     Passed     Failed      Error Name
+TrigReport          1          1          1          0          0 genEle
+TrigReport          1          1          1          0          0 genEleTrack
+TrigReport          1          1          1          0          0 genUntrack
+TrigReport          1          1          1          0          0 combEle
+TrigReport          1          1          1          0          0 hltGetConditions
+TrigReport          1          1          1          0          0 hltGetRaw
+TrigReport          1          1          0          1          0 hltBoolFalse
+TrigReport          1          1          1          0          0 hltTriggerType
+TrigReport          1          1          1          0          0 csctfDigis
+TrigReport          1          1          1          0          0 dttfDigis
+TrigReport          1          1          1          0          0 gctDigis
+TrigReport          1          1          1          0          0 gtDigis
+TrigReport          1          1          1          0          0 gtEvmDigis
+TrigReport          1          1          1          0          0 siPixelDigis
+TrigReport          1          1          1          0          0 siStripDigis
+TrigReport          2          1          1          0          0 ecalDigis
+TrigReport          1          1          1          0          0 ecalPreshowerDigis
+TrigReport          2          1          1          0          0 hcalDigis
+TrigReport          1          1          1          0          0 muonCSCDigis
+TrigReport          1          1          1          0          0 muonDTDigis
+TrigReport          1          1          1          0          0 muonRPCDigis
+TrigReport          1          1          1          0          0 castorDigis
+TrigReport          1          1          1          0          0 scalersRawToDigi
+TrigReport          1          1          1          0          0 simHcalTriggerPrimitiveDigis
+TrigReport          1          1          1          0          0 simRctDigis
+TrigReport          1          1          1          0          0 simRctUpgradeFormatDigis
+TrigReport          1          1          1          0          0 simCaloStage1Digis
+TrigReport          1          1          1          0          0 simCaloStage1FinalDigis
+TrigReport          1          1          1          0          0 simCaloStage1LegacyFormatDigis
+TrigReport          1          1          1          0          0 rpcTriggerReEmulDigis
+TrigReport          1          1          1          0          0 cscReEmulTriggerPrimitiveDigis
+TrigReport          1          1          1          0          0 csctfReEmulTrackDigis
+TrigReport          1          1          1          0          0 csctfReEmulDigis
+TrigReport          1          1          1          0          0 dttfReEmulDigis
+TrigReport          1          1          1          0          0 gmtReEmulDigis
+TrigReport          1          1          1          0          0 simGtDigis
+TrigReport          1          1          1          0          0 hltL1GtObjectMap
+TrigReport          1          1          1          0          0 hltL1extraParticles
+TrigReport          1          1          1          0          0 hltScalersRawToDigi
+TrigReport          1          1          1          0          0 hltOnlineBeamSpot
+TrigReport          1          1          0          0          1 hltL1sL1SingleEG20ORL1SingleEG22
+TrigReport          0          0          0          0          0 hltPreEle27WPXXEle15WPYYtrackless
+TrigReport          0          0          0          0          0 hltEcalDigis
+TrigReport          0          0          0          0          0 hltEcalPreshowerDigis
+TrigReport          0          0          0          0          0 hltEcalUncalibRecHit
+TrigReport          0          0          0          0          0 hltEcalDetIdToBeRecovered
+TrigReport          0          0          0          0          0 hltEcalRecHit
+TrigReport          0          0          0          0          0 hltEcalPreshowerRecHit
+TrigReport          0          0          0          0          0 hltRechitInRegionsECAL
+TrigReport          0          0          0          0          0 hltRechitInRegionsES
+TrigReport          0          0          0          0          0 hltParticleFlowRecHitECALL1Seeded
+TrigReport          0          0          0          0          0 hltParticleFlowRecHitPSL1Seeded
+TrigReport          0          0          0          0          0 hltParticleFlowClusterPSL1Seeded
+TrigReport          0          0          0          0          0 hltParticleFlowClusterECALUncorrectedL1Seeded
+TrigReport          0          0          0          0          0 hltParticleFlowClusterECALL1Seeded
+TrigReport          0          0          0          0          0 hltParticleFlowSuperClusterECALL1Seeded
+TrigReport          0          0          0          0          0 hltEgammaCandidates
+TrigReport          0          0          0          0          0 hltEGL1SingleEG20ORL1SingleEG22Filter
+TrigReport          0          0          0          0          0 hltEG27WPXXEtFilter
+TrigReport          0          0          0          0          0 hltEgammaClusterShape
+TrigReport          0          0          0          0          0 hltEle27WPXXClusterShapeFilter
+TrigReport          0          0          0          0          0 hltHcalDigis
+TrigReport          0          0          0          0          0 hltHbhereco
+TrigReport          0          0          0          0          0 hltHfreco
+TrigReport          0          0          0          0          0 hltHoreco
+TrigReport          0          0          0          0          0 hltTowerMakerForAll
+TrigReport          0          0          0          0          0 hltRegionalTowerForEgamma
+TrigReport          0          0          0          0          0 hltParticleFlowRecHitHCALForEgamma
+TrigReport          0          0          0          0          0 hltParticleFlowClusterHCALForEgamma
+TrigReport          0          0          0          0          0 hltFixedGridRhoFastjetAllCaloForMuons
+TrigReport          0          0          0          0          0 hltEgammaHoverE
+TrigReport          0          0          0          0          0 hltEle27WPXXHEFilter
+TrigReport          0          0          0          0          0 hltEgammaEcalPFClusterIso
+TrigReport          0          0          0          0          0 hltEle27WPXXEcalIsoFilter
+TrigReport          0          0          0          0          0 hltEgammaHcalPFClusterIso
+TrigReport          0          0          0          0          0 hltEle27WPXXHcalIsoFilter
+TrigReport          0          0          0          0          0 hltSiPixelDigis
+TrigReport          0          0          0          0          0 hltSiPixelClusters
+TrigReport          0          0          0          0          0 hltSiPixelClustersCache
+TrigReport          0          0          0          0          0 hltSiPixelRecHits
+TrigReport          0          0          0          0          0 hltSiStripExcludedFEDListProducer
+TrigReport          0          0          0          0          0 hltSiStripRawToClustersFacility
+TrigReport          0          0          0          0          0 hltSiStripClusters
+TrigReport          0          0          0          0          0 hltMixedLayerPairs
+TrigReport          0          0          0          0          0 hltEgammaElectronPixelSeeds
+TrigReport          0          0          0          0          0 hltEle27WPXXPixelMatchFilter
+TrigReport          0          0          0          0          0 hltEgammaCkfTrackCandidatesForGSF
+TrigReport          0          0          0          0          0 hltEgammaGsfTracks
+TrigReport          0          0          0          0          0 hltEgammaGsfElectrons
+TrigReport          0          0          0          0          0 hltEgammaGsfTrackVars
+TrigReport          0          0          0          0          0 hltEle27WPXXOneOEMinusOneOPFilter
+TrigReport          0          0          0          0          0 hltEle27WPXXDetaFilter
+TrigReport          0          0          0          0          0 hltEle27WPXXDphiFilter
+TrigReport          0          0          0          0          0 hltElectronsVertex
+TrigReport          0          0          0          0          0 hltPixelLayerTriplets
+TrigReport          0          0          0          0          0 hltPixelTracksElectrons
+TrigReport          0          0          0          0          0 hltPixelVerticesElectrons
+TrigReport          0          0          0          0          0 hltIter0ElectronsPixelSeedsFromPixelTracks
+TrigReport          0          0          0          0          0 hltIter0ElectronsCkfTrackCandidates
+TrigReport          0          0          0          0          0 hltIter0ElectronsCtfWithMaterialTracks
+TrigReport          0          0          0          0          0 hltIter0ElectronsTrackSelectionHighPurity
+TrigReport          0          0          0          0          0 hltIter1ElectronsClustersRefRemoval
+TrigReport          0          0          0          0          0 hltIter1ElectronsMaskedMeasurementTrackerEvent
+TrigReport          0          0          0          0          0 hltIter1ElectronsPixelLayerTriplets
+TrigReport          0          0          0          0          0 hltIter1ElectronsPixelSeeds
+TrigReport          0          0          0          0          0 hltIter1ElectronsCkfTrackCandidates
+TrigReport          0          0          0          0          0 hltIter1ElectronsCtfWithMaterialTracks
+TrigReport          0          0          0          0          0 hltIter1ElectronsTrackSelectionHighPurityLoose
+TrigReport          0          0          0          0          0 hltIter1ElectronsTrackSelectionHighPurityTight
+TrigReport          0          0          0          0          0 hltIter1ElectronsTrackSelectionHighPurity
+TrigReport          0          0          0          0          0 hltIter1MergedForElectrons
+TrigReport          0          0          0          0          0 hltIter2ElectronsClustersRefRemoval
+TrigReport          0          0          0          0          0 hltIter2ElectronsMaskedMeasurementTrackerEvent
+TrigReport          0          0          0          0          0 hltIter2ElectronsPixelLayerPairs
+TrigReport          0          0          0          0          0 hltIter2ElectronsPixelSeeds
+TrigReport          0          0          0          0          0 hltIter2ElectronsCkfTrackCandidates
+TrigReport          0          0          0          0          0 hltIter2ElectronsCtfWithMaterialTracks
+TrigReport          0          0          0          0          0 hltIter2ElectronsTrackSelectionHighPurity
+TrigReport          0          0          0          0          0 hltIter2MergedForElectrons
+TrigReport          0          0          0          0          0 hltEgammaEleGsfTrackIso
+TrigReport          0          0          0          0          0 hltEle27WPXXTrackIsoFilter
+TrigReport          0          0          0          0          0 hltParticleFlowRecHitECALUnseeded
+TrigReport          0          0          0          0          0 hltParticleFlowRecHitPSUnseeded
+TrigReport          0          0          0          0          0 hltParticleFlowClusterPSUnseeded
+TrigReport          0          0          0          0          0 hltParticleFlowClusterECALUncorrectedUnseeded
+TrigReport          0          0          0          0          0 hltParticleFlowClusterECALUnseeded
+TrigReport          0          0          0          0          0 hltParticleFlowSuperClusterECALUnseeded
+TrigReport          0          0          0          0          0 hltEgammaCandidatesUnseeded
+TrigReport          0          0          0          0          0 hltEgammaCandidatesWrapperUnseeded
+TrigReport          0          0          0          0          0 hltEG15WPYYtracklessEtFilterUnseeded
+TrigReport          0          0          0          0          0 hltEgammaClusterShapeUnseeded
+TrigReport          0          0          0          0          0 hltEle15WPYYtracklessClusterShapeFilter
+TrigReport          0          0          0          0          0 hltEgammaEcalPFClusterIsoUnseeded
+TrigReport          0          0          0          0          0 hltEle15WPYYtracklessEcalIsoFilter
+TrigReport          0          0          0          0          0 hltParticleFlowRecHitHCALForEgammaUnseeded
+TrigReport          0          0          0          0          0 hltParticleFlowClusterHCALForEgammaUnseeded
+TrigReport          0          0          0          0          0 hltParticleFlowClusterHFEMForEgammaUnseeded
+TrigReport          0          0          0          0          0 hltParticleFlowClusterHFHADForEgammaUnseeded
+TrigReport          0          0          0          0          0 hltEgammaHoverEUnseeded
+TrigReport          0          0          0          0          0 hltEle15WPYYtracklessHEFilter
+TrigReport          0          0          0          0          0 hltEgammaHcalPFClusterIsoUnseeded
+TrigReport          0          0          0          0          0 hltEle15WPYYtracklessHcalIsoFilter
+TrigReport          0          0          0          0          0 hltEgammaNoTrackerCandidates
+TrigReport          0          0          0          0          0 hltEgammaNoTrackerEtaPtFilter
+TrigReport          0          0          0          0          0 hltEgammaNoTrackerNCandidatesFilter
+TrigReport          0          0          0          0          0 hltBoolEnd
+TrigReport          0          0          0          0          0 hltFEDSelector
+TrigReport          0          0          0          0          0 hltTriggerSummaryAOD
+TrigReport          0          0          0          0          0 hltTriggerSummaryRAW
+TrigReport          0          0          0          0          0 TriggerResults
+TrigReport          0          0          0          0          0 hltOutputFULL
+TrigReport          0          0          0          0          0 dqmOutput
+
+TimeReport ---------- Event  Summary ---[sec]----
+TimeReport CPU/event = 0.456094 Real/event = 0.589862
+
+TimeReport ---------- Path   Summary ---[sec]----
+TimeReport             per event          per path-run 
+TimeReport        CPU       Real        CPU       Real Name
+TimeReport   0.023995   0.147577   0.023995   0.147577 HLTriggerFirstPath
+TimeReport   0.429776   0.439454   0.429776   0.439454 HLT_Ele27_WPXX_Ele15_WPYY_trackless_v1
+TimeReport   0.000000   0.000000   0.000000   0.000000 HLTriggerFinalPath
+TimeReport        CPU       Real        CPU       Real Name
+TimeReport             per event          per path-run 
+
+TimeReport -------End-Path   Summary ---[sec]----
+TimeReport             per event       per endpath-run 
+TimeReport        CPU       Real        CPU       Real Name
+TimeReport   0.000000   0.000000   0.000000   0.000000 FULLOutput
+TimeReport   0.000000   0.000000   0.000000   0.000000 DQMOutput
+TimeReport        CPU       Real        CPU       Real Name
+TimeReport             per event       per endpath-run 
+
+TimeReport ---------- Modules in Path: HLTriggerFirstPath ---[sec]----
+TimeReport             per event      per module-visit 
+TimeReport        CPU       Real        CPU       Real Name
+TimeReport   0.004514   0.004886   0.004514   0.004886 genEle
+TimeReport   0.000184   0.000271   0.000184   0.000271 genEleTrack
+TimeReport   0.000021   0.000021   0.000021   0.000021 genUntrack
+TimeReport   0.000352   0.000353   0.000352   0.000353 combEle
+TimeReport   0.000178   0.000179   0.000178   0.000179 hltGetConditions
+TimeReport   0.000085   0.000087   0.000085   0.000087 hltGetRaw
+TimeReport   0.000002   0.000003   0.000002   0.000003 hltBoolFalse
+
+TimeReport ---------- Modules in Path: HLT_Ele27_WPXX_Ele15_WPYY_trackless_v1 ---[sec]----
+TimeReport             per event      per module-visit 
+TimeReport        CPU       Real        CPU       Real Name
+TimeReport   0.000002   0.000002   0.000002   0.000002 hltTriggerType
+TimeReport   0.001572   0.001706   0.001572   0.001706 csctfDigis
+TimeReport   0.001651   0.001652   0.001651   0.001652 dttfDigis
+TimeReport   0.003038   0.003155   0.003038   0.003155 gctDigis
+TimeReport   0.002395   0.002733   0.002395   0.002733 gtDigis
+TimeReport   0.000510   0.000511   0.000510   0.000511 gtEvmDigis
+TimeReport   0.006223   0.006405   0.006223   0.006405 siPixelDigis
+TimeReport   0.015667   0.015680   0.015667   0.015680 siStripDigis
+TimeReport   0.033847   0.034015   0.033847   0.034015 ecalDigis
+TimeReport   0.001867   0.001868   0.001867   0.001868 ecalPreshowerDigis
+TimeReport   0.004699   0.004875   0.004699   0.004875 hcalDigis
+TimeReport   0.017478   0.017658   0.017478   0.017658 muonCSCDigis
+TimeReport   0.002571   0.002637   0.002571   0.002637 muonDTDigis
+TimeReport   0.001798   0.001866   0.001798   0.001866 muonRPCDigis
+TimeReport   0.002026   0.002157   0.002026   0.002157 castorDigis
+TimeReport   0.000363   0.000364   0.000363   0.000364 scalersRawToDigi
+TimeReport   0.000000   0.000000   0.000000   0.000000 hcalDigis
+TimeReport   0.007915   0.007987   0.007915   0.007987 simHcalTriggerPrimitiveDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 ecalDigis
+TimeReport   0.008122   0.008123   0.008122   0.008123 simRctDigis
+TimeReport   0.001344   0.001345   0.001344   0.001345 simRctUpgradeFormatDigis
+TimeReport   0.006207   0.006300   0.006207   0.006300 simCaloStage1Digis
+TimeReport   0.000620   0.000774   0.000620   0.000774 simCaloStage1FinalDigis
+TimeReport   0.001501   0.001563   0.001501   0.001563 simCaloStage1LegacyFormatDigis
+TimeReport   0.231058   0.231369   0.231058   0.231369 rpcTriggerReEmulDigis
+TimeReport   0.019386   0.019417   0.019386   0.019417 cscReEmulTriggerPrimitiveDigis
+TimeReport   0.042799   0.049649   0.042799   0.049649 csctfReEmulTrackDigis
+TimeReport   0.000291   0.000292   0.000291   0.000292 csctfReEmulDigis
+TimeReport   0.000570   0.000571   0.000570   0.000571 dttfReEmulDigis
+TimeReport   0.003279   0.003280   0.003279   0.003280 gmtReEmulDigis
+TimeReport   0.004426   0.004497   0.004426   0.004497 simGtDigis
+TimeReport   0.000773   0.000774   0.000773   0.000774 hltL1GtObjectMap
+TimeReport   0.002337   0.002364   0.002337   0.002364 hltL1extraParticles
+TimeReport   0.000040   0.000041   0.000040   0.000041 hltScalersRawToDigi
+TimeReport   0.000402   0.000402   0.000402   0.000402 hltOnlineBeamSpot
+TimeReport   0.001710   0.001994   0.001710   0.001994 hltL1sL1SingleEG20ORL1SingleEG22
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltPreEle27WPXXEle15WPYYtrackless
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEcalDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEcalPreshowerDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEcalUncalibRecHit
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEcalDetIdToBeRecovered
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEcalRecHit
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEcalPreshowerRecHit
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltRechitInRegionsECAL
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltRechitInRegionsES
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowRecHitECALL1Seeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowRecHitPSL1Seeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterPSL1Seeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterECALUncorrectedL1Seeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterECALL1Seeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowSuperClusterECALL1Seeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaCandidates
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEGL1SingleEG20ORL1SingleEG22Filter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEG27WPXXEtFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaClusterShape
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXClusterShapeFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltHcalDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltHbhereco
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltHfreco
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltHoreco
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltTowerMakerForAll
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltRegionalTowerForEgamma
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowRecHitHCALForEgamma
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterHCALForEgamma
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltFixedGridRhoFastjetAllCaloForMuons
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaHoverE
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXHEFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaEcalPFClusterIso
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXEcalIsoFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaHcalPFClusterIso
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXHcalIsoFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltSiPixelDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltSiPixelClusters
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltSiPixelClustersCache
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltSiPixelRecHits
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltSiStripExcludedFEDListProducer
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltSiStripRawToClustersFacility
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltSiStripClusters
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltMixedLayerPairs
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaElectronPixelSeeds
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXPixelMatchFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaCkfTrackCandidatesForGSF
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaGsfTracks
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaGsfElectrons
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaGsfTrackVars
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXOneOEMinusOneOPFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXDetaFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXDphiFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltElectronsVertex
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltSiPixelDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltSiPixelClusters
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltSiPixelClustersCache
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltSiPixelRecHits
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltPixelLayerTriplets
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltPixelTracksElectrons
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltPixelVerticesElectrons
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltSiStripExcludedFEDListProducer
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltSiStripRawToClustersFacility
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltSiStripClusters
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter0ElectronsPixelSeedsFromPixelTracks
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter0ElectronsCkfTrackCandidates
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter0ElectronsCtfWithMaterialTracks
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter0ElectronsTrackSelectionHighPurity
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsClustersRefRemoval
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsMaskedMeasurementTrackerEvent
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsPixelLayerTriplets
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsPixelSeeds
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsCkfTrackCandidates
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsCtfWithMaterialTracks
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsTrackSelectionHighPurityLoose
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsTrackSelectionHighPurityTight
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsTrackSelectionHighPurity
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter1MergedForElectrons
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter2ElectronsClustersRefRemoval
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter2ElectronsMaskedMeasurementTrackerEvent
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter2ElectronsPixelLayerPairs
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter2ElectronsPixelSeeds
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter2ElectronsCkfTrackCandidates
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter2ElectronsCtfWithMaterialTracks
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter2ElectronsTrackSelectionHighPurity
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltIter2MergedForElectrons
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaEleGsfTrackIso
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXTrackIsoFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEcalDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEcalPreshowerDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEcalUncalibRecHit
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEcalDetIdToBeRecovered
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEcalRecHit
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEcalPreshowerRecHit
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowRecHitECALUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowRecHitPSUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterPSUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterECALUncorrectedUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterECALUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowSuperClusterECALUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaCandidatesUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaCandidatesWrapperUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEG15WPYYtracklessEtFilterUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaClusterShapeUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEle15WPYYtracklessClusterShapeFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaEcalPFClusterIsoUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEle15WPYYtracklessEcalIsoFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowRecHitHCALForEgammaUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterHCALForEgammaUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterHFEMForEgammaUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterHFHADForEgammaUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaHoverEUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEle15WPYYtracklessHEFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaHcalPFClusterIsoUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEle15WPYYtracklessHcalIsoFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaNoTrackerCandidates
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaNoTrackerEtaPtFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltEgammaNoTrackerNCandidatesFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltBoolEnd
+
+TimeReport ---------- Modules in Path: HLTriggerFinalPath ---[sec]----
+TimeReport             per event      per module-visit 
+TimeReport        CPU       Real        CPU       Real Name
+TimeReport   0.000000   0.000000   0.000000   0.000000 csctfDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 dttfDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 gctDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 gtDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 gtEvmDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 siPixelDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 siStripDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 ecalDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 ecalPreshowerDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 hcalDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 muonCSCDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 muonDTDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 muonRPCDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 castorDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 scalersRawToDigi
+TimeReport   0.000000   0.000000   0.000000   0.000000 hcalDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 simHcalTriggerPrimitiveDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 ecalDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 simRctDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 simRctUpgradeFormatDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 simCaloStage1Digis
+TimeReport   0.000000   0.000000   0.000000   0.000000 simCaloStage1FinalDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 simCaloStage1LegacyFormatDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 rpcTriggerReEmulDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 cscReEmulTriggerPrimitiveDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 csctfReEmulTrackDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 csctfReEmulDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 dttfReEmulDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 gmtReEmulDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 simGtDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltScalersRawToDigi
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltFEDSelector
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltTriggerSummaryAOD
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltTriggerSummaryRAW
+TimeReport        CPU       Real        CPU       Real Name
+TimeReport             per event      per module-visit 
+
+TimeReport ------ Modules in End-Path: FULLOutput ---[sec]----
+TimeReport             per event      per module-visit 
+TimeReport        CPU       Real        CPU       Real Name
+TimeReport   0.000000   0.000000   0.000000   0.000000 hltOutputFULL
+
+TimeReport ------ Modules in End-Path: DQMOutput ---[sec]----
+TimeReport             per event      per module-visit 
+TimeReport        CPU       Real        CPU       Real Name
+TimeReport   0.000000   0.000000   0.000000   0.000000 dqmOutput
+TimeReport        CPU       Real        CPU       Real Name
+TimeReport             per event      per module-visit 
+
+TimeReport ---------- Module Summary ---[sec]----
+TimeReport             per event        per module-run      per module-visit 
+TimeReport        CPU       Real        CPU       Real        CPU       Real Name
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 TriggerResults
+TimeReport   0.004514   0.004886   0.004514   0.004886   0.004514   0.004886 genEle
+TimeReport   0.000184   0.000271   0.000184   0.000271   0.000184   0.000271 genEleTrack
+TimeReport   0.000021   0.000021   0.000021   0.000021   0.000021   0.000021 genUntrack
+TimeReport   0.000352   0.000353   0.000352   0.000353   0.000352   0.000353 combEle
+TimeReport   0.000178   0.000179   0.000178   0.000179   0.000178   0.000179 hltGetConditions
+TimeReport   0.000085   0.000087   0.000085   0.000087   0.000085   0.000087 hltGetRaw
+TimeReport   0.000002   0.000003   0.000002   0.000003   0.000002   0.000003 hltBoolFalse
+TimeReport   0.000002   0.000002   0.000002   0.000002   0.000002   0.000002 hltTriggerType
+TimeReport   0.001572   0.001706   0.001572   0.001706   0.001572   0.001706 csctfDigis
+TimeReport   0.001651   0.001652   0.001651   0.001652   0.001651   0.001652 dttfDigis
+TimeReport   0.003038   0.003155   0.003038   0.003155   0.003038   0.003155 gctDigis
+TimeReport   0.002395   0.002733   0.002395   0.002733   0.002395   0.002733 gtDigis
+TimeReport   0.000510   0.000511   0.000510   0.000511   0.000510   0.000511 gtEvmDigis
+TimeReport   0.006223   0.006405   0.006223   0.006405   0.006223   0.006405 siPixelDigis
+TimeReport   0.015667   0.015680   0.015667   0.015680   0.015667   0.015680 siStripDigis
+TimeReport   0.033847   0.034015   0.033847   0.034015   0.016923   0.017008 ecalDigis
+TimeReport   0.001867   0.001868   0.001867   0.001868   0.001867   0.001868 ecalPreshowerDigis
+TimeReport   0.004699   0.004875   0.004699   0.004875   0.002349   0.002437 hcalDigis
+TimeReport   0.017478   0.017658   0.017478   0.017658   0.017478   0.017658 muonCSCDigis
+TimeReport   0.002571   0.002637   0.002571   0.002637   0.002571   0.002637 muonDTDigis
+TimeReport   0.001798   0.001866   0.001798   0.001866   0.001798   0.001866 muonRPCDigis
+TimeReport   0.002026   0.002157   0.002026   0.002157   0.002026   0.002157 castorDigis
+TimeReport   0.000363   0.000364   0.000363   0.000364   0.000363   0.000364 scalersRawToDigi
+TimeReport   0.007915   0.007987   0.007915   0.007987   0.007915   0.007987 simHcalTriggerPrimitiveDigis
+TimeReport   0.008122   0.008123   0.008122   0.008123   0.008122   0.008123 simRctDigis
+TimeReport   0.001344   0.001345   0.001344   0.001345   0.001344   0.001345 simRctUpgradeFormatDigis
+TimeReport   0.006207   0.006300   0.006207   0.006300   0.006207   0.006300 simCaloStage1Digis
+TimeReport   0.000620   0.000774   0.000620   0.000774   0.000620   0.000774 simCaloStage1FinalDigis
+TimeReport   0.001501   0.001563   0.001501   0.001563   0.001501   0.001563 simCaloStage1LegacyFormatDigis
+TimeReport   0.231058   0.231369   0.231058   0.231369   0.231058   0.231369 rpcTriggerReEmulDigis
+TimeReport   0.019386   0.019417   0.019386   0.019417   0.019386   0.019417 cscReEmulTriggerPrimitiveDigis
+TimeReport   0.042799   0.049649   0.042799   0.049649   0.042799   0.049649 csctfReEmulTrackDigis
+TimeReport   0.000291   0.000292   0.000291   0.000292   0.000291   0.000292 csctfReEmulDigis
+TimeReport   0.000570   0.000571   0.000570   0.000571   0.000570   0.000571 dttfReEmulDigis
+TimeReport   0.003279   0.003280   0.003279   0.003280   0.003279   0.003280 gmtReEmulDigis
+TimeReport   0.004426   0.004497   0.004426   0.004497   0.004426   0.004497 simGtDigis
+TimeReport   0.000773   0.000774   0.000773   0.000774   0.000773   0.000774 hltL1GtObjectMap
+TimeReport   0.002337   0.002364   0.002337   0.002364   0.002337   0.002364 hltL1extraParticles
+TimeReport   0.000040   0.000041   0.000040   0.000041   0.000040   0.000041 hltScalersRawToDigi
+TimeReport   0.000402   0.000402   0.000402   0.000402   0.000402   0.000402 hltOnlineBeamSpot
+TimeReport   0.001710   0.001994   0.001710   0.001994   0.001710   0.001994 hltL1sL1SingleEG20ORL1SingleEG22
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltPreEle27WPXXEle15WPYYtrackless
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEcalDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEcalPreshowerDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEcalUncalibRecHit
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEcalDetIdToBeRecovered
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEcalRecHit
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEcalPreshowerRecHit
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltRechitInRegionsECAL
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltRechitInRegionsES
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowRecHitECALL1Seeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowRecHitPSL1Seeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterPSL1Seeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterECALUncorrectedL1Seeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterECALL1Seeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowSuperClusterECALL1Seeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaCandidates
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEGL1SingleEG20ORL1SingleEG22Filter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEG27WPXXEtFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaClusterShape
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXClusterShapeFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltHcalDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltHbhereco
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltHfreco
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltHoreco
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltTowerMakerForAll
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltRegionalTowerForEgamma
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowRecHitHCALForEgamma
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterHCALForEgamma
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltFixedGridRhoFastjetAllCaloForMuons
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaHoverE
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXHEFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaEcalPFClusterIso
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXEcalIsoFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaHcalPFClusterIso
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXHcalIsoFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltSiPixelDigis
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltSiPixelClusters
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltSiPixelClustersCache
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltSiPixelRecHits
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltSiStripExcludedFEDListProducer
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltSiStripRawToClustersFacility
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltSiStripClusters
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltMixedLayerPairs
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaElectronPixelSeeds
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXPixelMatchFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaCkfTrackCandidatesForGSF
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaGsfTracks
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaGsfElectrons
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaGsfTrackVars
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXOneOEMinusOneOPFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXDetaFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXDphiFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltElectronsVertex
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltPixelLayerTriplets
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltPixelTracksElectrons
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltPixelVerticesElectrons
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter0ElectronsPixelSeedsFromPixelTracks
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter0ElectronsCkfTrackCandidates
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter0ElectronsCtfWithMaterialTracks
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter0ElectronsTrackSelectionHighPurity
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsClustersRefRemoval
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsMaskedMeasurementTrackerEvent
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsPixelLayerTriplets
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsPixelSeeds
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsCkfTrackCandidates
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsCtfWithMaterialTracks
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsTrackSelectionHighPurityLoose
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsTrackSelectionHighPurityTight
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter1ElectronsTrackSelectionHighPurity
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter1MergedForElectrons
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter2ElectronsClustersRefRemoval
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter2ElectronsMaskedMeasurementTrackerEvent
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter2ElectronsPixelLayerPairs
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter2ElectronsPixelSeeds
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter2ElectronsCkfTrackCandidates
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter2ElectronsCtfWithMaterialTracks
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter2ElectronsTrackSelectionHighPurity
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltIter2MergedForElectrons
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaEleGsfTrackIso
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEle27WPXXTrackIsoFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowRecHitECALUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowRecHitPSUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterPSUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterECALUncorrectedUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterECALUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowSuperClusterECALUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaCandidatesUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaCandidatesWrapperUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEG15WPYYtracklessEtFilterUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaClusterShapeUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEle15WPYYtracklessClusterShapeFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaEcalPFClusterIsoUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEle15WPYYtracklessEcalIsoFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowRecHitHCALForEgammaUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterHCALForEgammaUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterHFEMForEgammaUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltParticleFlowClusterHFHADForEgammaUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaHoverEUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEle15WPYYtracklessHEFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaHcalPFClusterIsoUnseeded
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEle15WPYYtracklessHcalIsoFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaNoTrackerCandidates
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaNoTrackerEtaPtFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltEgammaNoTrackerNCandidatesFilter
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltBoolEnd
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltFEDSelector
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltTriggerSummaryAOD
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltTriggerSummaryRAW
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 hltOutputFULL
+TimeReport   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000 dqmOutput
+TimeReport        CPU       Real        CPU       Real        CPU       Real Name
+TimeReport             per event        per module-run      per module-visit 
+
+T---Report end!
+
+FastReport for the whole job, process TEST
+FastReport                0.000504  Pre-Event
+FastReport                0.587309  Event
+FastReport                0.000000  all Paths
+FastReport                0.000000  all EndPaths
+FastReport                0.000257  between paths
+
+FastReport for the whole job, over all subprocesses
+FastReport                0.000974  Pre-Source
+FastReport                0.002175  Source
+FastReport                0.000504  Pre-Event
+FastReport                0.587309  Event
+
+
+=============================================
+
+MessageLogger Summary
+
+ type     category        sev    module        subroutine        count    total
+ ---- -------------------- -- ---------------- ----------------  -----    -----
+    1 Alignment            -i EventSetupRecord GeometryAligner:      6*       6
+    2 Alignment            -i EventSetupRecord GeometryAligner:      2*       2
+    3 AutoMagneticField    -i EventSetupRecord                       1*       1
+    4 CASTOR               -i CastorRawToDigi:                       1*       1
+    5 CSCTFSectorProcessor -i CSCTFTrackProduc                      36*      36
+    6 CaloGeometryBuilder  -i EventSetupRecord                       6*       6
+    7 ClusterShapeHitFilte -i (NoModuleName)                         1*       1
+    8 CondDBESSource       -i (NoModuleName)                         2*       2
+    9 CondDBESSource       -i AfterSource                         1182*    1182
+   10 CondDBESSource       -i PostEndLumi                            2*       2
+   11 CondDBESSource       -i PostProcessPath                        2*       2
+   12 DDLParser            -i EventSetupRecord                       1*       1
+   13 DTTPG                -i EventSetupRecord                       1*       1
+   14 EcalElectronicsMappe -i EcalRawToDigi:ec                       2*       2
+   15 EcalElectronicsMappe -i EcalRawToDigi:hl                       2*       2
+   16 EcalRawToDigi        -i EcalRawToDigi:ec                       2*       2
+   17 EcalRawToDigi        -i EcalRawToDigi:hl                       2*       2
+   18 EtaPhiRegionSeedFact -i ElectronSeedProd                       1*       1
+   19 EventSetupDependency -i AfterSource                           12*      12
+   20 FastReport           -i AfterModEndJob                         2        2
+   21 FastReport           -i AfterModGlobalEn                       2        2
+   22 FwkReport            -i AfterSource                            1*       1
+   23 FwkSummary           -i AfterModEndJob                       783      783
+   24 GCT                  -i GctRawToDigi:gct                       1*       1
+   25 GCT                  -i GctRawToDigi:gct                       1*       1
+   26 Geometry             -i (NoModuleName)   CSCGeometryESMod      1*       1
+   27 Geometry             -i (NoModuleName)   DTGeometryESModu      1*       1
+   28 Geometry             -i (NoModuleName)   TrackerDigiGeome      1*       1
+   29 GeometryGlobalTracki -i EventSetupRecord                       2*       2
+   30 GetByLabelWithoutReg -i CSCTFTrackProduc                       2*       2
+   31 GsfBetheHeitlerUpdat -i EventSetupRecord                       2*       2
+   32 HCAL                 -i (NoModuleName)                         2*       2
+   33 HCAL                 -i AfterSource                            1*       1
+   34 HCAL                 -i EventSetupRecord                       3*       3
+   35 HCAL                 -i HcalRawToDigi:hc                       1*       1
+   36 HCAL                 -i HcalRawToDigi:hl                       1*       1
+   37 HcalGeometry         -i EventSetupRecord                    9073*    9073
+   38 HcalSeverityLevelCom -i (NoModuleName)                        10*      10
+   39 L1GtConfigProducers  -i (NoModuleName)                         1*       1
+   40 Level1               -i EventSetupRecord                       1*       1
+   41 MagneticField        -i EventSetupRecord                     277*     277
+   42 MeasurementTracker   -i EventSetupRecord                       4*       4
+   43 Obsolete             -i PixelTrackProduc                       1*       1
+   44 PVDebugInfo          -i VertexFromTrackP                       1*       1
+   45 ParameterSet         -i (NoModuleName)                         2*       2
+   46 PixelTrackProducer   -i PixelTrackProduc                       1*       1
+   47 PixelVertexProducer  -i PixelVertexProdu                       1*       1
+   48 PrescaleSummary      -i HLTPrescaler:hlt                       1*       1
+   49 RPCTriggerConfig     -i EventSetupRecord                       1*       1
+   50 Root_Information     -i AfterFile        TClass::TClass        4*       4
+   51 Root_Information     -i AfterModBeginStr TClass::TClass        3*       3
+   52 Root_Information     -i CSCDCCUnpacker:m TClass::TClass        7*       7
+   53 Root_Information     -i CSCTFUnpacker:cs TClass::TClass        1*       1
+   54 Root_Information     -i CSCTriggerPrimit TClass::TClass        1*       1
+   55 Root_Information     -i DTUnpackingModul TClass::TClass        2*       2
+   56 Root_Information     -i RPCUnpackingModu TClass::TClass        1*       1
+   57 SiPixelGenError      -i EventSetupRecord                       6*       6
+   58 SiPixelQualityESProd -i (NoModuleName)                         1*       1
+   59 SiPixelTemplate      -i EventSetupRecord                       6*       6
+   60 SiStripBackPlaneCorr -i (NoModuleName)                         1*       1
+   61 SiStripBackPlaneCorr -i EventSetupRecord                       1*       1
+   62 SiStripDetInfoFileRe -i (NoModuleName)                         1*       1
+   63 SiStripDetInfoFileRe -i EventSetupRecord                       1*       1
+   64 SiStripDetInfoFileRe -i (NoModuleName)                         1*       1
+   65 SiStripDetInfoFileRe -i EventSetupRecord                       1*       1
+   66 SiStripLorentzAngleD -i (NoModuleName)                         1*       1
+   67 SiStripLorentzAngleD -i EventSetupRecord                       1*       1
+   68 SiStripQualityESProd -i (NoModuleName)                         1*       1
+   69 SiStripQualityESProd -i EventSetupRecord                       6*       6
+   70 TRACKER              -i (NoModuleName)                         1*       1
+   71 TkDetLayers          -i EventSetupRecord                      43*      43
+   72 TrackAssociator      -i EventSetupRecord                       6*       6
+   73 TrackerTopologyEP    -i EventSetupRecord                       1*       1
+   74 TriggerSummaryProduc -i TriggerSummaryPr                       7        7
+   75 VolumeBasedMagneticF -i EventSetupRecord                     276*     276
+   76 path                 -i AfterModConstruc                       1*       1
+   77 L1CSCTPEmulatorWrong -w CSCTriggerPrimit                      26       26
+   78 SimpleTrackListMerge -w SimpleTrackListM                       1        1
+   79 SimpleTrackListMerge -w SimpleTrackListM                       1        1
+   80 SimpleTrackListMerge -w SimpleTrackListM                       1        1
+   81 Fatal Exception      -s PostProcessPath                        1        1
+   82 fileAction           -s file_close                             1        1
+   83 fileAction           -s file_open                              2        2
+
+* Some occurrences of this message were suppressed in all logs, due to limits.
+
+ type    category    Examples: run/evt        run/evt          run/evt
+ ---- -------------------- ---------------- ---------------- ----------------
+    1 Alignment            Run: 1           Run: 1           Run: 1
+    2 Alignment            Run: 1           Run: 1           
+    3 AutoMagneticField    Run: 1                            
+    4 CASTOR               pre-events                        
+    5 CSCTFSectorProcessor 1/2700371        1/2700371        1/2700371
+    6 CaloGeometryBuilder  Run: 1           Run: 1           Run: 1
+    7 ClusterShapeHitFilterESProducer pre-events                        
+    8 CondDBESSource       pre-events       pre-events       
+    9 CondDBESSource       BeforeEvents     BeforeEvents     PostBeginRun
+   10 CondDBESSource       PostEndLumi      PostEndLumi      
+   11 CondDBESSource       PostProcessEvent PostProcessEvent 
+   12 DDLParser            Run: 1                            
+   13 DTTPG                Run: 1                            
+   14 EcalElectronicsMapper pre-events       pre-events       
+   15 EcalElectronicsMapper pre-events       pre-events       
+   16 EcalRawToDigi        pre-events       pre-events       
+   17 EcalRawToDigi        pre-events       pre-events       
+   18 EtaPhiRegionSeedFactory pre-events                        
+   19 EventSetupDependency BeforeEvents     BeforeEvents     BeforeEvents
+   20 FastReport           PostEndRun       PostEndRun       
+   21 FastReport           End Run: 1       End Run: 1       
+   22 FwkReport            PostBeginLumi                     
+   23 FwkSummary           PostEndRun       PostEndRun       PostEndRun
+   24 GCT                  1/2700371                         
+   25 GCT                  pre-events                        
+   26 Geometry             pre-events                        
+   27 Geometry             pre-events                        
+   28 Geometry             pre-events                        
+   29 GeometryGlobalTrackingGeometryBuilder Run: 1           Run: 1           
+   30 GetByLabelWithoutRegistration 1/2700371        1/2700371        
+   31 GsfBetheHeitlerUpdator Run: 1           Run: 1           
+   32 HCAL                 pre-events       pre-events       
+   33 HCAL                 BeforeEvents                      
+   34 HCAL                 Run: 1           Run: 1           Run: 1
+   35 HCAL                 pre-events                        
+   36 HCAL                 pre-events                        
+   37 HcalGeometry         Run: 1           Run: 1           Run: 1
+   38 HcalSeverityLevelComputer pre-events       pre-events       pre-events
+   39 L1GtConfigProducers  pre-events                        
+   40 Level1               Run: 1                            
+   41 MagneticField        Run: 1           Run: 1           Run: 1
+   42 MeasurementTracker   Run: 1           Run: 1           Run: 1
+   43 Obsolete             pre-events                        
+   44 PVDebugInfo          pre-events                        
+   45 ParameterSet         pre-events       pre-events       
+   46 PixelTrackProducer   pre-events                        
+   47 PixelVertexProducer  pre-events                        
+   48 PrescaleSummary      PostEndRun                        
+   49 RPCTriggerConfig     Run: 1                            
+   50 Root_Information     pre-events       pre-events       pre-events
+   51 Root_Information     BeforeEvents     BeforeEvents     BeforeEvents
+   52 Root_Information     pre-events       pre-events       pre-events
+   53 Root_Information     pre-events                        
+   54 Root_Information     pre-events                        
+   55 Root_Information     pre-events       pre-events       
+   56 Root_Information     pre-events                        
+   57 SiPixelGenError      Run: 1           Run: 1           Run: 1
+   58 SiPixelQualityESProducer::SiPixelQualityESProducer pre-events                        
+   59 SiPixelTemplate      Run: 1           Run: 1           Run: 1
+   60 SiStripBackPlaneCorrectionDepESProducer pre-events                        
+   61 SiStripBackPlaneCorrectionDepESProducer Run: 1                            
+   62 SiStripDetInfoFileReader pre-events                        
+   63 SiStripDetInfoFileReader Run: 1                            
+   64 SiStripDetInfoFileReader::SiStripDetInfoFileReader - END of file reached pre-events                        
+   65 SiStripDetInfoFileReader::SiStripDetInfoFileReader - END of file reached Run: 1                            
+   66 SiStripLorentzAngleDepESProducer pre-events                        
+   67 SiStripLorentzAngleDepESProducer Run: 1                            
+   68 SiStripQualityESProducer pre-events                        
+   69 SiStripQualityESProducer Run: 1           Run: 1           Run: 1
+   70 TRACKER              pre-events                        
+   71 TkDetLayers          Run: 1           Run: 1           Run: 1
+   72 TrackAssociator      Run: 1           Run: 1           Run: 1
+   73 TrackerTopologyEP    Run: 1                            
+   74 TriggerSummaryProducerAOD PostEndRun       PostEndRun       PostEndRun
+   75 VolumeBasedMagneticFieldESProducer Run: 1           Run: 1           Run: 1
+   76 path                 pre-events                        
+   77 L1CSCTPEmulatorWrongInput 1/2700371        1/2700371        1/2700371
+   78 SimpleTrackListMerger pre-events                        
+   79 SimpleTrackListMerger pre-events                        
+   80 SimpleTrackListMerger pre-events                        
+   81 Fatal Exception      1/2700371                         
+   82 fileAction           PostEndRun                        
+   83 fileAction           pre-events       pre-events       
+
+Severity    # Occurrences   Total Occurrences
+--------    -------------   -----------------
+Info                11827               11827
+Warning                29                  29
+System                  4                   4
