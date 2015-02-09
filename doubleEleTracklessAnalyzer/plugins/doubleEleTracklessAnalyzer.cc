@@ -467,18 +467,6 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const double genTrackedE
 */
 
 void GetTrackedTriggerObjects(const edm::Event& iEvent, const double genTrackedEta, const double genTrackedPhi, const double maxDrForMatch){
-/*int numEvts_passing_L1Seed_;		//looks for L1_SingleEG20 seed
-int numEvts_passing_L1Filter_;	//after L1Seed requirement, not sure what this filter does
-int numEvts_passing_EtFilter_;	//requires one tracked electron with ET > 27, after L1Filter
-int numEvts_passing_ClusterShapeFilter_;	//cuts on sigmaIEIE, after EtFilter
-int numEvts_passing_HEFilter_;	//cuts on (had/em)/energy, after ClusterShapeFilter
-int numEvts_passing_EcalIsoFilter_;	//cuts on ecalIso/pT, after HEFilter
-int numEvts_passing_HcalIsoFilter_;	//cuts on hcalIso/pT, after EcalIsoFilter 
-int numEvts_passing_PixelMatchFilter_;	//after HcalIsoFilter, cuts on pixel detector vars
-int numEvts_passing_E_P_Filter_;		//cuts on (1/E)-(1/P), after PixelMatchFilter
-int numEvts_passing_DetaFilter_;		//cuts on dEta btwn candidate and track, after (1/E)-(1/P) filter
-int numEvts_passing_DphiFilter_;		//cuts on dPhi, after dEta filter.  This is the 2nd to last filter in the tracked leg
-*/
 
 	edm::InputTag l1SeedTag("hltL1sL1SingleEG20ORL1SingleEG22","","TEST");
 	edm::Handle<trigger::TriggerFilterObjectWithRefs> l1SeedHandle;
@@ -487,7 +475,8 @@ int numEvts_passing_DphiFilter_;		//cuts on dPhi, after dEta filter.  This is th
 	if(!l1SeedHandle.isValid() ){
 		return;
 	}
-	numEvts_passing_L1Seed_ += 1;
+
+	if( (l1SeedHandle->l1emRefs()).size() > 0) numEvts_passing_L1Seed_ += 1;
 
 
 	edm::InputTag l1FiltTag("hltEGL1SingleEG20ORL1SingleEG22Filter","","TEST");
@@ -497,9 +486,141 @@ int numEvts_passing_DphiFilter_;		//cuts on dPhi, after dEta filter.  This is th
 	if(!l1FiltHandle.isValid() ){
 		return;
 	}
-	numEvts_passing_L1Filter_ += 1;
+	if( (l1FiltHandle->l1emRefs()).size() > 0) numEvts_passing_L1Filter_ += 1;
+
+	
+	edm::InputTag EtFilterTag("hltEG27WPXXEtFilter","","TEST");
+	edm::Handle<trigger::TriggerFilterObjectWithRefs> EtFilterHandle;
+	iEvent.getByLabel(EtFilterTag, EtFilterHandle);
+
+	if(!EtFilterHandle.isValid() ){
+		return;
+	}
+	if((EtFilterHandle->photonRefs()).size() > 0 || (EtFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_EtFilter_ += 1;
+
+	/*
+	std::vector<edm::Ref<reco::RecoEcalCandidateCollection> > recoRefs;	//will be filled by calling hcalIsoFilterHandle->getObjects()
+	tracklessHcalIsoFilterHandle->getObjects(trigger::TriggerCluster, recoRefs);
+	if(recoRefs.empty() ) tracklessHcalIsoFilterHandle->getObjects(trigger::TriggerPhoton, recoRefs);
+
+	if(recoRefs.empty() ) return;
+
+	typedef edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>,float,unsigned int> > ecalCandToValMap;
+
+	edm::InputTag hltNoTrackEcalClusterShapeSigmaIEtaIEtaTag("hltEgammaClusterShapeUnseeded","sigmaIEtaIEta5x5","TEST");
+	edm::Handle<ecalCandToValMap> untrackedEcalClusterShapeSigmaIEtaIEtaHandle;
+	iEvent.getByLabel(hltNoTrackEcalClusterShapeSigmaIEtaIEtaTag, untrackedEcalClusterShapeSigmaIEtaIEtaHandle);
+
+	edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>, float> >::const_iterator untrackedSigmaIEIEMapIt = (*untrackedEcalClusterShapeSigmaIEtaIEtaHandle).find(recoRefs[best]);
+	matched_ecalClusterShape_SigmaIEtaIEta_ = untrackedSigmaIEIEMapIt->val;
+	*/
+
+	//declare handles to maps of seeded (tracked leg) sigmaIEIE, ecalIso, HE
+	//typedef edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>,float,unsigned int> > ecalCandToValMap;
+
+	/*
+	//use recoTrackedRefs to study variables used in tracked leg filters
+	//call recoTrackedRefs.clear() before accessing the recoEcalCandidate ref objects which passed a different filter
+	std::vector<edm::Ref<reco::RecoEcalCandidateCollection> > recoTrackedRefs;
+	FILTHandle->getObjects(trigger::TriggerCluster, recoTrackedRefs);
+	if(recoTrackedRefs.empty() ) FILTHandle->getObjects(trigger::TriggerPhoton, recoTrackedRefs);
+
+	if(recoTrackedRefs.size() > 0){
+		//fill the pT, eta, sigmaIEIE, H/E, ecalIso, hcalIso, and (1/E)-(1/P) histos
+		//with all objects in recoTrackedRefs
+
+   hists_["trackedLeg_postFILT_Pt"]=fs->make<TH1D>("trackedLeg_postFILT_Pt","P_{T} of candidates passing tracked leg FILT;P_{T} (GeV);"100,0.,250.);
+   hists_["trackedLeg_postFILT_Eta"]=fs->make<TH1D>("trackedLeg_postFILT_Eta","#eta of candidates passing tracked leg FILT;#eta;"200,-4.0,4.0);
+   hists_["trackedLeg_postFILT_SigmaIEIE"]=fs->make<TH1D>("trackedLeg_postFILT_SigmaIEIE","#sigma_{i#eta i#eta} of candidates passing tracked leg FILT;#sigma_{i#eta i#eta};"200,0.,0.1);
+   hists_["trackedLeg_postFILT_HE"]=fs->make<TH1D>("trackedLeg_postFILT_HE","relative H/E of candidates passing tracked leg FILT;Had/Em/Energy;"200,-0.1,0.6);
+   hists_["trackedLeg_postFILT_EcalIso"]=fs->make<TH1D>("trackedLeg_postFILT_EcalIso","relative Ecal iso of candidates passing tracked leg FILT;EcalIso/pT;"200,-0.1,0.6);
+   hists_["trackedLeg_postFILT_HcalIso"]=fs->make<TH1D>("trackedLeg_postFILT_HcalIso","relative Hcal iso of candidates passing tracked leg FILT;HcalIso/pT;"200,-0.1,0.6);
+   hists_["trackedLeg_postFILT_EP"]=fs->make<TH1D>("trackedLeg_postFILT_EP","(1/E)-(1/P) of candidates passing tracked leg FILT;(1/E)-(1/P);"200,-0.05,0.2);
 
 
+	}//end if(recoTrackedRefs.size() > 0 )
+
+	*/
+
+	edm::InputTag ClusterShapeFilterTag("hltEle27WPXXClusterShapeFilter","","TEST");
+	edm::Handle<trigger::TriggerFilterObjectWithRefs> ClusterShapeFilterHandle;
+	iEvent.getByLabel(ClusterShapeFilterTag, ClusterShapeFilterHandle);
+
+	if(!ClusterShapeFilterHandle.isValid() ){
+		return;
+	}
+	if( (ClusterShapeFilterHandle->photonRefs()).size() > 0 || (ClusterShapeFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_ClusterShapeFilter_ += 1;
+
+
+	edm::InputTag HEFilterTag("hltEle27WPXXHEFilter","","TEST");
+	edm::Handle<trigger::TriggerFilterObjectWithRefs> HEFilterHandle;
+	iEvent.getByLabel(HEFilterTag, HEFilterHandle);
+
+	if(!HEFilterHandle.isValid() ){
+		return;
+	}
+	if( (HEFilterHandle->photonRefs()).size() > 0 || (HEFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_HEFilter_ += 1;
+
+
+	edm::InputTag EcalIsoFilterTag("hltEle27WPXXEcalIsoFilter","","TEST");
+	edm::Handle<trigger::TriggerFilterObjectWithRefs> EcalIsoFilterHandle;
+	iEvent.getByLabel(EcalIsoFilterTag, EcalIsoFilterHandle);
+
+	if(!EcalIsoFilterHandle.isValid() ){
+		return;
+	}
+	if( (EcalIsoFilterHandle->photonRefs()).size() > 0 || (EcalIsoFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_EcalIsoFilter_ += 1;
+
+
+	edm::InputTag HcalIsoFilterTag("hltEle27WPXXHcalIsoFilter","","TEST");
+	edm::Handle<trigger::TriggerFilterObjectWithRefs> HcalIsoFilterHandle;
+	iEvent.getByLabel(HcalIsoFilterTag, HcalIsoFilterHandle);
+
+	if(!HcalIsoFilterHandle.isValid() ){
+		return;
+	}
+	if( (HcalIsoFilterHandle->photonRefs()).size() > 0 || (HcalIsoFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_HcalIsoFilter_ += 1;
+	
+
+	edm::InputTag PixelMatchFilterTag("hltEle27WPXXPixelMatchFilter","","TEST");
+	edm::Handle<trigger::TriggerFilterObjectWithRefs> PixelMatchFilterHandle;
+	iEvent.getByLabel(PixelMatchFilterTag, PixelMatchFilterHandle);
+
+	if(!PixelMatchFilterHandle.isValid() ){
+		return;
+	}
+	if( (PixelMatchFilterHandle->photonRefs()).size() > 0 || (PixelMatchFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_PixelMatchFilter_ += 1;
+	
+
+	edm::InputTag E_P_FilterTag("hltEle27WPXXOneOEMinusOneOPFilter","","TEST");
+	edm::Handle<trigger::TriggerFilterObjectWithRefs> E_P_FilterHandle;
+	iEvent.getByLabel(E_P_FilterTag, E_P_FilterHandle);
+
+	if(!E_P_FilterHandle.isValid() ){
+		return;
+	}
+	if( (E_P_FilterHandle->photonRefs()).size() > 0 || (E_P_FilterHandle->electronRefs()).size() > 0 ) numEvts_passing_E_P_Filter_ += 1;
+	
+
+	edm::InputTag DetaFilterTag("hltEle27WPXXDetaFilter","","TEST");
+	edm::Handle<trigger::TriggerFilterObjectWithRefs> DetaFilterHandle;
+	iEvent.getByLabel(DetaFilterTag, DetaFilterHandle);
+
+	if(!DetaFilterHandle.isValid() ){
+		return;
+	}
+	if( (DetaFilterHandle->photonRefs()).size() > 0 || (DetaFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_DetaFilter_ += 1;
+	
+
+	edm::InputTag DphiFilterTag("hltEle27WPXXDphiFilter","","TEST");
+	edm::Handle<trigger::TriggerFilterObjectWithRefs> DphiFilterHandle;
+	iEvent.getByLabel(DphiFilterTag, DphiFilterHandle);
+
+	if(!DphiFilterHandle.isValid() ){
+		return;
+	}
+	if( (DphiFilterHandle->photonRefs()).size() > 0 || (DphiFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_DphiFilter_ += 1;
+	
 
 	edm::InputTag trackIsoFilterTag("hltEle27WPXXTrackIsoFilter", "", "TEST");
 	edm::Handle<trigger::TriggerFilterObjectWithRefs> trackIsoFilterHandle;
@@ -516,6 +637,8 @@ int numEvts_passing_DphiFilter_;		//cuts on dPhi, after dEta filter.  This is th
 	if(trackedRecoRefs.empty() ) trackIsoFilterHandle->getObjects(trigger::TriggerPhoton, trackedRecoRefs);
 
 	if(trackedRecoRefs.empty() ) return;
+
+	numEvts_passing_TrackIsoFilter_ += 1;
 
 	//now find the highest pT RecoEcalCandidate object in this event which passed the track iso filter
 	double dR = 0;
@@ -727,18 +850,45 @@ void GetMatchedTriggerObjects(
 		const edm::Event& iEvent,
 		const double eta, const double phi, const double dRForMatch){
 
-	/*
-	edm::InputTag unseededRecoCandidateTag("hltEgammaCandidatesUnseeded","","TEST");
-	edm::Handle<std::vector<reco::RecoEcalCandidate>> unseededCandidates;
+	//see how many evts pass each filter in the trackless leg
+	edm::InputTag EtFilterTag("hltEG15WPYYtracklessEtFilterUnseeded","","TEST");
+	edm::Handle<trigger::TriggerFilterObjectWithRefs> EtFilterHandle;
+	iEvent.getByLabel(EtFilterTag, EtFilterHandle);
 
-	iEvent.getByLabel(unseededRecoCandidateTag, unseededCandidates);
-	if (!unseededCandidates.isValid() ){
-		std::cout << "No valid hltEgammaCandidatesUnseeded collection." << std::endl;
+	if(!EtFilterHandle.isValid() ){
 		return;
 	}
-	std::vector<reco::RecoEcalCandidate> candidates = *(unseededCandidates.product());
+	if( (EtFilterHandle->photonRefs()).size() + (EtFilterHandle->electronRefs()).size() > 1 ) numEvts_passing_trackless_EtFilter_ += 1;
 
-	*/
+	edm::InputTag ClusterShapeFilterTag("hltEle15WPYYtracklessClusterShapeFilter","","TEST");
+	edm::Handle<trigger::TriggerFilterObjectWithRefs> ClusterShapeFilterHandle;
+	iEvent.getByLabel(ClusterShapeFilterTag, ClusterShapeFilterHandle);
+
+	if(!ClusterShapeFilterHandle.isValid() ){
+		return;
+	}
+	if( (ClusterShapeFilterHandle->photonRefs()).size() + (ClusterShapeFilterHandle->electronRefs()).size() > 1 ) numEvts_passing_trackless_ClusterShapeFilter_ += 1;
+
+
+	edm::InputTag EcalIsoFilterTag("hltEle15WPYYtracklessEcalIsoFilter","","TEST");
+	edm::Handle<trigger::TriggerFilterObjectWithRefs> EcalIsoFilterHandle;
+	iEvent.getByLabel(EcalIsoFilterTag, EcalIsoFilterHandle);
+
+	if(!EcalIsoFilterHandle.isValid() ){
+		return;
+	}
+	if( (EcalIsoFilterHandle->photonRefs()).size() + (EcalIsoFilterHandle->electronRefs()).size() > 1 ) numEvts_passing_trackless_EcalIsoFilter_ += 1;
+
+
+	edm::InputTag HEFilterTag("hltEle15WPYYtracklessHEFilter","","TEST");
+	edm::Handle<trigger::TriggerFilterObjectWithRefs> HEFilterHandle;
+	iEvent.getByLabel(HEFilterTag, HEFilterHandle);
+
+	if(!HEFilterHandle.isValid() ){
+		return;
+	}
+	if( (HEFilterHandle->photonRefs()).size() + (HEFilterHandle->electronRefs()).size() > 1 ) numEvts_passing_trackless_HEFilter_ += 1;
+
 
 	//I should not need anything from the collection of trigger::TriggerEventWithRefs objects.  I can just grab the RecoEcalCandidate
 	//objects which pass the trackless HcalIso filter from a Handle tied to the trackless hcalIso filter!
@@ -758,12 +908,17 @@ void GetMatchedTriggerObjects(
 
 	if(recoRefs.empty() ) return;
 
-	//std::cout<<"filled recoRefs vector"<<std::endl;
+	if(recoRefs.size() > 1) numEvts_passing_trackless_HcalIsoFilter_ += 1;
+
 	
 
 	typedef edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>,float,unsigned int> > ecalCandToValMap;
 
 	//collections for untracked electron candidates
+	//these maps are available for RecoEcalCandidate objects after any filter, not just the filter
+	//which cut on the variable stored in the map
+	//for example, the map of HcalIso for trackless leg candidates is available to any RecoEcalCandidate object
+	//which passes the trackless leg EtFilter 
 	edm::InputTag hltNoTrackEcalClusterShapeTag("hltEgammaClusterShapeUnseeded","","TEST");
 	edm::Handle<ecalCandToValMap> untrackedEcalClusterShapeHandle;
 	iEvent.getByLabel(hltNoTrackEcalClusterShapeTag, untrackedEcalClusterShapeHandle);
@@ -784,7 +939,6 @@ void GetMatchedTriggerObjects(
 	edm::Handle<ecalCandToValMap> untrackedHcalIsoHandle;
 	iEvent.getByLabel(hltNoTrackHcalIsoTag, untrackedHcalIsoHandle);
 
-	//std::cout<<"declared handles to trackless reco ecal candidate object maps"<<std::endl;
  
 	float hltPhi = 0;
 	float maxPt = 0;
@@ -793,8 +947,10 @@ void GetMatchedTriggerObjects(
 	double dR = 0;
 	bool hasChanged = false;
 
+
 	for(unsigned int i=0; i<recoRefs.size(); i++){
 		if(std::fabs(recoRefs[i]->eta()) > 2.4 && std::fabs(recoRefs[i]->eta()) < 3.0){
+			if(numEvts_passing_trackless_EtaFilter_ ==0) numEvts_passing_trackless_EtaFilter_ += 1;
 			numPassingEtaCut += 1;
 			hltPhi = recoRefs[i]->phi();
 			dR = deltaR(eta, phi, recoRefs[i]->eta(), hltPhi);
@@ -901,7 +1057,7 @@ void resetCounters(){
 	gen_l2_eta_cutTwo_ = -7;
 
 
-	//cut three = cut two + one untracked gen electron
+	//cut three = cut two + one untracked gen electron (whose pT must be > 15 due to prior cuts)
 	gen_l1_pT_cutThree_= -1;
 	gen_l1_eta_cutThree_ = -7;
 	gen_l2_pT_cutThree_= -1;
@@ -909,13 +1065,15 @@ void resetCounters(){
 
 
 	numEvents_cutLvlZero_=0;	//the total number of events which were analyzed, no cuts on anything
-    numEvents_cutLvlOne_=0;	//the total number of events where two gen electrons are found with a Z boson mother
-    numEvents_cutLvlTwo_=0;	//total # of evts with two gen electrons coming from a Z boson, and passing pT cuts (27, 15) 
-    numEvents_cutLvlThree_=0;  //total # evts passing gen mother, pT, and eta cuts
-	numEvents_cutLvlFour_=0;	//total # evts passing gen mother, pT, eta, and dR(tracked HLT to GEN) cuts
+	numEvents_cutLvlOne_=0;	//the total number of events where two gen electrons are found with a Z boson mother and pt>15
+    numEvents_cutLvlTwo_=0;	//total # of evts with two gen electrons coming from a Z boson, and one tracked lepton with pt>27 
+    numEvents_cutLvlThree_=0;  //total # evts passing gen mother, pT, and eta cuts (tracked pt > 27, trackless pt > 15)
+	numEvents_cutLvlFour_=0;	//total # evts passing gen mother, pT, eta cuts, and GEN dilepton mass btwn 60 and 120 GeV
+
 
 	//vars to explore which filters are tightest in tracked leg
-	//these variables will help explain why there is a large drop btwn numEvents_cutLvlThree_ and numEvents_cutLvlFour_
+	//these variables will help explain why there is a large drop btwn numEvents_cutLvlFour_ and
+	//the number of evts which fire the trigger AND pass cutLvlFour
 	numEvts_passing_L1Seed_=0;		//looks for L1_SingleEG20 seed
 	numEvts_passing_L1Filter_=0;	//after L1Seed requirement, not sure what this filter does
 	numEvts_passing_EtFilter_=0;	//requires one tracked electron with ET > 27, after L1Filter
@@ -927,7 +1085,19 @@ void resetCounters(){
    	numEvts_passing_E_P_Filter_=0;		//cuts on (1/E)-(1/P), after PixelMatchFilter
 	numEvts_passing_DetaFilter_=0;		//cuts on dEta btwn candidate and track, after (1/E)-(1/P) filter
 	numEvts_passing_DphiFilter_=0;		//cuts on dPhi, after dEta filter.  This is the 2nd to last filter in the tracked leg
+	numEvts_passing_TrackIsoFilter_=0;	//last filter in tracked leg, runs after dPhi filter
 
+	//vars to explore which filters are tightest in trackless leg
+	numEvts_passing_trackless_EtFilter_=0;
+	numEvts_passing_trackless_ClusterShapeFilter_=0;
+	numEvts_passing_trackless_EcalIsoFilter_=0;
+	numEvts_passing_trackless_HEFilter_=0;
+	numEvts_passing_trackless_HcalIsoFilter_=0;
+	numEvts_passing_trackless_EtaFilter_=0;
+
+
+	//these pT, eta, and phi values are equivalent to the kinematic values for events
+	//which have numEvents_cutLvlFour_ = 1
 	gen_trackless_pT_=-1;	//pT of gen electron in trackless EE
 	gen_trackless_eta_=-7;	//eta of gen electron in trackless EE
 	gen_trackless_phi_=-7;	//phi of gen electron in trackless EE
@@ -1013,14 +1183,15 @@ double gen_l2_eta_cutThree_;
 //vars used to study # of evts passing different levels of cuts
 //nomenclature example: cutLvlThree includes all of the cuts made in cutLvlTwo 
 int numEvents_cutLvlZero_;	//the total number of events which were analyzed, no cuts on anything
-int numEvents_cutLvlOne_;	//the total number of events where two gen electrons are found with a Z boson mother
-int numEvents_cutLvlTwo_;	//total # of evts with two gen electrons coming from a Z boson, and passing pT cuts (27, 15) 
-int numEvents_cutLvlThree_;  //total # evts passing gen mother, pT, and eta cuts
-int numEvents_cutLvlFour_;	//total # evts passing gen mother, pT, eta, and dR(tracked HLT to GEN) cuts
+int numEvents_cutLvlOne_;	//the total number of events where two gen electrons are found with a Z boson mother and pt > 15
+int numEvents_cutLvlTwo_;	//total # of evts with two gen electrons coming from a Z boson, and one tracked lepton with pt>27
+int numEvents_cutLvlThree_;  //total # evts passing gen mother, pT, and eta cuts (tracked pt > 27, trackless pt > 15)
+int numEvents_cutLvlFour_;	//total # evts passing gen mother, pT, eta cuts, and GEN dilepton mass btwn 60 and 120 GeV
 
 
 //vars to explore which filters are tightest in tracked leg
-//these variables will help explain why there is a large drop btwn numEvents_cutLvlThree_ and numEvents_cutLvlFour_
+//these variables will help explain why there is a large drop btwn numEvents_cutLvlFour_ and
+//the number of evts which fire the trigger AND pass cutLvlFour 
 int numEvts_passing_L1Seed_;		//looks for L1_SingleEG20 seed
 int numEvts_passing_L1Filter_;	//after L1Seed requirement, not sure what this filter does
 int numEvts_passing_EtFilter_;	//requires one tracked electron with ET > 27, after L1Filter
@@ -1032,6 +1203,16 @@ int numEvts_passing_PixelMatchFilter_;	//after HcalIsoFilter, cuts on pixel dete
 int numEvts_passing_E_P_Filter_;		//cuts on (1/E)-(1/P), after PixelMatchFilter
 int numEvts_passing_DetaFilter_;		//cuts on dEta btwn candidate and track, after (1/E)-(1/P) filter
 int numEvts_passing_DphiFilter_;		//cuts on dPhi, after dEta filter.  This is the 2nd to last filter in the tracked leg
+int numEvts_passing_TrackIsoFilter_;	//last filter in tracked leg, runs after dPhi filter
+
+//vars to explore which filters are tightest in trackless leg
+int numEvts_passing_trackless_EtFilter_;
+int numEvts_passing_trackless_ClusterShapeFilter_;
+int numEvts_passing_trackless_EcalIsoFilter_;
+int numEvts_passing_trackless_HEFilter_;
+int numEvts_passing_trackless_HcalIsoFilter_;
+int numEvts_passing_trackless_EtaFilter_;
+
 
 
 //gen lepton variables going into TTree
@@ -1096,14 +1277,25 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
    
    hists_["tracklessGENToHLTDeltaR"]=fs->make<TH1D>("tracklessGENToHLTDeltaR","#DeltaR gen trackless e- to ALL trackless HLT objects passing trigger; #DeltaR;",100,0.,0.4);
    hists_["trackedGENToHLTDeltaR"]=fs->make<TH1D>("trackedGENToHLTDeltaR","#DeltaR gen tracked e- to ALL tracked HLT objects passing trigger; #DeltaR;",100,0.,0.4);
-  
-   
+
+
    /*
+   hists_["trackedLeg_postFILT_Pt"]=fs->make<TH1D>("trackedLeg_postFILT_Pt","P_{T} of candidates passing tracked leg FILT;P_{T} (GeV);"100,0.,250.);
+   hists_["trackedLeg_postFILT_Eta"]=fs->make<TH1D>("trackedLeg_postFILT_Eta","#eta of candidates passing tracked leg FILT;#eta;"200,-4.0,4.0);
+   hists_["trackedLeg_postFILT_SigmaIEIE"]=fs->make<TH1D>("trackedLeg_postFILT_SigmaIEIE","#sigma_{i#eta i#eta} of candidates passing tracked leg FILT;#sigma_{i#eta i#eta};"200,0.,0.1);
+   hists_["trackedLeg_postFILT_HE"]=fs->make<TH1D>("trackedLeg_postFILT_HE","relative H/E of candidates passing tracked leg FILT;Had/Em/Energy;"200,-0.1,0.6);
+   hists_["trackedLeg_postFILT_EcalIso"]=fs->make<TH1D>("trackedLeg_postFILT_EcalIso","relative Ecal iso of candidates passing tracked leg FILT;EcalIso/pT;"200,-0.1,0.6);
+   hists_["trackedLeg_postFILT_HcalIso"]=fs->make<TH1D>("trackedLeg_postFILT_HcalIso","relative Hcal iso of candidates passing tracked leg FILT;HcalIso/pT;"200,-0.1,0.6);
+   hists_["trackedLeg_postFILT_EP"]=fs->make<TH1D>("trackedLeg_postFILT_EP","(1/E)-(1/P) of candidates passing tracked leg FILT;(1/E)-(1/P);"200,-0.05,0.2);
 
+   */
+
+
+
+
+   /*
    //THIS declaration is here for reference
-
    //histsThree_["PFClusterSum_HCALovrECAL_gen_eta_energy"]=fs->make<TH3D>("PFClusterSum_HCALovrECAL_gen_eta_energy","Reco E_HCAL/E_ECAL for Pi+ vs gen Pi+ energy and eta", 100, 0., 210., 15, 1.55, 3.0, 30, 0., 15.);
-
    */
    
    tree=fs->make<TTree>("doubleEleTrigger","Summary of trackless double electron trigger event info");
@@ -1147,7 +1339,16 @@ doubleEleTracklessAnalyzer::doubleEleTracklessAnalyzer(const edm::ParameterSet& 
    tree->Branch("numEvts_passing_E_P_Filter_",&numEvts_passing_E_P_Filter_,"numEvts_passing_E_P_Filter_/I");
    tree->Branch("numEvts_passing_DetaFilter_",&numEvts_passing_DetaFilter_,"numEvts_passing_DetaFilter_/I");
    tree->Branch("numEvts_passing_DphiFilter_",&numEvts_passing_DphiFilter_,"numEvts_passing_DphiFilter_/I");
+   tree->Branch("numEvts_passing_TrackIsoFilter_",&numEvts_passing_TrackIsoFilter_,"numEvts_passing_TrackIsoFilter_/I");
 
+
+   tree->Branch("numEvts_passing_trackless_EtFilter_",&numEvts_passing_trackless_EtFilter_,"numEvts_passing_trackless_EtFilter_/I");
+   tree->Branch("numEvts_passing_trackless_ClusterShapeFilter_",&numEvts_passing_trackless_ClusterShapeFilter_,"numEvts_passing_trackless_ClusterShapeFilter_/I");
+   tree->Branch("numEvts_passing_trackless_EcalIsoFilter_",&numEvts_passing_trackless_EcalIsoFilter_,"numEvts_passing_trackless_EcalIsoFilter_/I");
+   tree->Branch("numEvts_passing_trackless_HEFilter_",&numEvts_passing_trackless_HEFilter_,"numEvts_passing_trackless_HEFilter_/I");
+   tree->Branch("numEvts_passing_trackless_HcalIsoFilter_",&numEvts_passing_trackless_HcalIsoFilter_,"numEvts_passing_trackless_HcalIsoFilter_/I");
+   tree->Branch("numEvts_passing_trackless_EtaFilter_",&numEvts_passing_trackless_EtaFilter_,"numEvts_passing_trackless_EtaFilter_/I");
+ 
 
    tree->Branch("gen_trackless_eta_",&gen_trackless_eta_,"gen_trackless_eta_/D");
    tree->Branch("gen_trackless_pT_",&gen_trackless_pT_,"gen_trackless_pT_/D");
@@ -1339,7 +1540,7 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	iEvent.getByLabel(untrackedLeptTag, untrackedLeptHandle);
 
 	if(!untrackedLeptHandle.isValid() ){
-		//std::cout<<"in evts with at least one GEN lepton in the tracked region, with Z boson mother, and pt > 27"<<std::endl;
+		//std::cout<<"in evts with 2 GEN leptons with pt > 15, both with Z boson mother, and at least one GEN lepton in the tracked region with pt > 27"<<std::endl;
 		//std::cout<<"did not find any GEN electron or positron with pt > 15, in the trackless EE region, and with Z mother"<<std::endl;
 		tree->Fill();
 		return;
@@ -1374,7 +1575,7 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
 	if(!genZedHandle.isValid() ){
 		//std::cout<<"in evts with two GEN leptons, one tracked, one untracked, both with Z boson mothers, and passed pt cuts"<<std::endl;
-		//std::cout<<"did not find an object, created by combining the two GEN leptons, with 40<mass<140"<<std::endl;
+		//std::cout<<"did not find an object, created by combining the two GEN leptons, with 60<mass<120"<<std::endl;
 		tree->Fill();
 		return;
 	}
@@ -1410,14 +1611,15 @@ doubleEleTracklessAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 			}
 
 		}//end loop over tracked gen electrons and positrons
-
-		GetMatchedTriggerObjects(iEvent, gen_trackless_eta_, gen_trackless_phi_, 5);
-		GetTrackedTriggerObjects(iEvent, gen_tracked_eta_, gen_tracked_phi_, 5);
+		
+		GetTrackedTriggerObjects(iEvent, gen_tracked_eta_, gen_tracked_phi_, .5);
+		
+		if(matched_tracked_pT_ > 1.) GetMatchedTriggerObjects(iEvent, gen_trackless_eta_, gen_trackless_phi_, .5);
 	}
 
 
 
-	if(matched_tracked_pT_ > 0. && matched_pT_ > 0.){
+	if(matched_tracked_pT_ > 1. && matched_pT_ > 1.){
 		//if this is true then compute the dilepton mass of the two HLT objects which fired the trigger
 		double hlt_mLLSqd = 2*matched_tracked_pT_*matched_pT_*(TMath::CosH(matched_tracked_eta_ - matched_eta_) - TMath::Cos(matched_tracked_phi_ - matched_phi_) );
 		if(hlt_mLLSqd > 0.) hlt_mLL_ = TMath::Sqrt(hlt_mLLSqd);

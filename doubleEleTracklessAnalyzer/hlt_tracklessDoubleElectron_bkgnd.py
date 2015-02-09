@@ -4984,8 +4984,14 @@ process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
         dataTier = cms.untracked.string( 'RECO' ),
         filterName = cms.untracked.string( '' )
     ),
-    outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
-    #outputCommands = cms.untracked.vstring( 'keep *' ) 
+    #Drop l1extra* collections 
+	#outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop l1extra*_*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
+    
+	#l1extra* collections are not dropped
+	outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
+    
+	#keep all collections
+	#outputCommands = cms.untracked.vstring( 'keep *' ) 
 
 	)
 process.FULLOutput = cms.EndPath( process.hltOutputFULL )

@@ -14,6 +14,7 @@ process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
 		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signalTest_contains_HLT_objects.root'
+		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signalTest_contains_HLT_objects_trackless_conditional_on_tracked_leg.root'
 		
 		#DY->ee files
 		#'root://cms-xrd-global.cern.ch//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_M_50_25ns_40PU_RAW_to_HLTObjects_1.root',

@@ -805,7 +805,7 @@ def calcEff(isUpperLimit, inputArray, critValFromInputArray, effDenom):
 
 
 #f1 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/all_Zee_signal_evt_tuples_early_Febr_2015.root")
-f1 = ROOT.TFile("/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_2_0/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/experiment.root")
+f1 = ROOT.TFile("/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/experiment.root")
 
 
 f2 = ROOT.TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/all_DY_to_ee_evt_tuples_early_Febr_2015.root")
@@ -841,8 +841,30 @@ sigSigmaIEIE = []
 sigPt = []
 sigEta = []
 sigHltMll = []  #hlt_mLL_ for Z->ee evts
-genTracklessPt = []
-genTrackedPt = []
+
+#GEN pt and eta plots after different GEN cuts
+genLeadingPt_cutZero = []
+genLeadingEta_cutZero = []
+genSubleadingPt_cutZero = []
+genSubleadingEta_cutZero = []
+genLeadingPt_cutOne = []
+genLeadingEta_cutOne = []
+genSubleadingPt_cutOne = []
+genSubleadingEta_cutOne = []
+genLeadingPt_cutTwo = []
+genLeadingEta_cutTwo = []
+genSubleadingPt_cutTwo = []
+genSubleadingEta_cutTwo = []
+genLeadingPt_cutThree = []
+genLeadingEta_cutThree = []
+genSubleadingPt_cutThree = []
+genSubleadingEta_cutThree = []
+
+genTracklessPt = []	#filled if numEvents_cutLvlFour_ == 1
+genTracklessEta = []
+genTrackedPt = []  #filled if numEvents_cutLvlFour_ == 1
+genTrackedEta = []
+
 
 #arrays for pT and eta of tracked HLT object in Z->ee triggered evts
 matchedPtAfterTrackedLeg = []   #pT of tracked HLT object matched to gen tracked lepton before trackless leg is studied
@@ -912,58 +934,171 @@ print 'the total number of DY->ee evts which were passed through the trigger = '
 #denominator of Z->ee trigger efficiency
 #equal to # of events with one untracked EE gen e- (pT > 15), one tracked gen e- (pT > 27), and GEN dilepton mass btwn 60. and 120. GeV
 efficiencyDenom = 0	
+
 passedCutZero = 0 
 passedCutOne = 0 
 passedCutTwo = 0 
 passedCutThree = 0 
 
+#vars to understand where good Z->ee GEN evts are being lost in tracked leg filters
+passedL1Seed = 0
+passedL1Filter = 0
+passedEtFilter = 0
+passedClusterShapeFilter = 0
+passedHEFilter = 0
+passedEcalIsoFilter = 0
+passedHcalIsoFilter = 0
+passedPixelMatchFilter = 0
+passedE_P_Filter = 0
+passedDetaFilter = 0
+passedDphiFilter = 0
+passedTrackIsoFilter = 0
+
+#vars to probe where good Z->ee GEN evts are being lost in trackless leg
+#filters
+passedTracklessEtFilter = 0
+passedTracklessClusterShapeFilter = 0
+passedTracklessEcalIsoFilter = 0
+passedTracklessHEFilter = 0
+passedTracklessHcalIsoFilter = 0
+passedTracklessEtaFilter = 0
+
 analyzeThisManyEvents = t1.GetEntries() #the number of TTree entries to inspect
-#eventually swap 2000 for t1.GetEntries()
+
 for z in xrange(analyzeThisManyEvents):
 	#loop over all events that were analyzed to make signal.root
 	t1.GetEntry(z)
 	if(t1.numEvents_cutLvlZero_ ==1):
 		passedCutZero += 1
+		genLeadingPt_cutZero.append(t1.gen_l1_pT_cutZero_)
+		genLeadingEta_cutZero.append(t1.gen_l1_eta_cutZero_)
+		genSubleadingPt_cutZero.append(t1.gen_l2_pT_cutZero_)
+		genSubleadingEta_cutZero.append(t1.gen_l2_eta_cutZero_)
+
 	if(t1.numEvents_cutLvlOne_ ==1):
 		passedCutOne += 1
+		genLeadingPt_cutOne.append(t1.gen_l1_pT_cutOne_)
+		genLeadingEta_cutOne.append(t1.gen_l1_eta_cutOne_)
+		genSubleadingPt_cutOne.append(t1.gen_l2_pT_cutOne_)
+		genSubleadingEta_cutOne.append(t1.gen_l2_eta_cutOne_)
+
+
 	if(t1.numEvents_cutLvlTwo_ ==1):
 		passedCutTwo += 1
+		genLeadingPt_cutTwo.append(t1.gen_l1_pT_cutTwo_)
+		genLeadingEta_cutTwo.append(t1.gen_l1_eta_cutTwo_)
+		genSubleadingPt_cutTwo.append(t1.gen_l2_pT_cutTwo_)
+		genSubleadingEta_cutTwo.append(t1.gen_l2_eta_cutTwo_)
+
+
 	if(t1.numEvents_cutLvlThree_ ==1):
 		passedCutThree += 1
+		genLeadingPt_cutThree.append(t1.gen_l1_pT_cutThree_)
+		genLeadingEta_cutThree.append(t1.gen_l1_eta_cutThree_)
+		genSubleadingPt_cutThree.append(t1.gen_l2_pT_cutThree_)
+		genSubleadingEta_cutThree.append(t1.gen_l2_eta_cutThree_)
 
-	if(t1.genTriggeredEvent_ > 0.):
-		#if genTriggeredEvent_ is > 0. then this DY->ee event had, at GEN lvl, a tracked (untracked) electron/positron with pt > 27 (15)
-		#and with a Z boson mother.  In addition, these two GEN electrons had an invariant mass between 40 and 140 GeV.
+
+	if(t1.numEvents_cutLvlFour_ ==1):
+		#if numEvents_cutLvlFour_ == 1 then this DY->ee event had, at GEN lvl, a tracked (untracked) electron/positron with pt > 27 (15)
+		#and the mother of both leptons was a Z boson.  In addition, these two GEN electrons had an invariant mass between 60 and 120 GeV.
+		efficiencyDenom += 1.
+		genTrackedPt.append(t1.gen_tracked_pT_)
+		genTrackedEta.append(t1.gen_tracked_eta_)
+		genTracklessPt.append(t1.gen_trackless_pT_)
+		genTracklessEta.append(t1.gen_trackless_eta_)
+
+		if(t1.numEvts_passing_L1Seed_ ==1):
+			passedL1Seed += 1
+	    
+		if(t1.numEvts_passing_L1Filter_ ==1):
+
+			passedL1Filter += 1
+
+
+		if(t1.numEvts_passing_EtFilter_ ==1):
 		
-		#calculate the dilepton mass at GEN level, and require that it be between 60 and 120 GeV
-		gen_mll = 0
-		gen_mll_sqd = 2*t1.gen_trackless_pT_*t1.gen_tracked_pT_*(math.cosh(t1.gen_tracked_eta_ - t1.gen_trackless_eta_) - math.cos(t1.gen_tracked_phi_ - t1.gen_trackless_phi_) )
-		if(gen_mll_sqd > 0.):
-			gen_mll = math.sqrt(gen_mll_sqd)
+			passedEtFilter += 1
 
-		if(gen_mll > 60. and gen_mll < 120.):
-			efficiencyDenom += 1.
-			genTrackedPt.append(t1.gen_tracked_pT_)
-			genTracklessPt.append(t1.gen_trackless_pT_)
-			if(t1.matched_tracked_pT_ > 0.):
-				passedTrackedLeg += 1
-				matchedPtAfterTrackedLeg.append(t1.matched_tracked_pT_)
-				matchedEtaAfterTrackedLeg.append(t1.matched_tracked_eta_)
+		if(t1.numEvts_passing_ClusterShapeFilter_ ==1):
+		
+			passedClusterShapeFilter += 1
 
-			if(t1.matched_pT_ > 0. and t1.matched_tracked_pT_ > 0.):
-				#fill sigEcalIso, sigPt, and other sig lists if the trigger fires in t1.GetEntry(z) 
-				matchedSigTuple.append([t1.matched_pT_, t1.matched_ecalClusterShape_SigmaIEtaIEta_, t1.matched_ecalIso_, t1.matched_hOverE_, t1.matched_hcalIso_, t1.hlt_mLL_])
-				sigEcalIso.append(t1.matched_ecalIso_)
-				sigHcalIso.append(t1.matched_hcalIso_)
-				sigHoverE.append(t1.matched_hOverE_)
-				sigSigmaIEIE.append(t1.matched_ecalClusterShape_SigmaIEtaIEta_)
-				sigPt.append(t1.matched_pT_)
-				sigEta.append(t1.matched_eta_)
-				sigHltMll.append(t1.hlt_mLL_)
-				sigTrackedPt.append(t1.matched_tracked_pT_)
-				sigTrackedEta.append(t1.matched_tracked_eta_)
-			#end filter which requires that the trigger is fired in the event t1.GetEntry(z)
-		#end filter which requires gen_mll to be btwn 60 and 120 GeV
+		if(t1.numEvts_passing_HEFilter_ ==1):
+		
+			passedHEFilter += 1
+
+
+		if(t1.numEvts_passing_EcalIsoFilter_ ==1):
+		
+			passedEcalIsoFilter += 1
+
+		if(t1.numEvts_passing_HcalIsoFilter_ ==1):
+		
+			passedHcalIsoFilter += 1
+
+		if(t1.numEvts_passing_PixelMatchFilter_ ==1):
+			
+			passedPixelMatchFilter += 1
+
+		if(t1.numEvts_passing_E_P_Filter_ ==1):
+		
+			passedE_P_Filter += 1
+
+		if(t1.numEvts_passing_DetaFilter_ ==1):
+		
+			passedDetaFilter += 1
+
+		if(t1.numEvts_passing_DphiFilter_ ==1):
+			
+			passedDphiFilter += 1
+
+		if(t1.numEvts_passing_TrackIsoFilter_ ==1):
+		
+			passedTrackIsoFilter += 1
+
+		if(t1.matched_tracked_pT_ > 0.):
+			passedTrackedLeg += 1
+			matchedPtAfterTrackedLeg.append(t1.matched_tracked_pT_)
+			matchedEtaAfterTrackedLeg.append(t1.matched_tracked_eta_)
+
+			if(t1.numEvts_passing_trackless_EtFilter_ ==1):
+		
+				passedTracklessEtFilter += 1
+
+			if(t1.numEvts_passing_trackless_ClusterShapeFilter_ ==1):
+			
+				passedTracklessClusterShapeFilter += 1
+
+			if(t1.numEvts_passing_trackless_EcalIsoFilter_ ==1):
+			
+				passedTracklessEcalIsoFilter += 1
+
+			if(t1.numEvts_passing_trackless_HEFilter_ ==1):
+			
+				passedTracklessHEFilter += 1
+
+			if(t1.numEvts_passing_trackless_HcalIsoFilter_ ==1):
+			
+				passedTracklessHcalIsoFilter += 1
+
+			if(t1.numEvts_passing_trackless_EtaFilter_ ==1):
+			
+				passedTracklessEtaFilter += 1
+	
+		if(t1.matched_pT_ > 1. and t1.matched_tracked_pT_ > 1.):
+			#fill sigEcalIso, sigPt, and other sig lists if the trigger fires in t1.GetEntry(z) 
+			matchedSigTuple.append([t1.matched_pT_, t1.matched_ecalClusterShape_SigmaIEtaIEta_, t1.matched_ecalIso_, t1.matched_hOverE_, t1.matched_hcalIso_, t1.hlt_mLL_])
+			sigEcalIso.append(t1.matched_ecalIso_)
+			sigHcalIso.append(t1.matched_hcalIso_)
+			sigHoverE.append(t1.matched_hOverE_)
+			sigSigmaIEIE.append(t1.matched_ecalClusterShape_SigmaIEtaIEta_)
+			sigPt.append(t1.matched_pT_)
+			sigEta.append(t1.matched_eta_)
+			sigHltMll.append(t1.hlt_mLL_)
+			sigTrackedPt.append(t1.matched_tracked_pT_)
+			sigTrackedEta.append(t1.matched_tracked_eta_)
+		#end filter which requires that the trigger is fired in the event t1.GetEntry(z)
 	#end requirement that the GEN Z->ee cuts are passed 
 #end loop over entries in TTree t1
 
@@ -971,8 +1106,28 @@ print 'total number of DY->ee events analyzed = ', passedCutZero
 print 'num of DY->ee evts with two gen electrons coming from a Z, both with pT > 15 = ', passedCutOne
 print 'num of DY->ee evts with two gen electrons, and one is tracked with pT > 27 = ', passedCutTwo
 print 'num of DY->ee evts with a tracked gen electron, and a trackless gen electron = ', passedCutThree
-print 'num of golden Z->ee evts where tracked leg fires and tracked HLT object is matched to GEN tracked electron = ', passedTrackedLeg 
-print 'num of golden Z->ee evts where tracked and trackless leg fire, and both HLT objects are matched to GEN = ', len(sigPt)
+print 'num evts where all GEN requirements are fulfilled = ', efficiencyDenom
+print 'num evts where L1 seed is fired = ', passedL1Seed
+#print 'num evts where L1Filter requirements are met = ', passedL1Filter
+print 'num evts where EtFilter requirements are met = ', passedEtFilter
+print 'num evts where ClusterShapeFilter requirements are met = ', passedClusterShapeFilter
+print 'num evts where HEFilter requirements are met = ', passedHEFilter
+print 'num evts where EcalIsoFilter requirements are met = ', passedEcalIsoFilter
+print 'num evts where HcalIsoFilter requirements are met = ', passedHcalIsoFilter
+print 'num evts where PixelMatchFilter requirements are met = ', passedPixelMatchFilter
+print 'num evts where E_P_Filter requirements are met = ', passedE_P_Filter
+print 'num evts where DetaFilter requirements are met = ', passedDetaFilter
+print 'num evts where DphiFilter requirements are met = ', passedDphiFilter
+print 'num evts where TrackIsoFilter requirements are met = ', passedTrackIsoFilter
+print 'num of good Z->ee evts where tracked leg fires and tracked HLT object is matched to GEN tracked electron = ', passedTrackedLeg 
+print 'num good Z->ee evts where tracked leg fires and trackless EtFilter requirements are met = ', passedTracklessEtFilter
+print 'num good Z->ee evts where tracked leg fires and trackless ClusterShapeFilter requirements are met = ', passedTracklessClusterShapeFilter
+print 'num good Z->ee evts where tracked leg fires and trackless EcalIsoFilter requirements are met = ', passedTracklessEcalIsoFilter
+print 'num good Z->ee evts where tracked leg fires and trackless HEFilter requirements are met = ', passedTracklessHEFilter
+print 'num good Z->ee evts where tracked leg fires and trackless HcalIsoFilter requirements are met = ', passedTracklessHcalIsoFilter
+print 'num good Z->ee evts where tracked leg fires and trackless EtaFilter requirements are met = ', passedTracklessEtaFilter
+print 'num of good Z->ee evts where tracked and trackless leg fire, and both HLT objects are matched to GEN = ', len(sigPt)
+
 
 #matchedSigTupleLen defined here is equal to the # of events which passed the trackless leg of the trigger
 #matchedSigTupleLen = float(len(matchedSigTuple))
@@ -1109,6 +1264,34 @@ print 'num of golden Z->ee evts where tracked and trackless leg fire, and both H
 #makeAndSaveHisto(bkgndHighPtHltMLL, "bkgndHighPtHltMLLCanv","M_{LL} of HLT objects firing trigger in QCD dijet pt 30-80 events",200, 0., 300., "../triggerPlots/hltObjectPlots/bkgndHighPtHltMLL_allEvts.png")
 #
 #makeAndSaveHisto(bkgndLowPtHltMLL, "bkgndLowPtHltMLLCanv","M_{LL} of HLT objects firing trigger in QCD dijet pt 20-30 events",200, 0., 300., "../triggerPlots/hltObjectPlots/bkgndLowPtHltMLL_allEvts.png")
+
+#makeAndSaveHisto(genLeadingPt_cutZero, "genLeadingPt_cutZeroHistoCanv","P_{T} of leading pT electron no cuts",100,0.,150., "../triggerPlots/genParticlePlots/signal_genLeadingPt_cutZeroHisto.png")
+#makeAndSaveHisto(genLeadingEta_cutZero, "genLeadingEta_cutZeroHistoCanv","#eta of leading pT electron no cuts",200,-4.0,4.0, "../triggerPlots/genParticlePlots/signal_genLeadingEta_cutZeroHisto.png")
+#makeAndSaveHisto(genSubleadingPt_cutZero, "genSubleadingPt_cutZeroHistoCanv","P_{T} of subleading pT electron no cuts",100,0.,150., "../triggerPlots/genParticlePlots/signal_genSubleadingPt_cutZeroHisto.png")
+#makeAndSaveHisto(genSubleadingEta_cutZero, "genSubleadingEta_cutZeroHistoCanv","#eta of subleading pT electron no cuts",200,-4.0,4.0, "../triggerPlots/genParticlePlots/signal_genSubleadingEta_cutZeroHisto.png")
+#
+#makeAndSaveHisto(genLeadingPt_cutOne, "genLeadingPt_cutOneHistoCanv","P_{T} of leading pT electron   pt>15 and Z boson mom",100,0.,150., "../triggerPlots/genParticlePlots/signal_genLeadingPt_cutOneHisto.png")
+#makeAndSaveHisto(genLeadingEta_cutOne, "genLeadingEta_cutOneHistoCanv","#eta of leading pT electron   pt>15 and Z boson mom",200,-4.0,4.0, "../triggerPlots/genParticlePlots/signal_genLeadingEta_cutOneHisto.png")
+#makeAndSaveHisto(genSubleadingPt_cutOne, "genSubleadingPt_cutOneHistoCanv","P_{T} of subleading pT electron   pt>15 and Z boson mom",100,0.,150., "../triggerPlots/genParticlePlots/signal_genSubleadingPt_cutOneHisto.png")
+#makeAndSaveHisto(genSubleadingEta_cutOne, "genSubleadingEta_cutOneHistoCanv","#eta of subleading pT electron   pt>15 and Z boson mom",200,-4.0,4.0, "../triggerPlots/genParticlePlots/signal_genSubleadingEta_cutOneHisto.png")
+#
+#makeAndSaveHisto(genLeadingPt_cutTwo, "genLeadingPt_cutTwoHistoCanv","P_{T} of leading pT electron   event has tracked electron with pt>27",100,0.,150., "../triggerPlots/genParticlePlots/signal_genLeadingPt_cutTwoHisto.png")
+#makeAndSaveHisto(genLeadingEta_cutTwo, "genLeadingEta_cutTwoHistoCanv","#eta of leading pT electron   event has tracked electron with pt>27",200,-4.0,4.0, "../triggerPlots/genParticlePlots/signal_genLeadingEta_cutTwoHisto.png")
+#makeAndSaveHisto(genSubleadingPt_cutTwo, "genSubleadingPt_cutTwoHistoCanv","P_{T} of subleading pT electron   event has tracked electron with pt>27",100,0.,150., "../triggerPlots/genParticlePlots/signal_genSubleadingPt_cutTwoHisto.png")
+#makeAndSaveHisto(genSubleadingEta_cutTwo, "genSubleadingEta_cutTwoHistoCanv","#eta of subleading pT electron   event has tracked electron with pt>27",200,-4.0,4.0, "../triggerPlots/genParticlePlots/signal_genSubleadingEta_cutTwoHisto.png")
+#
+#makeAndSaveHisto(genLeadingPt_cutThree, "genLeadingPt_cutThreeHistoCanv","P_{T} of leading pT electron   event has trackless electron",100,0.,150., "../triggerPlots/genParticlePlots/signal_genLeadingPt_cutThreeHisto.png")
+#makeAndSaveHisto(genLeadingEta_cutThree, "genLeadingEta_cutThreeHistoCanv","#eta of leading pT electron   event has trackless electron",200,-4.0,4.0, "../triggerPlots/genParticlePlots/signal_genLeadingEta_cutThreeHisto.png")
+#makeAndSaveHisto(genSubleadingPt_cutThree, "genSubleadingPt_cutThreeHistoCanv","P_{T} of subleading pT electron   event has trackless electron",100,0.,150., "../triggerPlots/genParticlePlots/signal_genSubleadingPt_cutThreeHisto.png")
+#makeAndSaveHisto(genSubleadingEta_cutThree, "genSubleadingEta_cutThreeHistoCanv","#eta of subleading pT electron   event has trackless electron",200,-4.0,4.0, "../triggerPlots/genParticlePlots/signal_genSubleadingEta_cutThreeHisto.png")
+#
+#
+#makeAndSaveHisto(genTracklessPt, "genTracklessPtHistoCanv","P_{T} of trackless gen electron from Z->ee decay   60<mLL<120",100,0.,150., "../triggerPlots/genParticlePlots/signal_gen_tracklessPt_cutFourHisto.png")
+#makeAndSaveHisto(genTracklessEta, "genTracklessEtaHistoCanv","#eta of trackless gen electron from Z->ee decay   60<mLL<120",200,-4.0,4.0, "../triggerPlots/genParticlePlots/signal_gen_tracklessEta_cutFourHisto.png")
+
+
+#makeAndSaveHisto(genTrackedPt, "genTrackedPtHistoCanv","P_{T} of tracked gen electron from Z->ee decay   60<mLL<120",100,0.,150., "../triggerPlots/genParticlePlots/signal_gen_trackedPt_cutFourHisto.png")
+#makeAndSaveHisto(genTrackedEta, "genTrackedEtaHistoCanv","#eta of tracked gen electron from Z->ee decay   60<mLL<120",200,-4.0,4.0, "../triggerPlots/genParticlePlots/signal_gen_trackedEta_cutFourHisto.png")
 
 
 #makeAndSaveHisto(someArray, canvName, histTitle, numBins, xmin, xmax, outFilePath)

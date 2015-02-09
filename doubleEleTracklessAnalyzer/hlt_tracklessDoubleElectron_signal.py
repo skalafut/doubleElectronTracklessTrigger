@@ -4879,15 +4879,11 @@ process.genEle = cms.EDFilter("CandViewSelector",
 process.genEleTrack = cms.EDFilter("CandSelector",
 		src = cms.InputTag("genEle"),
 		cut = cms.string("pt> 27 && eta < 2.5 && eta > -2.5"),
-		#cut = cms.string("pt> 27"),
-		
 		)
 
 process.genUntrack = cms.EDFilter("CandSelector",
 		src = cms.InputTag("genEle"),
 		cut = cms.string("(eta < 3.0 && eta > 2.5 ) || (eta < -2.5 && eta > -3.0)"),
-		#cut = cms.string(""),
-		
 		)
 
 process.combEle = cms.EDProducer("CandViewShallowCloneCombiner",
@@ -4896,17 +4892,78 @@ process.combEle = cms.EDProducer("CandViewShallowCloneCombiner",
 		cut = cms.string("mass > 60 && mass < 120"),
 		)
 
+process.genAnalyzerZero = cms.EDAnalyzer('genAnalyzerZero',
+		electronCollectionOne = cms.InputTag("genParticles","","HLT"),
+		electronCollectionTwo = cms.InputTag("","",""),
+		electronCollectionThree = cms.InputTag("","",""),
+		zedCollection = cms.InputTag("","","")
+	)
+
+#look for evts with two electrons, both with Z boson mother and pt>15
+process.genAnalyzerOne = cms.EDAnalyzer('genAnalyzerOne',
+		electronCollectionOne = cms.InputTag("genEle","","TEST"),
+		electronCollectionTwo = cms.InputTag("","",""),
+		electronCollectionThree = cms.InputTag("","",""),
+		zedCollection = cms.InputTag("","","")
+	)
+
+#look for a GEN electron with |eta| btwn 0 and 2.5, and pt > 27
+process.genAnalyzerTwo = cms.EDAnalyzer('genAnalyzerTwo',
+		electronCollectionOne = cms.InputTag("genEleTrack","","TEST"),
+		electronCollectionTwo = cms.InputTag("genEle","","TEST"),
+		electronCollectionThree = cms.InputTag("","",""),
+		zedCollection = cms.InputTag("","","")
+	)
+
+#look for a GEN electron with |eta| btwn 2.5 and 3
+process.genAnalyzerThree = cms.EDAnalyzer('genAnalyzerThree',
+		electronCollectionOne = cms.InputTag("genUntrack","","TEST"),
+		electronCollectionTwo = cms.InputTag("genEleTrack","","TEST"),
+		electronCollectionThree = cms.InputTag("genEle","","TEST"),
+		zedCollection = cms.InputTag("","","")
+	)
+
+#look for evts where a tracked and trackless electron are found with invariant mass btwn 60 and 120 GeV
+process.genAnalyzerFour = cms.EDAnalyzer('genAnalyzerFour',
+		electronCollectionOne = cms.InputTag("genUntrack","","TEST"),
+		electronCollectionTwo = cms.InputTag("genEleTrack","","TEST"),
+		electronCollectionThree = cms.InputTag("","",""),
+		zedCollection = cms.InputTag("combEle","","TEST")
+			
+	)
+
+
+#process.recoAnalyzerZero = cms.EDAnalyzer('recoAnalyzerZero',
+#		trackedElectronCollection = cms.InputTag(),
+#		tracklessElectronCollection = cms.InputTag()
+#	
+#		)
+#
+#process.recoAnalyzerOne = cms.EDAnalyzer('recoAnalyzerOne',
+#		trackedFilter = cms.InputTag("","","TEST"),
+#		tracklessFilter = cms.InputTag()
+#	
+#		)
 
 process.HLTriggerFirstPath = cms.Path( 
-		process.genEle
+		process.genAnalyzerZero
+		*process.genEle
+		*process.genAnalyzerOne
 		*process.genEleTrack
+		*process.genAnalyzerTwo
 		*process.genUntrack
-		*process.combEle*
-		process.hltGetConditions 
+		*process.genAnalyzerThree
+		*process.combEle
+		*process.genAnalyzerFour
+		*process.hltGetConditions 
 		+ process.hltGetRaw 
 		+ process.hltBoolFalse )
 
 #process.AlCa_EcalPhiSym_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ZeroBias + process.hltPreAlCaEcalPhiSym + process.HLTDoFullUnpackingEgammaEcalWithoutPreshowerSequence + process.hltAlCaPhiSymStream + process.hltAlCaPhiSymUncalibrator + process.HLTEndSequence )
+
+process.TFileService = cms.Service("TFileService",
+		fileName = cms.string('treeTest_allGenAnalyzers.root')
+)
 
 process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_v1 = cms.Path( 
 		process.HLTBeginSequence 
@@ -4923,7 +4980,16 @@ process.HLTriggerFinalPath = cms.Path( process.hltGtDigis + process.hltScalersRa
 process.source = cms.Source( "PoolSource",
     fileNames = cms.untracked.vstring(
         #'file:RelVal_Raw_GRun_MC.root',
-		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset.root',
+		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset_1.root',
+		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset_3.root',
+		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset_4.root',
+		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset_5.root',
+		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset_6.root',
+		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset_7.root',
+		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset_8.root',
+		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset_9.root',
+
+
     ),
     inputCommands = cms.untracked.vstring(
         'keep *'
@@ -4979,15 +5045,21 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 #this is a standalone module to save the output from cmsRun hlt_tracklessDoubleElectron.py into a .root file
 #This .root file can then be analyzed by the trigger optimization script
 process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
-    #fileName = cms.untracked.string( "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_low_thresholds_oneFile.root" ),
-    fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signalTest_contains_HLT_objects.root"),
+    fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/Test_signal_contains_HLT_objects.root"),
+	#fileName = cms.untracked.string("/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/Test_signal_has_hlt_objects.root"),
 	fastCloning = cms.untracked.bool( False ),
     dataset = cms.untracked.PSet(
         dataTier = cms.untracked.string( 'RECO' ),
         filterName = cms.untracked.string( '' )
     ),
-    outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
-    #outputCommands = cms.untracked.vstring( 'keep *' ) 
+    #Drop l1extra* collections 
+	outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop l1extra*_*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
+    
+	#l1extra* collections are not dropped
+	#outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
+    
+	#keep all collections
+	#outputCommands = cms.untracked.vstring( 'keep *' ) 
 
 	)
 process.FULLOutput = cms.EndPath( process.hltOutputFULL )
@@ -4995,7 +5067,7 @@ process.FULLOutput = cms.EndPath( process.hltOutputFULL )
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32( 50 )
+    input = cms.untracked.int32(130)
 )
 
 # enable the TrigReport and TimeReport
