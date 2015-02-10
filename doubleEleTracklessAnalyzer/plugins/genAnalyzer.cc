@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
-// Package:    doubleElectronTracklessTrigger/genAnalyzerOne
-// Class:      genAnalyzerOne
+// Package:    doubleElectronTracklessTrigger/genAnalyzer
+// Class:      genAnalyzer
 // 
-/**\class genAnalyzerOne genAnalyzerOne.cc doubleElectronTracklessTrigger/genAnalyzerOne/plugins/genAnalyzerOne.cc
+/**\class genAnalyzer genAnalyzer.cc doubleElectronTracklessTrigger/genAnalyzer/plugins/genAnalyzer.cc
 
  Description: [one line class summary]
 
@@ -107,10 +107,10 @@
 // class declaration
 //
 
-class genAnalyzerOne : public edm::EDAnalyzer {
+class genAnalyzer : public edm::EDAnalyzer {
    public:
-      explicit genAnalyzerOne(const edm::ParameterSet&);
-      ~genAnalyzerOne();
+      explicit genAnalyzer(const edm::ParameterSet&);
+      ~genAnalyzer();
 
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
      
@@ -128,20 +128,13 @@ virtual void endJob() override;
 
 // ----------member data ---------------------------
 
+std::string tName;
 
 //may need three collections of GEN electron objects, and one Z boson object collection in analyzer
-edm::InputTag eleCollOneTag;
-edm::InputTag eleCollTwoTag;
-edm::InputTag eleCollThreeTag;
-edm::InputTag zedCollTag;
+edm::InputTag genCollOneTag;
 
 //Handles to GEN object collections
-edm::Handle<std::vector<reco::GenParticle> > genPart;
-edm::Handle<edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> > > leptonsFromZHandle;
-edm::Handle<edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> > > trackedLeptHandle;
-edm::Handle<edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> > > untrackedLeptHandle;
-edm::Handle<std::vector<reco::CompositeCandidate> > genZedHandle;
-	
+edm::Handle<edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> > > leptons;
 
 TTree * tree;
 
@@ -150,6 +143,8 @@ TTree * tree;
 Float_t etaGenEle[2];
 Float_t ptGenEle[2];
 Float_t phiGenEle[2];
+
+Float_t invMassGen;
 
 };
 
@@ -165,18 +160,15 @@ Float_t phiGenEle[2];
 // constructors and destructor
 //
 
-genAnalyzerOne::genAnalyzerOne(const edm::ParameterSet& iConfig):
-	eleCollOneTag(iConfig.getParameter<edm::InputTag>("electronCollectionOne")),
-	eleCollTwoTag(iConfig.getParameter<edm::InputTag>("electronCollectionTwo")),
-	eleCollThreeTag(iConfig.getParameter<edm::InputTag>("electronCollectionThree")),
-	zedCollTag(iConfig.getParameter<edm::InputTag>("zedCollection"))
+genAnalyzer::genAnalyzer(const edm::ParameterSet& iConfig):
+	tName(iConfig.getParameter<std::string>("treeName")),
+	genCollOneTag(iConfig.getParameter<edm::InputTag>("genCollectionOne"))
 
 {
    //now do what ever initialization is needed
    edm::Service<TFileService> fs;
    
-   tree=fs->make<TTree>("genTree","pt, phi and eta of two GEN electrons in each event");
-
+   tree=fs->make<TTree>(tName.c_str(),"GEN electron kinematic info");
 
    //this is used for a dynamically resized array, NOT a vector
    //tree->Branch("nEle",&nEle,"nEle/I");
@@ -185,11 +177,13 @@ genAnalyzerOne::genAnalyzerOne(const edm::ParameterSet& iConfig):
    tree->Branch("etaGenEle",etaGenEle,"etaGenEle[2]/F");
    tree->Branch("ptGenEle",ptGenEle,"ptGenEle[2]/F");
    tree->Branch("phiGenEle",phiGenEle,"phiGenEle[2]/F");
+   tree->Branch("invMassGen",&invMassGen,"invMassGen/F");
+
 
 }
 
 
-genAnalyzerOne::~genAnalyzerOne()
+genAnalyzer::~genAnalyzer()
 {
  
    // do anything here that needs to be done at desctruction time
@@ -204,26 +198,22 @@ genAnalyzerOne::~genAnalyzerOne()
 
 // ------------ method called for each event  ------------
 void
-genAnalyzerOne::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+genAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 	using namespace edm;
 
-	iEvent.getByLabel(eleCollOneTag, leptonsFromZHandle);
+	iEvent.getByLabel(genCollOneTag, leptons);
 
-	if(!leptonsFromZHandle.isValid() || leptonsFromZHandle->size() < 2) return;
+	edm::OwnVector<reco::Candidate>::const_iterator leading = leptons->end(), subleading = leptons->end();
 
-	edm::OwnVector<reco::Candidate>::const_iterator leading = leptonsFromZHandle->end(), subleading = leptonsFromZHandle->end();
-
-	for(edm::OwnVector<reco::Candidate>::const_iterator genIt = leptonsFromZHandle->begin(); genIt != leptonsFromZHandle->end(); genIt++){
-		if(std::fabs(genIt->pdgId()) == 11 && std::fabs(genIt->mother(0)->pdgId()) == 23){
-			if(leading==leptonsFromZHandle->end()) leading=genIt;
-			else{
-				if(genIt->pt() > leading->pt()){
-					subleading = leading;
-					leading = genIt;
-				}
-				else if(subleading==leptonsFromZHandle->end() || genIt->pt() > subleading->pt()) subleading = genIt;
+	for(edm::OwnVector<reco::Candidate>::const_iterator genIt = leptons->begin(); genIt != leptons->end(); genIt++){
+		if(leading==leptons->end()) leading=genIt;
+		else{
+			if(genIt->pt() > leading->pt()){
+				subleading = leading;
+				leading = genIt;
 			}
+			else if(subleading==leptons->end() || genIt->pt() > subleading->pt()) subleading = genIt;
 		}
 	}//end loop over reco::Candidate collection
 
@@ -233,6 +223,8 @@ genAnalyzerOne::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	etaGenEle[1] = subleading->eta();
 	ptGenEle[1] = subleading->pt();
 	phiGenEle[1] = subleading->phi();
+
+	invMassGen = TMath::Sqrt(2*ptGenEle[0]*ptGenEle[1]*( TMath::CosH(etaGenEle[0]-etaGenEle[1])-TMath::Cos(phiGenEle[0]-phiGenEle[1]) ) );
 
 	tree->Fill();
 
@@ -251,7 +243,7 @@ genAnalyzerOne::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-genAnalyzerOne::beginJob()
+genAnalyzer::beginJob()
 {
 /*
   tree_file = new TFile(foutName.c_str(), "recreate");
@@ -272,7 +264,7 @@ genAnalyzerOne::beginJob()
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
-genAnalyzerOne::endJob() 
+genAnalyzer::endJob() 
 {
 	//loop over bins of "EventFraction", divide each bin content by totalNumEvents, then reset the bin content to the old content divided by totalNumEvents
 
@@ -304,7 +296,7 @@ genAnalyzerOne::endJob()
 // ------------ method called when starting to processes a run  ------------
 /*
 void 
-genAnalyzerOne::beginRun(edm::Run const&, edm::EventSetup const&)
+genAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&)
 {
 }
 */
@@ -312,7 +304,7 @@ genAnalyzerOne::beginRun(edm::Run const&, edm::EventSetup const&)
 // ------------ method called when ending the processing of a run  ------------
 /*
 void 
-genAnalyzerOne::endRun(edm::Run const&, edm::EventSetup const&)
+genAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
 {
 }
 */
@@ -320,7 +312,7 @@ genAnalyzerOne::endRun(edm::Run const&, edm::EventSetup const&)
 // ------------ method called when starting to processes a luminosity block  ------------
 /*
 void 
-genAnalyzerOne::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+genAnalyzer::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
 {
 }
 */
@@ -328,14 +320,14 @@ genAnalyzerOne::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetu
 // ------------ method called when ending the processing of a luminosity block  ------------
 /*
 void 
-genAnalyzerOne::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+genAnalyzer::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
 {
 }
 */
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
 void
-genAnalyzerOne::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+genAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   //The following says we do not know what parameters are allowed so do no validation
   // Please change this to state exactly what you do use, even if it is no parameters
   edm::ParameterSetDescription desc;
@@ -344,7 +336,7 @@ genAnalyzerOne::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
 }
 
 /*
-void genAnalyzerOne::InitNewTree(void){
+void genAnalyzer::InitNewTree(void){
 
   //make one branch for each unique variable I want to track - ecal iso, lepton pT, invariant mass of dilepton system, etc
 
@@ -402,7 +394,7 @@ void genAnalyzerOne::InitNewTree(void){
 }
 
 //negative index means the corresponding electron does not exist
-void genAnalyzerOne::TreeSetSingleElectronVar(const pat::Electron& electron1, int index){
+void genAnalyzer::TreeSetSingleElectronVar(const pat::Electron& electron1, int index){
 
   if(index<0){
     PtEle[-index] 	  = 0;  
@@ -418,7 +410,7 @@ void genAnalyzerOne::TreeSetSingleElectronVar(const pat::Electron& electron1, in
   phiEle[index]    = electron1.phi();
 }
 
-void genAnalyzerOne::TreeSetSingleElectronVar(const reco::SuperCluster& electron1, int index){
+void genAnalyzer::TreeSetSingleElectronVar(const reco::SuperCluster& electron1, int index){
 
   if(index<0){
     PtEle[-index] 	  = 0;
@@ -436,7 +428,7 @@ void genAnalyzerOne::TreeSetSingleElectronVar(const reco::SuperCluster& electron
   phiEle[index]    = electron1.phi();
 }
 
-void genAnalyzerOne::TreeSetDiElectronVar(const pat::Electron& electron1, const reco::SuperCluster& electron2){
+void genAnalyzer::TreeSetDiElectronVar(const pat::Electron& electron1, const reco::SuperCluster& electron2){
   
   TreeSetSingleElectronVar(electron1, 0);
   TreeSetSingleElectronVar(electron2, 1);
@@ -457,4 +449,4 @@ void genAnalyzerOne::TreeSetDiElectronVar(const pat::Electron& electron1, const 
 
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(genAnalyzerOne);
+DEFINE_FWK_MODULE(genAnalyzer);

@@ -4871,9 +4871,10 @@ process.HLTEle15WPYYtracklessSequence = cms.Sequence(
 		+ process.hltEgammaNoTrackerEtaPtFilter 
 		+ process.hltEgammaNoTrackerNCandidatesFilter )
 
+#gen particle kinematic and ID filters, and Z producer
 process.genEle = cms.EDFilter("CandViewSelector",
 		src = cms.InputTag("genParticles"),
-		cut = cms.string("(pdgId == 11 || pdgId == -11) && pt > 15 && mother(0).pdgId == 23"),
+		cut = cms.string("(pdgId == 11 || pdgId == -11) && mother(0).pdgId == 23"),
 		)
 
 process.genEleTrack = cms.EDFilter("CandSelector",
@@ -4883,7 +4884,7 @@ process.genEleTrack = cms.EDFilter("CandSelector",
 
 process.genUntrack = cms.EDFilter("CandSelector",
 		src = cms.InputTag("genEle"),
-		cut = cms.string("(eta < 3.0 && eta > 2.5 ) || (eta < -2.5 && eta > -3.0)"),
+		cut = cms.string("pt> 15 && ( (eta < 3.0 && eta > 2.5 ) || (eta < -2.5 && eta > -3.0) )"),
 		)
 
 process.combEle = cms.EDProducer("CandViewShallowCloneCombiner",
@@ -4892,90 +4893,109 @@ process.combEle = cms.EDProducer("CandViewShallowCloneCombiner",
 		cut = cms.string("mass > 60 && mass < 120"),
 		)
 
-process.genAnalyzerZero = cms.EDAnalyzer('genAnalyzerZero',
-		electronCollectionOne = cms.InputTag("genParticles","","HLT"),
-		electronCollectionTwo = cms.InputTag("","",""),
-		electronCollectionThree = cms.InputTag("","",""),
-		zedCollection = cms.InputTag("","","")
-	)
+##gen count filters
+process.trackGenEleFilter = cms.EDFilter("CandViewCountFilter",
+		src = cms.InputTag("genEleTrack"),
+		minNumber = cms.uint32(1)
+		)
 
-#look for evts with two electrons, both with Z boson mother and pt>15
-process.genAnalyzerOne = cms.EDAnalyzer('genAnalyzerOne',
-		electronCollectionOne = cms.InputTag("genEle","","TEST"),
-		electronCollectionTwo = cms.InputTag("","",""),
-		electronCollectionThree = cms.InputTag("","",""),
-		zedCollection = cms.InputTag("","","")
-	)
+process.tracklessGenEleFilter = cms.EDFilter("CandViewCountFilter",
+		src = cms.InputTag("genUntrack"),
+		minNumber = cms.uint32(1)
+		)
+
+process.ZeeFilter = cms.EDFilter("CandViewCountFilter",
+		src = cms.InputTag("combEle"),
+		minNumber = cms.uint32(1)
+		)
+
+################################################################################
+#gen analyzers (really only need to run genAnalyzerOne)
+
+#look for evts with two electrons, both with Z boson mother 
+process.genAnalyzerOne = cms.EDAnalyzer('genAnalyzer',
+		treeName = cms.string("genElectronsFromZ"),
+		genCollectionOne = cms.InputTag("genEle","","TEST"),
+		)
 
 #look for a GEN electron with |eta| btwn 0 and 2.5, and pt > 27
-process.genAnalyzerTwo = cms.EDAnalyzer('genAnalyzerTwo',
-		electronCollectionOne = cms.InputTag("genEleTrack","","TEST"),
-		electronCollectionTwo = cms.InputTag("genEle","","TEST"),
-		electronCollectionThree = cms.InputTag("","",""),
-		zedCollection = cms.InputTag("","","")
-	)
+process.genAnalyzerTwo = cms.EDAnalyzer('specificGenAnalyzer',
+		treeName = cms.string("genTrackedElectrons"),
+		genCollectionOne = cms.InputTag("genEleTrack","","TEST"),
+		)
 
-#look for a GEN electron with |eta| btwn 2.5 and 3
-process.genAnalyzerThree = cms.EDAnalyzer('genAnalyzerThree',
-		electronCollectionOne = cms.InputTag("genUntrack","","TEST"),
-		electronCollectionTwo = cms.InputTag("genEleTrack","","TEST"),
-		electronCollectionThree = cms.InputTag("genEle","","TEST"),
-		zedCollection = cms.InputTag("","","")
-	)
+#look for a GEN electron with pt>15 and |eta| btwn 2.5 and 3
+process.genAnalyzerThree = cms.EDAnalyzer('specificGenAnalyzer',
+		treeName = cms.string("genTracklessElectrons"),
+		genCollectionOne = cms.InputTag("genUntrack","","TEST"),
+		)
 
 #look for evts where a tracked and trackless electron are found with invariant mass btwn 60 and 120 GeV
-process.genAnalyzerFour = cms.EDAnalyzer('genAnalyzerFour',
-		electronCollectionOne = cms.InputTag("genUntrack","","TEST"),
-		electronCollectionTwo = cms.InputTag("genEleTrack","","TEST"),
-		electronCollectionThree = cms.InputTag("","",""),
-		zedCollection = cms.InputTag("combEle","","TEST")
-			
-	)
+process.genAnalyzerFour = cms.EDAnalyzer('specificGenAnalyzer',
+		treeName = cms.string("genTriggeredZee"),
+		genCollectionOne = cms.InputTag("genEle","","TEST"),
+		)
 
-
+#this analyzer will make distributions of tracked and trackless leg cut variables
+#before any tracked or trackless leg filters are applied
 #process.recoAnalyzerZero = cms.EDAnalyzer('recoAnalyzerZero',
-#		trackedElectronCollection = cms.InputTag(),
-#		tracklessElectronCollection = cms.InputTag()
+#		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
+#		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
+#		genTrackedElectronCollection = cms.InputTag("","",""),
+#		genTracklessElectronCollection = cms.InputTag("","","")
 #	
 #		)
-#
+
+#this analyzer will be used for Z->ee signal evts where dR matching btwn GEN and HLT objects should be required
 #process.recoAnalyzerOne = cms.EDAnalyzer('recoAnalyzerOne',
-#		trackedFilter = cms.InputTag("","","TEST"),
-#		tracklessFilter = cms.InputTag()
+#		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
+#		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
+#		genTrackedElectronCollection = cms.InputTag("need something here","","and here"),
+#		genTracklessElectronCollection = cms.InputTag("need something here","","and here")
 #	
 #		)
 
 process.HLTriggerFirstPath = cms.Path( 
-		process.genAnalyzerZero
-		*process.genEle
+		process.genEle
 		*process.genAnalyzerOne
-		*process.genEleTrack
-		*process.genAnalyzerTwo
+
 		*process.genUntrack
+		*process.tracklessGenEleFilter
 		*process.genAnalyzerThree
+	
+		*process.genEleTrack
+		#this kills events *process.trackGenEleFilter
+		*process.genAnalyzerTwo
+		
 		*process.combEle
+		*process.ZeeFilter
 		*process.genAnalyzerFour
 		*process.hltGetConditions 
 		+ process.hltGetRaw 
 		+ process.hltBoolFalse )
 
+
 #process.AlCa_EcalPhiSym_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ZeroBias + process.hltPreAlCaEcalPhiSym + process.HLTDoFullUnpackingEgammaEcalWithoutPreshowerSequence + process.hltAlCaPhiSymStream + process.hltAlCaPhiSymUncalibrator + process.HLTEndSequence )
 
+#process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_v1 = cms.Path( 
+#		process.HLTBeginSequence 
+#		+ process.hltL1sL1SingleEG20ORL1SingleEG22 
+#		+ process.hltPreEle27WPXXEle15WPYYtrackless 
+#		+ process.HLTEle27WPXXSequence 
+#		+ process.HLTEle15WPYYtracklessSequence
+#		+ process.HLTEndSequence )
+
+process.HLTriggerFinalPath = cms.Path( 
+		process.hltGtDigis 
+		+ process.hltScalersRawToDigi + process.hltFEDSelector + process.hltTriggerSummaryAOD + process.hltTriggerSummaryRAW
+		#*process.recoAnalyzerZero
+		)
+
+
 process.TFileService = cms.Service("TFileService",
-		fileName = cms.string('treeTest_allGenAnalyzers.root')
+		#fileName = cms.string('treeTest_genAnalyzers.root')
+		fileName = cms.string('speedTrial_filter_on_untracked_after_making_genEle.root')
 )
-
-process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_v1 = cms.Path( 
-		process.HLTBeginSequence 
-		+ process.hltL1sL1SingleEG20ORL1SingleEG22 
-		+ process.hltPreEle27WPXXEle15WPYYtrackless 
-		+ process.HLTEle27WPXXSequence 
-		+ process.HLTEle15WPYYtracklessSequence 
-		+ process.HLTEndSequence )
-
-process.HLTriggerFinalPath = cms.Path( process.hltGtDigis + process.hltScalersRawToDigi + process.hltFEDSelector + process.hltTriggerSummaryAOD + process.hltTriggerSummaryRAW )
-
-
 
 process.source = cms.Source( "PoolSource",
     fileNames = cms.untracked.vstring(
@@ -5045,7 +5065,8 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 #this is a standalone module to save the output from cmsRun hlt_tracklessDoubleElectron.py into a .root file
 #This .root file can then be analyzed by the trigger optimization script
 process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
-    fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/Test_signal_contains_HLT_objects.root"),
+    #fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/Test_signal_contains_HLT_objects.root"),
+	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/speedTrial_no_HLT_objects.root"),
 	#fileName = cms.untracked.string("/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/Test_signal_has_hlt_objects.root"),
 	fastCloning = cms.untracked.bool( False ),
     dataset = cms.untracked.PSet(
@@ -5067,7 +5088,7 @@ process.FULLOutput = cms.EndPath( process.hltOutputFULL )
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(130)
+    input = cms.untracked.int32(50)
 )
 
 # enable the TrigReport and TimeReport
