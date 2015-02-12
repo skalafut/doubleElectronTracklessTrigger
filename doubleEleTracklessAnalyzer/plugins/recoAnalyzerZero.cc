@@ -121,31 +121,26 @@ class recoAnalyzerZero : public edm::EDAnalyzer {
 
 void GetTrackedTriggerObjects(const edm::Event& iEvent, const Float_t genTrackedEta, const Float_t genTrackedPhi, const Float_t maxDrForMatch){
 
-	std::cout<<"entered GetTrackedTriggerObjects"<<std::endl;
+	//std::cout<<"entered GetTrackedTriggerObjects"<<std::endl;
 	iEvent.getByLabel(hltTrackedLegTag, trackedLegHltObjectsHandle);
 	
 	if(!trackedLegHltObjectsHandle.isValid() || trackedLegHltObjectsHandle->size() == 0 ) return;
-	std::cout<<"have a valid handle to the collection of tracked leg RecoEcalCandidate objects"<<std::endl;
+	//std::cout<<"have a valid handle to the collection of tracked leg RecoEcalCandidate objects"<<std::endl;
 
 	for(unsigned int h=0; h<trackedLegHltObjectsHandle->size(); h++){
 		trackedLegHltRefs.push_back( getRef(trackedLegHltObjectsHandle, h) );
 
 	}
-	std::cout<<"added something to trackedLegHltRefs"<<std::endl;
+	//std::cout<<"added something to trackedLegHltRefs"<<std::endl;
 
-	//trackedLegHltObjects = *(trackedLegHltObjectsHandle.product());
-	//std::cout<<"initialized trackedLegHltObjects"<<std::endl;
 
 	for(unsigned int i=0; i<trackedLegHltRefs.size(); i++){
 		nTrackedHltEle += 1;
 	}
 	
-	std::cout<<"there are  "<< nTrackedHltEle <<"  tracked leg RecoEcalCandidate objects in this event"<<std::endl;
+	//std::cout<<"there are  "<< nTrackedHltEle <<"  tracked leg RecoEcalCandidate objects in this event"<<std::endl;
 
 	for(Int_t j=0; j< nTrackedHltEle; j++){
-		//etaTrackedHltEle[j] = trackedLegHltObjects[j].eta();
-		//ptTrackedHltEle[j] = trackedLegHltObjects[j].pt();
-		//phiTrackedHltEle[j] = trackedLegHltObjects[j].phi();
 		etaTrackedHltEle[j] = trackedLegHltRefs[j]->eta();
 		ptTrackedHltEle[j] = trackedLegHltRefs[j]->pt();
 		phiTrackedHltEle[j] = trackedLegHltRefs[j]->phi();
@@ -361,31 +356,26 @@ Float_t ptTracklessHltEle[NELE];
 Float_t phiTracklessHltEle[NELE];
 */
 
-	std::cout<<"entered GetMatchedTriggerObjects"<<std::endl;
+	//std::cout<<"entered GetMatchedTriggerObjects"<<std::endl;
 	iEvent.getByLabel(hltTracklessLegTag, tracklessLegHltObjectsHandle);
 	
 	if(!tracklessLegHltObjectsHandle.isValid() || tracklessLegHltObjectsHandle->size() == 0 ) return;
-	std::cout<<"have a valid handle to the collection of trackless leg RecoEcalCandidate objects"<<std::endl;
+	//std::cout<<"have a valid handle to the collection of trackless leg RecoEcalCandidate objects"<<std::endl;
 
 
 	for(unsigned int h=0; h<tracklessLegHltObjectsHandle->size(); h++){
 		tracklessLegHltRefs.push_back( getRef(tracklessLegHltObjectsHandle, h) );
 	}
-	std::cout<<"added something to tracklessLegHltRefs"<<std::endl;
+	//std::cout<<"added something to tracklessLegHltRefs"<<std::endl;
 
-	//tracklessLegHltObjects = *( tracklessLegHltObjectsHandle.product() );
-	//std::cout<<"initialized tracklessLegHltObjects"<<std::endl;
 
 	for(unsigned int i=0; i<tracklessLegHltRefs.size(); i++){
 		nTracklessHltEle += 1;
 	}
 
-	std::cout<<"there are  "<< nTracklessHltEle <<"  trackless leg RecoEcalCandidate objects in this event"<<std::endl;
+	//std::cout<<"there are  "<< nTracklessHltEle <<"  trackless leg RecoEcalCandidate objects in this event"<<std::endl;
 
 	for(Int_t j=0; j<nTracklessHltEle; j++){
-		//etaTracklessHltEle[j] = tracklessLegHltObjects[j].eta();
-		//ptTracklessHltEle[j] = tracklessLegHltObjects[j].pt();
-		//phiTracklessHltEle[j] = tracklessLegHltObjects[j].phi();
 		etaTracklessHltEle[j] = tracklessLegHltRefs[j]->eta();
 		ptTracklessHltEle[j] = tracklessLegHltRefs[j]->pt();
 		phiTracklessHltEle[j] = tracklessLegHltRefs[j]->phi();
