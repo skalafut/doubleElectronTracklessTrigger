@@ -201,6 +201,12 @@ specificGenAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 {
 	using namespace edm;
 
+	for(int i=0; i<2; i++){
+		etaGenEle[i] = 0;
+		ptGenEle[i] = 0;
+		phiGenEle[i] = 0;
+	}
+
 	iEvent.getByLabel(genCollOneTag, leptons);
 	if(!leptons.isValid() || leptons->size() == 0) return;
 
@@ -220,13 +226,11 @@ specificGenAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	etaGenEle[0] = leading->eta();
 	ptGenEle[0] = leading->pt();
 	phiGenEle[0] = leading->phi();
-
-	if(leptons->size() > 1){
-		etaGenEle[1] = subleading->eta();
-		ptGenEle[1] = subleading->pt();
-		phiGenEle[1] = subleading->phi();
-		invMassGen = TMath::Sqrt(2*ptGenEle[0]*ptGenEle[1]*( TMath::CosH(etaGenEle[0]-etaGenEle[1])-TMath::Cos(phiGenEle[0]-phiGenEle[1]) ) );
-	}
+	etaGenEle[1] = subleading->eta();
+	ptGenEle[1] = subleading->pt();
+	phiGenEle[1] = subleading->phi();
+	
+	invMassGen = TMath::Sqrt(2*ptGenEle[0]*ptGenEle[1]*( TMath::CosH(etaGenEle[0]-etaGenEle[1])-TMath::Cos(phiGenEle[0]-phiGenEle[1]) ) );
 
 	tree->Fill();
 

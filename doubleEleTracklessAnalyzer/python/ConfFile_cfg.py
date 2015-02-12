@@ -13,9 +13,11 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
-		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signalTest_contains_HLT_objects.root'
-		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signalTest_contains_HLT_objects_trackless_conditional_on_tracked_leg.root'
+		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signalTest_contains_HLT_objects.root'
+		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/Test_signal_contains_HLT_objects.root'
+		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects.root'
 		
+
 		#DY->ee files
 		#'root://cms-xrd-global.cern.ch//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_M_50_25ns_40PU_RAW_to_HLTObjects_1.root',
 		#'root://cms-xrd-global.cern.ch//store/user/skalafut/doubleElectronHLT/dyToEEWithHLT/outputFULL_DYtoEE_13TeV_M_50_25ns_40PU_RAW_to_HLTObjects_10.root',
@@ -32,9 +34,31 @@ process.source = cms.Source("PoolSource",
     )
 )
 
-process.demo = cms.EDAnalyzer('doubleEleTracklessAnalyzer',
-    #foutName = cms.untracked.string("testTreeFile.root")
-)
+#process.demo = cms.EDAnalyzer('doubleEleTracklessAnalyzer',
+#    #foutName = cms.untracked.string("testTreeFile.root")
+#)
+
+#this analyzer will make distributions of tracked and trackless leg cut variables
+#before any tracked or trackless leg filters are applied
+process.recoAnalyzerZero = cms.EDAnalyzer('recoAnalyzerZero',
+		treeName = cms.string("recoTreeBeforeTriggerFilters"),
+		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
+		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
+		genTrackedElectronCollection = cms.InputTag("","",""),
+		genTracklessElectronCollection = cms.InputTag("","","")
+	
+		)
+
+#this analyzer will be used for Z->ee signal evts where dR matching btwn GEN and HLT objects should be required
+#process.recoAnalyzerOne = cms.EDAnalyzer('recoAnalyzerOne',
+#		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
+#		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
+#		genTrackedElectronCollection = cms.InputTag("need something here","","and here"),
+#		genTracklessElectronCollection = cms.InputTag("need something here","","and here")
+#	
+#		)
+
+
 
 process.TFileService = cms.Service("TFileService",
 	fileName = cms.string('experiment.root')
@@ -45,4 +69,4 @@ process.TFileService = cms.Service("TFileService",
 )
 
 
-process.p = cms.Path(process.demo)
+process.p = cms.Path(process.recoAnalyzerZero)

@@ -4936,9 +4936,14 @@ process.genAnalyzerFour = cms.EDAnalyzer('specificGenAnalyzer',
 		genCollectionOne = cms.InputTag("genEle","","TEST"),
 		)
 
+
+#These recoAnalyzer modules will never be used in this python file.  They will only work when running over
+#.root files with HLT objects!
+
 #this analyzer will make distributions of tracked and trackless leg cut variables
 #before any tracked or trackless leg filters are applied
 #process.recoAnalyzerZero = cms.EDAnalyzer('recoAnalyzerZero',
+#		treeName = cms.string("recoTreeBeforeTriggerFilters"),
 #		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
 #		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
 #		genTrackedElectronCollection = cms.InputTag("","",""),
@@ -4960,16 +4965,16 @@ process.HLTriggerFirstPath = cms.Path(
 		*process.genAnalyzerOne
 
 		*process.genUntrack
-		*process.tracklessGenEleFilter
-		*process.genAnalyzerThree
+		#*process.tracklessGenEleFilter
+		#*process.genAnalyzerThree
 	
 		*process.genEleTrack
 		#this kills events *process.trackGenEleFilter
-		*process.genAnalyzerTwo
+		#*process.genAnalyzerTwo
 		
 		*process.combEle
-		*process.ZeeFilter
-		*process.genAnalyzerFour
+		#*process.ZeeFilter
+		#*process.genAnalyzerFour
 		*process.hltGetConditions 
 		+ process.hltGetRaw 
 		+ process.hltBoolFalse )
@@ -4977,13 +4982,13 @@ process.HLTriggerFirstPath = cms.Path(
 
 #process.AlCa_EcalPhiSym_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ZeroBias + process.hltPreAlCaEcalPhiSym + process.HLTDoFullUnpackingEgammaEcalWithoutPreshowerSequence + process.hltAlCaPhiSymStream + process.hltAlCaPhiSymUncalibrator + process.HLTEndSequence )
 
-#process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_v1 = cms.Path( 
-#		process.HLTBeginSequence 
-#		+ process.hltL1sL1SingleEG20ORL1SingleEG22 
-#		+ process.hltPreEle27WPXXEle15WPYYtrackless 
-#		+ process.HLTEle27WPXXSequence 
-#		+ process.HLTEle15WPYYtracklessSequence
-#		+ process.HLTEndSequence )
+process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_v1 = cms.Path( 
+		process.HLTBeginSequence 
+		+ process.hltL1sL1SingleEG20ORL1SingleEG22 
+		+ process.hltPreEle27WPXXEle15WPYYtrackless 
+		+ process.HLTEle27WPXXSequence 
+		+ process.HLTEle15WPYYtracklessSequence
+		+ process.HLTEndSequence )
 
 process.HLTriggerFinalPath = cms.Path( 
 		process.hltGtDigis 
@@ -4993,8 +4998,9 @@ process.HLTriggerFinalPath = cms.Path(
 
 
 process.TFileService = cms.Service("TFileService",
-		#fileName = cms.string('treeTest_genAnalyzers.root')
-		fileName = cms.string('speedTrial_filter_on_untracked_after_making_genEle.root')
+		fileName = cms.string('genAnalyzerTree.root')
+		#fileName = cms.string('treeTest_genAnalyzer.root')
+		#fileName = cms.string('speedTrial_no_early_filter.root')
 )
 
 process.source = cms.Source( "PoolSource",
@@ -5066,7 +5072,7 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 #This .root file can then be analyzed by the trigger optimization script
 process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
     #fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/Test_signal_contains_HLT_objects.root"),
-	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/speedTrial_no_HLT_objects.root"),
+	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects.root"),
 	#fileName = cms.untracked.string("/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/Test_signal_has_hlt_objects.root"),
 	fastCloning = cms.untracked.bool( False ),
     dataset = cms.untracked.PSet(
@@ -5088,7 +5094,7 @@ process.FULLOutput = cms.EndPath( process.hltOutputFULL )
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(50)
+    input = cms.untracked.int32(-1)
 )
 
 # enable the TrigReport and TimeReport

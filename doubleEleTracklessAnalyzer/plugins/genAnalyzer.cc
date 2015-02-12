@@ -138,6 +138,9 @@ edm::Handle<edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> > >
 
 TTree * tree;
 
+Int_t runNumber;
+Long64_t evtNumber;
+
 //first element is leading (highest pT) electron
 //second element is subleading electron
 Float_t etaGenEle[2];
@@ -179,6 +182,8 @@ genAnalyzer::genAnalyzer(const edm::ParameterSet& iConfig):
    tree->Branch("phiGenEle",phiGenEle,"phiGenEle[2]/F");
    tree->Branch("invMassGen",&invMassGen,"invMassGen/F");
 
+   tree->Branch("evtNumber",&evtNumber,"evtNumber/l");
+   tree->Branch("runNumber",&runNumber,"runNumber/I");
 
 }
 
@@ -201,6 +206,9 @@ void
 genAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 	using namespace edm;
+
+	evtNumber = iEvent.id().event();
+	runNumber = iEvent.id().run();
 
 	iEvent.getByLabel(genCollOneTag, leptons);
 
