@@ -34,13 +34,22 @@ process.source = cms.Source("PoolSource",
     )
 )
 
-#process.demo = cms.EDAnalyzer('doubleEleTracklessAnalyzer',
-#    #foutName = cms.untracked.string("testTreeFile.root")
-#)
 
 #this analyzer will make distributions of tracked and trackless leg cut variables
 #before any tracked or trackless leg filters are applied
 process.recoAnalyzerZero = cms.EDAnalyzer('recoAnalyzerZero',
+		trackedSigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+		trackedHadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+		trackedEcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+		trackedHcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+		trackedEp=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+		trackedDeta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+		trackedDphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+		trackedTrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+		tracklessClusterShape=cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+		tracklessHadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+		tracklessEcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+		tracklessHcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
 		treeName = cms.string("recoTreeBeforeTriggerFilters"),
 		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
 		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
@@ -49,16 +58,36 @@ process.recoAnalyzerZero = cms.EDAnalyzer('recoAnalyzerZero',
 	
 		)
 
-#this analyzer will be used for Z->ee signal evts where dR matching btwn GEN and HLT objects should be required
-#process.recoAnalyzerOne = cms.EDAnalyzer('recoAnalyzerOne',
-#		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
-#		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
-#		genTrackedElectronCollection = cms.InputTag("need something here","","and here"),
-#		genTracklessElectronCollection = cms.InputTag("need something here","","and here")
-#	
-#		)
+#this analyzer should be used for Z->ee signal evts where both the tracked and trackless HLT objects must be matched to their
+#GEN counterparts
+process.recoAnalyzerOne = cms.EDAnalyzer('recoAnalyzerBothMatch',
+		trackedSigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+		trackedHadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+		trackedEcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+		trackedHcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+		trackedEp=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+		trackedDeta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+		trackedDphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+		trackedTrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+		tracklessClusterShape=cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+		tracklessHadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+		tracklessEcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+		tracklessHcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersBothMatch"),
+		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
+		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
+		genTrackedElectronCollection = cms.InputTag("genEleTrack","","TEST"),
+		genTracklessElectronCollection = cms.InputTag("genUntrack","","TEST"),
+		trackedDr = cms.double(0.1),
+		tracklessDr = cms.double(0.1)
+	
+		)
 
-
+#enforces all of the GEN level Z->ee requirements (tracked e- + trackless e-, sufficient dilepton mass)
+process.ZeeFilter = cms.EDFilter("CandViewCountFilter",
+		src = cms.InputTag("combEle"),
+		minNumber = cms.uint32(1)
+		)
 
 process.TFileService = cms.Service("TFileService",
 	fileName = cms.string('experiment.root')
@@ -69,4 +98,8 @@ process.TFileService = cms.Service("TFileService",
 )
 
 
-process.p = cms.Path(process.recoAnalyzerZero)
+process.p = cms.Path(
+		process.recoAnalyzerZero
+		+process.ZeeFilter
+		*process.recoAnalyzerOne
+		)

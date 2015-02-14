@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
-// Package:    doubleElectronTracklessTrigger/recoAnalyzerZero
-// Class:      recoAnalyzerZero
+// Package:    doubleElectronTracklessTrigger/recoAnalyzerBothMatch
+// Class:      recoAnalyzerBothMatch
 // 
-/**\class recoAnalyzerZero recoAnalyzerZero.cc doubleElectronTracklessTrigger/recoAnalyzerZero/plugins/recoAnalyzerZero.cc
+/**\class recoAnalyzerBothMatch recoAnalyzerBothMatch.cc doubleElectronTracklessTrigger/recoAnalyzerBothMatch/plugins/recoAnalyzerBothMatch.cc
 
  Description: [one line class summary]
 
@@ -111,10 +111,10 @@
 // class declaration
 //
 
-class recoAnalyzerZero : public edm::EDAnalyzer {
+class recoAnalyzerBothMatch : public edm::EDAnalyzer {
    public:
-      explicit recoAnalyzerZero(const edm::ParameterSet&);
-      ~recoAnalyzerZero();
+      explicit recoAnalyzerBothMatch(const edm::ParameterSet&);
+      ~recoAnalyzerBothMatch();
 
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
      
@@ -181,197 +181,6 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const Float_t genTracked
 
 	}
 
-
-	/*
-	std::vector<edm::Ref<reco::RecoEcalCandidateCollection> > recoRefs;	//will be filled by calling hcalIsoFilterHandle->getObjects()
-	tracklessHcalIsoFilterHandle->getObjects(trigger::TriggerCluster, recoRefs);
-	if(recoRefs.empty() ) tracklessHcalIsoFilterHandle->getObjects(trigger::TriggerPhoton, recoRefs);
-
-	if(recoRefs.empty() ) return;
-
-	typedef edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>,float,unsigned int> > ecalCandToValMap;
-
-	edm::InputTag hltNoTrackEcalClusterShapeSigmaIEtaIEtaTag("hltEgammaClusterShapeUnseeded","sigmaIEtaIEta5x5","TEST");
-	edm::Handle<ecalCandToValMap> untrackedEcalClusterShapeSigmaIEtaIEtaHandle;
-	iEvent.getByLabel(hltNoTrackEcalClusterShapeSigmaIEtaIEtaTag, untrackedEcalClusterShapeSigmaIEtaIEtaHandle);
-
-	edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>, float> >::const_iterator untrackedSigmaIEIEMapIt = (*untrackedEcalClusterShapeSigmaIEtaIEtaHandle).find(recoRefs[best]);
-	matched_ecalClusterShape_SigmaIEtaIEta_ = untrackedSigmaIEIEMapIt->val;
-	*/
-
-	//declare handles to maps of seeded (tracked leg) sigmaIEIE, ecalIso, HE
-	//typedef edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>,float,unsigned int> > ecalCandToValMap;
-
-	/*
-	//use recoTrackedRefs to study variables used in tracked leg filters
-	//call recoTrackedRefs.clear() before accessing the recoEcalCandidate ref objects which passed a different filter
-	std::vector<edm::Ref<reco::RecoEcalCandidateCollection> > recoTrackedRefs;
-	FILTHandle->getObjects(trigger::TriggerCluster, recoTrackedRefs);
-	if(recoTrackedRefs.empty() ) FILTHandle->getObjects(trigger::TriggerPhoton, recoTrackedRefs);
-
-	if(recoTrackedRefs.size() > 0){
-		//fill the pT, eta, sigmaIEIE, H/E, ecalIso, hcalIso, and (1/E)-(1/P) histos
-		//with all objects in recoTrackedRefs
-
-	}//end if(recoTrackedRefs.size() > 0 )
-
-	*/
-
-
-	/*
-	edm::InputTag l1SeedTag("hltL1sL1SingleEG20ORL1SingleEG22","","TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> l1SeedHandle;
-	iEvent.getByLabel(l1SeedTag, l1SeedHandle);
-
-	if(!l1SeedHandle.isValid() ){
-		return;
-	}
-
-	if( (l1SeedHandle->l1emRefs()).size() > 0) numEvts_passing_L1Seed_ += 1;
-
-
-	edm::InputTag l1FiltTag("hltEGL1SingleEG20ORL1SingleEG22Filter","","TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> l1FiltHandle;
-	iEvent.getByLabel(l1FiltTag, l1FiltHandle);
-
-	if(!l1FiltHandle.isValid() ){
-		return;
-	}
-	if( (l1FiltHandle->l1emRefs()).size() > 0) numEvts_passing_L1Filter_ += 1;
-
-	
-	edm::InputTag EtFilterTag("hltEG27WPXXEtFilter","","TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> EtFilterHandle;
-	iEvent.getByLabel(EtFilterTag, EtFilterHandle);
-
-	if(!EtFilterHandle.isValid() ){
-		return;
-	}
-	if((EtFilterHandle->photonRefs()).size() > 0 || (EtFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_EtFilter_ += 1;
-
-
-	edm::InputTag ClusterShapeFilterTag("hltEle27WPXXClusterShapeFilter","","TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> ClusterShapeFilterHandle;
-	iEvent.getByLabel(ClusterShapeFilterTag, ClusterShapeFilterHandle);
-
-	if(!ClusterShapeFilterHandle.isValid() ){
-		return;
-	}
-	if( (ClusterShapeFilterHandle->photonRefs()).size() > 0 || (ClusterShapeFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_ClusterShapeFilter_ += 1;
-
-
-	edm::InputTag HEFilterTag("hltEle27WPXXHEFilter","","TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> HEFilterHandle;
-	iEvent.getByLabel(HEFilterTag, HEFilterHandle);
-
-	if(!HEFilterHandle.isValid() ){
-		return;
-	}
-	if( (HEFilterHandle->photonRefs()).size() > 0 || (HEFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_HEFilter_ += 1;
-
-
-	edm::InputTag EcalIsoFilterTag("hltEle27WPXXEcalIsoFilter","","TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> EcalIsoFilterHandle;
-	iEvent.getByLabel(EcalIsoFilterTag, EcalIsoFilterHandle);
-
-	if(!EcalIsoFilterHandle.isValid() ){
-		return;
-	}
-	if( (EcalIsoFilterHandle->photonRefs()).size() > 0 || (EcalIsoFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_EcalIsoFilter_ += 1;
-
-
-	edm::InputTag HcalIsoFilterTag("hltEle27WPXXHcalIsoFilter","","TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> HcalIsoFilterHandle;
-	iEvent.getByLabel(HcalIsoFilterTag, HcalIsoFilterHandle);
-
-	if(!HcalIsoFilterHandle.isValid() ){
-		return;
-	}
-	if( (HcalIsoFilterHandle->photonRefs()).size() > 0 || (HcalIsoFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_HcalIsoFilter_ += 1;
-	
-
-	edm::InputTag PixelMatchFilterTag("hltEle27WPXXPixelMatchFilter","","TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> PixelMatchFilterHandle;
-	iEvent.getByLabel(PixelMatchFilterTag, PixelMatchFilterHandle);
-
-	if(!PixelMatchFilterHandle.isValid() ){
-		return;
-	}
-	if( (PixelMatchFilterHandle->photonRefs()).size() > 0 || (PixelMatchFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_PixelMatchFilter_ += 1;
-	
-
-	edm::InputTag E_P_FilterTag("hltEle27WPXXOneOEMinusOneOPFilter","","TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> E_P_FilterHandle;
-	iEvent.getByLabel(E_P_FilterTag, E_P_FilterHandle);
-
-	if(!E_P_FilterHandle.isValid() ){
-		return;
-	}
-	if( (E_P_FilterHandle->photonRefs()).size() > 0 || (E_P_FilterHandle->electronRefs()).size() > 0 ) numEvts_passing_E_P_Filter_ += 1;
-	
-
-	edm::InputTag DetaFilterTag("hltEle27WPXXDetaFilter","","TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> DetaFilterHandle;
-	iEvent.getByLabel(DetaFilterTag, DetaFilterHandle);
-
-	if(!DetaFilterHandle.isValid() ){
-		return;
-	}
-	if( (DetaFilterHandle->photonRefs()).size() > 0 || (DetaFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_DetaFilter_ += 1;
-	
-
-	edm::InputTag DphiFilterTag("hltEle27WPXXDphiFilter","","TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> DphiFilterHandle;
-	iEvent.getByLabel(DphiFilterTag, DphiFilterHandle);
-
-	if(!DphiFilterHandle.isValid() ){
-		return;
-	}
-	if( (DphiFilterHandle->photonRefs()).size() > 0 || (DphiFilterHandle->electronRefs()).size() > 0 ) numEvts_passing_DphiFilter_ += 1;
-	
-
-	edm::InputTag trackIsoFilterTag("hltEle27WPXXTrackIsoFilter", "", "TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> trackIsoFilterHandle;
-	iEvent.getByLabel(trackIsoFilterTag, trackIsoFilterHandle);
-
-	if(!trackIsoFilterHandle.isValid() ){
-		//std::cout<<"no valid trackIsoFilterHandle in this event"<<std::endl;
-		return;
-
-	}
-
-	std::vector<edm::Ref<reco::RecoEcalCandidateCollection> > trackedRecoRefs;	//will be filled by calling trackIsoFilterHandle->getObjects()
-	trackIsoFilterHandle->getObjects(trigger::TriggerCluster, trackedRecoRefs);
-	if(trackedRecoRefs.empty() ) trackIsoFilterHandle->getObjects(trigger::TriggerPhoton, trackedRecoRefs);
-
-	if(trackedRecoRefs.empty() ) return;
-
-	numEvts_passing_TrackIsoFilter_ += 1;
-
-	//now find the highest pT RecoEcalCandidate object in this event which passed the track iso filter
-	double dR = 0;
-	double maxPt = 0;
-	unsigned int indexOfMaxPt = 0;
-	numTrackedCandidates_ += trackedRecoRefs.size();
-	for(unsigned int j=0; j<trackedRecoRefs.size() ; j++){
-		dR = deltaR(genTrackedEta, genTrackedPhi, trackedRecoRefs[j]->eta(), trackedRecoRefs[j]->phi() );
-		fill("trackedGENToHLTDeltaR", dR);
-		if(trackedRecoRefs[j]->pt() > maxPt && dR < maxDrForMatch ){
-			indexOfMaxPt = 0;
-			maxPt = 0;
-			indexOfMaxPt += j;
-			maxPt += trackedRecoRefs[j]->pt();
-		}//end maxPt filter
-
-	}//end loop over trackedRecoRefs
-
-	//now get the pT, eta, and phi of the highest pT RecoEcalCandidate object in this event which passed the track iso filter
-	matched_tracked_pT_=trackedRecoRefs[indexOfMaxPt]->pt();
-	matched_tracked_eta_=trackedRecoRefs[indexOfMaxPt]->eta();
-	matched_tracked_phi_=trackedRecoRefs[indexOfMaxPt]->phi();
-
-	*/
-	
 }//end GetTrackedTriggerObjects()
 
 
@@ -425,154 +234,6 @@ void GetMatchedTriggerObjects(
 		ecalIsoTracklessHltEle[j] = (tracklessEcalIsoIt->val)/ptTracklessHltEle[j];
 
 	}
-
-	/*
-	//see how many evts pass each filter in the trackless leg
-	edm::InputTag EtFilterTag("hltEG15WPYYtracklessEtFilterUnseeded","","TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> EtFilterHandle;
-	iEvent.getByLabel(EtFilterTag, EtFilterHandle);
-
-	if(!EtFilterHandle.isValid() ){
-		return;
-	}
-	if( (EtFilterHandle->photonRefs()).size() + (EtFilterHandle->electronRefs()).size() > 1 ) numEvts_passing_trackless_EtFilter_ += 1;
-
-	edm::InputTag ClusterShapeFilterTag("hltEle15WPYYtracklessClusterShapeFilter","","TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> ClusterShapeFilterHandle;
-	iEvent.getByLabel(ClusterShapeFilterTag, ClusterShapeFilterHandle);
-
-	if(!ClusterShapeFilterHandle.isValid() ){
-		return;
-	}
-	if( (ClusterShapeFilterHandle->photonRefs()).size() + (ClusterShapeFilterHandle->electronRefs()).size() > 1 ) numEvts_passing_trackless_ClusterShapeFilter_ += 1;
-
-
-	edm::InputTag EcalIsoFilterTag("hltEle15WPYYtracklessEcalIsoFilter","","TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> EcalIsoFilterHandle;
-	iEvent.getByLabel(EcalIsoFilterTag, EcalIsoFilterHandle);
-
-	if(!EcalIsoFilterHandle.isValid() ){
-		return;
-	}
-	if( (EcalIsoFilterHandle->photonRefs()).size() + (EcalIsoFilterHandle->electronRefs()).size() > 1 ) numEvts_passing_trackless_EcalIsoFilter_ += 1;
-
-
-	edm::InputTag HEFilterTag("hltEle15WPYYtracklessHEFilter","","TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> HEFilterHandle;
-	iEvent.getByLabel(HEFilterTag, HEFilterHandle);
-
-	if(!HEFilterHandle.isValid() ){
-		return;
-	}
-	if( (HEFilterHandle->photonRefs()).size() + (HEFilterHandle->electronRefs()).size() > 1 ) numEvts_passing_trackless_HEFilter_ += 1;
-
-
-	//I should not need anything from the collection of trigger::TriggerEventWithRefs objects.  I can just grab the RecoEcalCandidate
-	//objects which pass the trackless HcalIso filter from a Handle tied to the trackless hcalIso filter!
-	edm::InputTag hcalIsoFilterTag("hltEle15WPYYtracklessHcalIsoFilter", "", "TEST");
-	edm::Handle<trigger::TriggerFilterObjectWithRefs> tracklessHcalIsoFilterHandle;
-	iEvent.getByLabel(hcalIsoFilterTag, tracklessHcalIsoFilterHandle);
-
-	if(!tracklessHcalIsoFilterHandle.isValid() ){
-		//std::cout<<"no valid hcalIsoFilterHandle in this event"<<std::endl;
-		return;
-
-	}
-
-	std::vector<edm::Ref<reco::RecoEcalCandidateCollection> > recoRefs;	//will be filled by calling hcalIsoFilterHandle->getObjects()
-	tracklessHcalIsoFilterHandle->getObjects(trigger::TriggerCluster, recoRefs);
-	if(recoRefs.empty() ) tracklessHcalIsoFilterHandle->getObjects(trigger::TriggerPhoton, recoRefs);
-
-	if(recoRefs.empty() ) return;
-
-	if(recoRefs.size() > 1) numEvts_passing_trackless_HcalIsoFilter_ += 1;
-
-	
-
-	typedef edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>,float,unsigned int> > ecalCandToValMap;
-
-	//collections for untracked electron candidates
-	//these maps are available for RecoEcalCandidate objects after any filter, not just the filter
-	//which cut on the variable stored in the map
-	//for example, the map of HcalIso for trackless leg candidates is available to any RecoEcalCandidate object
-	//which passes the trackless leg EtFilter 
-	edm::InputTag hltNoTrackEcalClusterShapeTag("hltEgammaClusterShapeUnseeded","","TEST");
-	edm::Handle<ecalCandToValMap> untrackedEcalClusterShapeHandle;
-	iEvent.getByLabel(hltNoTrackEcalClusterShapeTag, untrackedEcalClusterShapeHandle);
-
-	edm::InputTag hltNoTrackEcalClusterShapeSigmaIEtaIEtaTag("hltEgammaClusterShapeUnseeded","sigmaIEtaIEta5x5","TEST");
-	edm::Handle<ecalCandToValMap> untrackedEcalClusterShapeSigmaIEtaIEtaHandle;
-	iEvent.getByLabel(hltNoTrackEcalClusterShapeSigmaIEtaIEtaTag, untrackedEcalClusterShapeSigmaIEtaIEtaHandle);
-
-	edm::InputTag hltNoTrackEcalIsoTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST");
-	edm::Handle<ecalCandToValMap> untrackedEcalIsoHandle;
-	iEvent.getByLabel(hltNoTrackEcalIsoTag, untrackedEcalIsoHandle);
-
-	edm::InputTag hltNoTrackHoverETag("hltEgammaHoverEUnseeded","","TEST");
-	edm::Handle<ecalCandToValMap> untrackedHoverEHandle;
-	iEvent.getByLabel(hltNoTrackHoverETag, untrackedHoverEHandle);
-
-	edm::InputTag hltNoTrackHcalIsoTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST");
-	edm::Handle<ecalCandToValMap> untrackedHcalIsoHandle;
-	iEvent.getByLabel(hltNoTrackHcalIsoTag, untrackedHcalIsoHandle);
-
- 
-	float hltPhi = 0;
-	float maxPt = 0;
-	unsigned int indexOfMaxPt = 0;
-	int numPassingEtaCut = 0;
-	double dR = 0;
-	bool hasChanged = false;
-
-
-	for(unsigned int i=0; i<recoRefs.size(); i++){
-		if(std::fabs(recoRefs[i]->eta()) > 2.4 && std::fabs(recoRefs[i]->eta()) < 3.0){
-			if(numEvts_passing_trackless_EtaFilter_ ==0) numEvts_passing_trackless_EtaFilter_ += 1;
-			numPassingEtaCut += 1;
-			hltPhi = recoRefs[i]->phi();
-			dR = deltaR(eta, phi, recoRefs[i]->eta(), hltPhi);
-			//save dR information for all objects which make it to this point 
-			if(recoRefs[i]->pt() > maxPt && dR < dRForMatch ){
-				//std::cout<<"called pt() on an object from recoRefs vector"<<std::endl;
-				hasChanged = true;
-				maxPt = 0;
-				indexOfMaxPt = 0;
-				maxPt += recoRefs[i]->pt();
-				indexOfMaxPt += i;
-			}//end filter on maxPt
-
-		}//end eta filter
-
-	}//end loop over reco ecal candidate object references
-	
-	numRecoEcalCands_ = numPassingEtaCut;
-
-	if(numRecoEcalCands_ == 0) return;
-	if(!hasChanged) return;
-
-	//now that the highest pT, dR matched RecoEcalCandidate has been found, record the relative calo iso, (had/em)/energy, and sigmaIEIE
-	//values associated with this RecoEcalCandidate
-	unsigned int best = indexOfMaxPt;
-	matched_pT_ = recoRefs[best]->pt();
-	matched_eta_ = recoRefs[best]->eta();
-   	matched_phi_ = recoRefs[best]->phi();
-	
-	edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>, float> >::const_iterator untrackedSigmaIEIEMapIt = (*untrackedEcalClusterShapeSigmaIEtaIEtaHandle).find(recoRefs[best]);
-	matched_ecalClusterShape_SigmaIEtaIEta_ = untrackedSigmaIEIEMapIt->val;
-	
-	edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>, float> >::const_iterator untrackedEcalClusterShapeMapIt = (*untrackedEcalClusterShapeHandle).find(recoRefs[best]);
-	matched_ecalClusterShape_ = untrackedEcalClusterShapeMapIt->val;
- 	
-	edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>, float> >::const_iterator untrackedEcalIsoMapIt = (*untrackedEcalIsoHandle).find(recoRefs[best]);
-	matched_ecalIso_ = (untrackedEcalIsoMapIt->val)/(matched_pT_);
-  	
-	edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>, float> >::const_iterator untrackedHcalIsoMapIt = (*untrackedHcalIsoHandle).find(recoRefs[best]);
-	matched_hcalIso_ = (untrackedHcalIsoMapIt->val)/(matched_pT_);
-
-	edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>, float> >::const_iterator untrackedHoverEMapIt = (*untrackedHoverEHandle).find(recoRefs[best]);
-	matched_hOverE_ = (untrackedHoverEMapIt->val)/(matched_pT_*(TMath::CosH(matched_eta_)));
-
-	*/
 
 }//end GetMatchedTriggerObjects()
 
@@ -656,6 +317,10 @@ edm::InputTag hltTracklessLegTag;
 edm::InputTag trackedGenTag;
 edm::InputTag tracklessGenTag;
 
+double trackedDrMatchReqr;
+double tracklessDrMatchReqr;
+
+
 TTree * tree;
 
 Int_t nTrackedHltEle;
@@ -699,7 +364,7 @@ Long64_t evtNumber;
 // constructors and destructor
 //
 //the order of private member vars which are initialized using iConfig.getParameter<>() is important!
-recoAnalyzerZero::recoAnalyzerZero(const edm::ParameterSet& iConfig):
+recoAnalyzerBothMatch::recoAnalyzerBothMatch(const edm::ParameterSet& iConfig):
 	trackedSigmaIEIETag(iConfig.getParameter<edm::InputTag>("trackedSigmaIEIE")),
 	trackedHadEmTag(iConfig.getParameter<edm::InputTag>("trackedHadEm")),
 	trackedEcalIsoTag(iConfig.getParameter<edm::InputTag>("trackedEcalIso")),
@@ -716,12 +381,15 @@ recoAnalyzerZero::recoAnalyzerZero(const edm::ParameterSet& iConfig):
 	hltTrackedLegTag(iConfig.getParameter<edm::InputTag>("trackedElectronCollection")),
 	hltTracklessLegTag(iConfig.getParameter<edm::InputTag>("tracklessElectronCollection")),
 	trackedGenTag(iConfig.getParameter<edm::InputTag>("genTrackedElectronCollection")),
-	tracklessGenTag(iConfig.getParameter<edm::InputTag>("genTracklessElectronCollection"))
+	tracklessGenTag(iConfig.getParameter<edm::InputTag>("genTracklessElectronCollection")),
+	trackedDrMatchReqr(iConfig.getParameter<double>("trackedDr")),
+	tracklessDrMatchReqr(iConfig.getParameter<double>("tracklessDr"))
 
 {
    //now do what ever initialization is needed
    edm::Service<TFileService> fs;
-   
+
+  
    tree=fs->make<TTree>(tName.c_str(),"RecoEcalCandidate object information before any trigger filters are applied");
   
    //tracked leg branches
@@ -755,7 +423,7 @@ recoAnalyzerZero::recoAnalyzerZero(const edm::ParameterSet& iConfig):
 }
 
 
-recoAnalyzerZero::~recoAnalyzerZero()
+recoAnalyzerBothMatch::~recoAnalyzerBothMatch()
 {
  
    // do anything here that needs to be done at desctruction time
@@ -770,7 +438,7 @@ recoAnalyzerZero::~recoAnalyzerZero()
 
 // ------------ method called for each event  ------------
 void
-recoAnalyzerZero::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+recoAnalyzerBothMatch::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 	using namespace edm;
 
@@ -815,8 +483,16 @@ recoAnalyzerZero::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 		hcalIsoTracklessHltEle[r]=0;
 	}
 
-	GetTrackedTriggerObjects(iEvent, 0., 0., 20);
-	GetMatchedTriggerObjects(iEvent, 0., 0., 20);
+	iEvent.getByLabel(trackedGenTag,trackedGenElectronHandle);
+	iEvent.getByLabel(tracklessGenTag,tracklessGenElectronHandle);
+
+	edm::OwnVector<reco::Candidate>::const_iterator trackedGenIt = trackedGenElectronHandle->begin(), tracklessGenIt = tracklessGenElectronHandle->begin();
+
+	//gets the tracked leg trigger objects matched to tracked GEN electrons
+	GetTrackedTriggerObjects(iEvent, trackedGenIt->eta(), trackedGenIt->phi(), trackedDrMatchReqr);
+
+	//gets the trackless leg trigger objects matched to trackless GEN electrons
+	GetMatchedTriggerObjects(iEvent, tracklessGenIt->eta(), tracklessGenIt->phi(), tracklessDrMatchReqr);
 
 	//that's all folks!
 	tree->Fill();
@@ -836,7 +512,7 @@ recoAnalyzerZero::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-recoAnalyzerZero::beginJob()
+recoAnalyzerBothMatch::beginJob()
 {
 /*
   tree_file = new TFile(foutName.c_str(), "recreate");
@@ -857,7 +533,7 @@ recoAnalyzerZero::beginJob()
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
-recoAnalyzerZero::endJob() 
+recoAnalyzerBothMatch::endJob() 
 {
 	//loop over bins of "EventFraction", divide each bin content by totalNumEvents, then reset the bin content to the old content divided by totalNumEvents
 
@@ -889,7 +565,7 @@ recoAnalyzerZero::endJob()
 // ------------ method called when starting to processes a run  ------------
 /*
 void 
-recoAnalyzerZero::beginRun(edm::Run const&, edm::EventSetup const&)
+recoAnalyzerBothMatch::beginRun(edm::Run const&, edm::EventSetup const&)
 {
 }
 */
@@ -897,7 +573,7 @@ recoAnalyzerZero::beginRun(edm::Run const&, edm::EventSetup const&)
 // ------------ method called when ending the processing of a run  ------------
 /*
 void 
-recoAnalyzerZero::endRun(edm::Run const&, edm::EventSetup const&)
+recoAnalyzerBothMatch::endRun(edm::Run const&, edm::EventSetup const&)
 {
 }
 */
@@ -905,7 +581,7 @@ recoAnalyzerZero::endRun(edm::Run const&, edm::EventSetup const&)
 // ------------ method called when starting to processes a luminosity block  ------------
 /*
 void 
-recoAnalyzerZero::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+recoAnalyzerBothMatch::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
 {
 }
 */
@@ -913,14 +589,14 @@ recoAnalyzerZero::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSe
 // ------------ method called when ending the processing of a luminosity block  ------------
 /*
 void 
-recoAnalyzerZero::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+recoAnalyzerBothMatch::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
 {
 }
 */
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
 void
-recoAnalyzerZero::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+recoAnalyzerBothMatch::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   //The following says we do not know what parameters are allowed so do no validation
   // Please change this to state exactly what you do use, even if it is no parameters
   edm::ParameterSetDescription desc;
@@ -929,7 +605,7 @@ recoAnalyzerZero::fillDescriptions(edm::ConfigurationDescriptions& descriptions)
 }
 
 /*
-void recoAnalyzerZero::InitNewTree(void){
+void recoAnalyzerBothMatch::InitNewTree(void){
 
   //make one branch for each unique variable I want to track - ecal iso, lepton pT, invariant mass of dilepton system, etc
 
@@ -987,7 +663,7 @@ void recoAnalyzerZero::InitNewTree(void){
 }
 
 //negative index means the corresponding electron does not exist
-void recoAnalyzerZero::TreeSetSingleElectronVar(const pat::Electron& electron1, int index){
+void recoAnalyzerBothMatch::TreeSetSingleElectronVar(const pat::Electron& electron1, int index){
 
   if(index<0){
     PtEle[-index] 	  = 0;  
@@ -1003,7 +679,7 @@ void recoAnalyzerZero::TreeSetSingleElectronVar(const pat::Electron& electron1, 
   phiEle[index]    = electron1.phi();
 }
 
-void recoAnalyzerZero::TreeSetSingleElectronVar(const reco::SuperCluster& electron1, int index){
+void recoAnalyzerBothMatch::TreeSetSingleElectronVar(const reco::SuperCluster& electron1, int index){
 
   if(index<0){
     PtEle[-index] 	  = 0;
@@ -1021,7 +697,7 @@ void recoAnalyzerZero::TreeSetSingleElectronVar(const reco::SuperCluster& electr
   phiEle[index]    = electron1.phi();
 }
 
-void recoAnalyzerZero::TreeSetDiElectronVar(const pat::Electron& electron1, const reco::SuperCluster& electron2){
+void recoAnalyzerBothMatch::TreeSetDiElectronVar(const pat::Electron& electron1, const reco::SuperCluster& electron2){
   
   TreeSetSingleElectronVar(electron1, 0);
   TreeSetSingleElectronVar(electron2, 1);
@@ -1042,4 +718,4 @@ void recoAnalyzerZero::TreeSetDiElectronVar(const pat::Electron& electron1, cons
 
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(recoAnalyzerZero);
+DEFINE_FWK_MODULE(recoAnalyzerBothMatch);

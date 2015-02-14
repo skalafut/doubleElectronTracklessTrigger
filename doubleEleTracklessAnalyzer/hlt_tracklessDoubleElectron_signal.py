@@ -4098,9 +4098,13 @@ process.hltEle27WPXXTrackIsoFilter = cms.EDFilter( "HLTEgammaGenericFilter",
     thrOverE2EE = cms.double( 0.125 ),
     L1NonIsoCand = cms.InputTag( "" ),
     saveTags = cms.bool( True ),
+	#thrOverE2EB = trackIso/(energy in EB)^2
+	#it is pointless to have a cut on thrOverE2EB and thrOverEEB
+	#with the same cut value
     thrOverE2EB = cms.double( 0.125 ),
     thrRegularEE = cms.double( -1.0 ),
-    thrOverEEE = cms.double( 0.125 ),
+    #thrOverEEE = trackIso/(energy in EE)
+	thrOverEEE = cms.double( 0.125 ),
     L1IsoCand = cms.InputTag( "hltEgammaCandidates" ),
     thrOverEEB = cms.double( 0.125 ),
     thrRegularEB = cms.double( -1.0 ),
