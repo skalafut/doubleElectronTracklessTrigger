@@ -140,7 +140,10 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const Float_t genTracked
 	if(!trackedSigmaIEIEHandle.isValid() || !trackedHadEmHandle.isValid() || !trackedHcalIsoHandle.isValid() || !trackedEcalIsoHandle.isValid() || !trackedTrackIsoHandle.isValid() || !trackedDphiHandle.isValid() || !trackedDetaHandle.isValid() || !trackedEpHandle.isValid()) return;
 
 	for(unsigned int h=0; h<trackedLegHltObjectsHandle->size(); h++){
-		if( std::fabs( (getRef(trackedLegHltObjectsHandle, h))->eta()) < 2.5){
+		Float_t hltEta = (getRef(trackedLegHltObjectsHandle, h))->eta();
+		Float_t hltPhi = (getRef(trackedLegHltObjectsHandle, h))->phi();
+
+		if( std::fabs(hltEta) < 2.5 && (getRef(trackedLegHltObjectsHandle, h))->pt() > 27 && deltaR(hltEta, hltPhi, genTrackedEta, genTrackedPhi) <= maxDrForMatch){
 			trackedLegHltRefs.push_back( getRef(trackedLegHltObjectsHandle, h) );
 		}
 	}
@@ -148,38 +151,70 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const Float_t genTracked
 	if(trackedLegHltRefs.size() == 0) return; //there is a chance there may not be any REC which passes the |eta|<2.5 requirement in one evt
 
 	for(unsigned int i=0; i<trackedLegHltRefs.size(); i++){
-		nTrackedHltEle += 1;
+		if(std::fabs(trackedLegHltRefs[i]->eta()) < 1.4791) nTrackedBarrelHltEle += 1;
+		if(std::fabs(trackedLegHltRefs[i]->eta()) > 1.4791) nTrackedEndcapHltEle += 1;
 	}
 
 	typedef edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>, float> > forMapIt;
+
+	Int_t totalTrackedEles = nTrackedBarrelHltEle + nTrackedEndcapHltEle;
 	
 	//declare const_iterators to maps outside for loop
 	forMapIt::const_iterator trackedSigmaIEIEIt, trackedHadEmIt, trackedHcalIsoIt, trackedEcalIsoIt, trackedTrackIsoIt, trackedDphiIt, trackedDetaIt, trackedEpIt;
-	for(Int_t j=0; j< nTrackedHltEle; j++){
-		etaTrackedHltEle[j] = trackedLegHltRefs[j]->eta();
-		ptTrackedHltEle[j] = trackedLegHltRefs[j]->pt();
-		phiTrackedHltEle[j] = trackedLegHltRefs[j]->phi();
+	for(Int_t j=0; j< totalTrackedEles; j++){
+		if(std::fabs(trackedLegHltRefs[j]->eta()) < 1.4791){
+			etaTrackedBarrelHltEle[j] = trackedLegHltRefs[j]->eta();
+			phiTrackedBarrelHltEle[j] = trackedLegHltRefs[j]->phi();
+			deltaRTrackedBarrelHltEle[j] = deltaR(etaTrackedBarrelHltEle[j], phiTrackedBarrelHltEle[j], genTrackedEta, genTrackedPhi);
+			ptTrackedBarrelHltEle[j] = trackedLegHltRefs[j]->pt();
 
-		//initialize const_iterators to maps inside for loop using find(edm::Ref)
-		trackedSigmaIEIEIt = (*trackedSigmaIEIEHandle).find(trackedLegHltRefs[j]);
-		clusterShapeTrackedHltEle[j] = trackedSigmaIEIEIt->val;
-		trackedHadEmIt = (*trackedHadEmHandle).find(trackedLegHltRefs[j]);
-		hadEmTrackedHltEle[j] = (trackedHadEmIt->val)/(ptTrackedHltEle[j]*(TMath::CosH(etaTrackedHltEle[j]) ));
-		trackedHcalIsoIt = (*trackedHcalIsoHandle).find(trackedLegHltRefs[j]);
-		hcalIsoTrackedHltEle[j] = (trackedHcalIsoIt->val)/ptTrackedHltEle[j];
-		trackedEcalIsoIt = (*trackedEcalIsoHandle).find(trackedLegHltRefs[j]);
-		ecalIsoTrackedHltEle[j] = (trackedEcalIsoIt->val)/ptTrackedHltEle[j];
+			//initialize const_iterators to maps inside for loop using find(edm::Ref)
+			trackedSigmaIEIEIt = (*trackedSigmaIEIEHandle).find(trackedLegHltRefs[j]);
+			clusterShapeTrackedBarrelHltEle[j] = trackedSigmaIEIEIt->val;
+			trackedHadEmIt = (*trackedHadEmHandle).find(trackedLegHltRefs[j]);
+			hadEmTrackedBarrelHltEle[j] = (trackedHadEmIt->val)/(ptTrackedBarrelHltEle[j]*(TMath::CosH(etaTrackedBarrelHltEle[j]) ));
+			trackedHcalIsoIt = (*trackedHcalIsoHandle).find(trackedLegHltRefs[j]);
+			hcalIsoTrackedBarrelHltEle[j] = (trackedHcalIsoIt->val)/ptTrackedBarrelHltEle[j];
+			trackedEcalIsoIt = (*trackedEcalIsoHandle).find(trackedLegHltRefs[j]);
+			ecalIsoTrackedBarrelHltEle[j] = (trackedEcalIsoIt->val)/ptTrackedBarrelHltEle[j];
 
-		trackedTrackIsoIt = (*trackedTrackIsoHandle).find(trackedLegHltRefs[j]);
-		trackIsoTrackedHltEle[j] = (trackedTrackIsoIt->val)/ptTrackedHltEle[j];
-		trackedDphiIt = (*trackedDphiHandle).find(trackedLegHltRefs[j]);
-		dPhiTrackedHltEle[j] = trackedDphiIt->val;
-		trackedDetaIt = (*trackedDetaHandle).find(trackedLegHltRefs[j]);
-		dEtaTrackedHltEle[j] = trackedDetaIt->val;
-		trackedEpIt = (*trackedEpHandle).find(trackedLegHltRefs[j]);
-		epTrackedHltEle[j] = trackedEpIt->val;
+			trackedTrackIsoIt = (*trackedTrackIsoHandle).find(trackedLegHltRefs[j]);
+			trackIsoTrackedBarrelHltEle[j] = (trackedTrackIsoIt->val)/ptTrackedBarrelHltEle[j];
+			trackedDphiIt = (*trackedDphiHandle).find(trackedLegHltRefs[j]);
+			dPhiTrackedBarrelHltEle[j] = trackedDphiIt->val;
+			trackedDetaIt = (*trackedDetaHandle).find(trackedLegHltRefs[j]);
+			dEtaTrackedBarrelHltEle[j] = trackedDetaIt->val;
+			trackedEpIt = (*trackedEpHandle).find(trackedLegHltRefs[j]);
+			epTrackedBarrelHltEle[j] = trackedEpIt->val;
+		}//end barrel region eta filter
 
-	}
+		if(std::fabs(trackedLegHltRefs[j]->eta()) > 1.4791){
+			etaTrackedEndcapHltEle[j] = trackedLegHltRefs[j]->eta();
+			phiTrackedEndcapHltEle[j] = trackedLegHltRefs[j]->phi();
+			deltaRTrackedEndcapHltEle[j] = deltaR(etaTrackedEndcapHltEle[j], phiTrackedEndcapHltEle[j], genTrackedEta, genTrackedPhi);
+			ptTrackedEndcapHltEle[j] = trackedLegHltRefs[j]->pt();
+
+			//initialize const_iterators to maps inside for loop using find(edm::Ref)
+			trackedSigmaIEIEIt = (*trackedSigmaIEIEHandle).find(trackedLegHltRefs[j]);
+			clusterShapeTrackedEndcapHltEle[j] = trackedSigmaIEIEIt->val;
+			trackedHadEmIt = (*trackedHadEmHandle).find(trackedLegHltRefs[j]);
+			hadEmTrackedEndcapHltEle[j] = (trackedHadEmIt->val)/(ptTrackedEndcapHltEle[j]*(TMath::CosH(etaTrackedEndcapHltEle[j]) ));
+			trackedHcalIsoIt = (*trackedHcalIsoHandle).find(trackedLegHltRefs[j]);
+			hcalIsoTrackedEndcapHltEle[j] = (trackedHcalIsoIt->val)/ptTrackedEndcapHltEle[j];
+			trackedEcalIsoIt = (*trackedEcalIsoHandle).find(trackedLegHltRefs[j]);
+			ecalIsoTrackedEndcapHltEle[j] = (trackedEcalIsoIt->val)/ptTrackedEndcapHltEle[j];
+
+			trackedTrackIsoIt = (*trackedTrackIsoHandle).find(trackedLegHltRefs[j]);
+			trackIsoTrackedEndcapHltEle[j] = (trackedTrackIsoIt->val)/ptTrackedEndcapHltEle[j];
+			trackedDphiIt = (*trackedDphiHandle).find(trackedLegHltRefs[j]);
+			dPhiTrackedEndcapHltEle[j] = trackedDphiIt->val;
+			trackedDetaIt = (*trackedDetaHandle).find(trackedLegHltRefs[j]);
+			dEtaTrackedEndcapHltEle[j] = trackedDetaIt->val;
+			trackedEpIt = (*trackedEpHandle).find(trackedLegHltRefs[j]);
+			epTrackedEndcapHltEle[j] = trackedEpIt->val;
+		}//end barrel region eta filter
+
+	}//end loop over entries in trackedLegHltRefs
 
 }//end GetTrackedTriggerObjects()
 
@@ -203,7 +238,10 @@ void GetMatchedTriggerObjects(
 	if(!tracklessEcalIsoHandle.isValid() || !tracklessHcalIsoHandle.isValid() || !tracklessHadEmHandle.isValid() || !tracklessClusterShapeHandle.isValid() ) return;
 
 	for(unsigned int h=0; h<tracklessLegHltObjectsHandle->size(); h++){
-		if(std::fabs( (getRef(tracklessLegHltObjectsHandle, h))->eta() ) > 2.5 && std::fabs( (getRef(tracklessLegHltObjectsHandle, h))->eta() ) < 3.0){
+		Float_t hltEta = (getRef(trackedLegHltObjectsHandle, h))->eta();
+		Float_t hltPhi = (getRef(trackedLegHltObjectsHandle, h))->phi();
+
+		if(std::fabs(hltEta) > 2.5 && std::fabs(hltEta) < 3.0 && (getRef(tracklessLegHltObjectsHandle, h))->pt() > 15 && deltaR(hltEta, hltPhi, eta, phi) <= dRForMatch){
 			tracklessLegHltRefs.push_back( getRef(tracklessLegHltObjectsHandle, h) );
 		}
 	}
@@ -220,20 +258,25 @@ void GetMatchedTriggerObjects(
 	forMapIt::const_iterator tracklessClusterShapeIt, tracklessHadEmIt, tracklessHcalIsoIt, tracklessEcalIsoIt;
 	for(Int_t j=0; j<nTracklessHltEle; j++){
 		etaTracklessHltEle[j] = tracklessLegHltRefs[j]->eta();
-		ptTracklessHltEle[j] = tracklessLegHltRefs[j]->pt();
 		phiTracklessHltEle[j] = tracklessLegHltRefs[j]->phi();
 
-		//initialize map iterators inside for loop with find(edm::Ref)
-		tracklessClusterShapeIt = (*tracklessClusterShapeHandle).find(tracklessLegHltRefs[j]);
-		clusterShapeTracklessHltEle[j] = tracklessClusterShapeIt->val;
-		tracklessHadEmIt = (*tracklessHadEmHandle).find(tracklessLegHltRefs[j]);
-		hadEmTracklessHltEle[j] = (tracklessHadEmIt->val)/(ptTracklessHltEle[j]*(TMath::CosH(etaTracklessHltEle[j])) );
-		tracklessHcalIsoIt = (*tracklessHcalIsoHandle).find(tracklessLegHltRefs[j]);
-		hcalIsoTracklessHltEle[j] = (tracklessHcalIsoIt->val)/ptTracklessHltEle[j];
-		tracklessEcalIsoIt = (*tracklessEcalIsoHandle).find(tracklessLegHltRefs[j]);
-		ecalIsoTracklessHltEle[j] = (tracklessEcalIsoIt->val)/ptTracklessHltEle[j];
+		if( deltaR(etaTracklessHltEle[j], phiTracklessHltEle[j], eta, phi) <= dRForMatch){
+			deltaRTracklessHltEle[j] = deltaR(etaTracklessHltEle[j], phiTracklessHltEle[j], eta, phi);
+			ptTracklessHltEle[j] = tracklessLegHltRefs[j]->pt();
 
-	}
+			//initialize map iterators inside for loop with find(edm::Ref)
+			tracklessClusterShapeIt = (*tracklessClusterShapeHandle).find(tracklessLegHltRefs[j]);
+			clusterShapeTracklessHltEle[j] = tracklessClusterShapeIt->val;
+			tracklessHadEmIt = (*tracklessHadEmHandle).find(tracklessLegHltRefs[j]);
+			hadEmTracklessHltEle[j] = (tracklessHadEmIt->val)/(ptTracklessHltEle[j]*(TMath::CosH(etaTracklessHltEle[j])) );
+			tracklessHcalIsoIt = (*tracklessHcalIsoHandle).find(tracklessLegHltRefs[j]);
+			hcalIsoTracklessHltEle[j] = (tracklessHcalIsoIt->val)/ptTracklessHltEle[j];
+			tracklessEcalIsoIt = (*tracklessEcalIsoHandle).find(tracklessLegHltRefs[j]);
+			ecalIsoTracklessHltEle[j] = (tracklessEcalIsoIt->val)/ptTracklessHltEle[j];
+
+		}//end filter on deltaR
+
+	}//end loop over entries in tracklessLegHltRefs
 
 }//end GetMatchedTriggerObjects()
 
@@ -242,12 +285,6 @@ private:
 virtual void beginJob() override;
 virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 virtual void endJob() override;
-
-/*
-std::map<std::string,TH1D*> hists_;
-std::map<std::string,TH2D*> histsTwo_;
-std::map<std::string,TH3D*> histsThree_;
-*/
 
 
 //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
@@ -323,18 +360,33 @@ double tracklessDrMatchReqr;
 
 TTree * tree;
 
-Int_t nTrackedHltEle;
-Float_t etaTrackedHltEle[NELE];
-Float_t ptTrackedHltEle[NELE];
-Float_t phiTrackedHltEle[NELE];
-Float_t clusterShapeTrackedHltEle[NELE];
-Float_t hadEmTrackedHltEle[NELE];
-Float_t ecalIsoTrackedHltEle[NELE];
-Float_t hcalIsoTrackedHltEle[NELE];
-Float_t epTrackedHltEle[NELE];
-Float_t dEtaTrackedHltEle[NELE];
-Float_t dPhiTrackedHltEle[NELE];
-Float_t trackIsoTrackedHltEle[NELE];
+Int_t nTrackedBarrelHltEle;
+Float_t etaTrackedBarrelHltEle[NELE];
+Float_t ptTrackedBarrelHltEle[NELE];
+Float_t phiTrackedBarrelHltEle[NELE];
+Float_t clusterShapeTrackedBarrelHltEle[NELE];
+Float_t hadEmTrackedBarrelHltEle[NELE];
+Float_t ecalIsoTrackedBarrelHltEle[NELE];
+Float_t hcalIsoTrackedBarrelHltEle[NELE];
+Float_t epTrackedBarrelHltEle[NELE];
+Float_t dEtaTrackedBarrelHltEle[NELE];
+Float_t dPhiTrackedBarrelHltEle[NELE];
+Float_t trackIsoTrackedBarrelHltEle[NELE];
+Float_t deltaRTrackedBarrelHltEle[NELE];
+
+Int_t nTrackedEndcapHltEle;
+Float_t etaTrackedEndcapHltEle[NELE];
+Float_t ptTrackedEndcapHltEle[NELE];
+Float_t phiTrackedEndcapHltEle[NELE];
+Float_t clusterShapeTrackedEndcapHltEle[NELE];
+Float_t hadEmTrackedEndcapHltEle[NELE];
+Float_t ecalIsoTrackedEndcapHltEle[NELE];
+Float_t hcalIsoTrackedEndcapHltEle[NELE];
+Float_t epTrackedEndcapHltEle[NELE];
+Float_t dEtaTrackedEndcapHltEle[NELE];
+Float_t dPhiTrackedEndcapHltEle[NELE];
+Float_t trackIsoTrackedEndcapHltEle[NELE];
+Float_t deltaRTrackedEndcapHltEle[NELE];
 
 
 Int_t nTracklessHltEle;
@@ -345,6 +397,18 @@ Float_t clusterShapeTracklessHltEle[NELE];
 Float_t ecalIsoTracklessHltEle[NELE];
 Float_t hadEmTracklessHltEle[NELE];
 Float_t hcalIsoTracklessHltEle[NELE];
+Float_t deltaRTracklessHltEle[NELE];
+
+//GEN electron eta, pt, phi
+//there will be only one tracked GEN electron, and one trackless GEN electron per event
+Float_t etaTrackedGenEle;
+Float_t ptTrackedGenEle;
+Float_t phiTrackedGenEle;
+
+Float_t etaTracklessGenEle;
+Float_t ptTracklessGenEle;
+Float_t phiTracklessGenEle;
+
 
 Int_t runNumber;
 Long64_t evtNumber;
@@ -393,18 +457,34 @@ recoAnalyzerBothMatch::recoAnalyzerBothMatch(const edm::ParameterSet& iConfig):
    tree=fs->make<TTree>(tName.c_str(),"RecoEcalCandidate object information before any trigger filters are applied");
   
    //tracked leg branches
-   tree->Branch("nTrackedHltEle",&nTrackedHltEle,"nTrackedHltEle/I");
-   tree->Branch("etaTrackedHltEle",etaTrackedHltEle,"etaTrackedHltEle[nTrackedHltEle]/F");
-   tree->Branch("ptTrackedHltEle",ptTrackedHltEle,"ptTrackedHltEle[nTrackedHltEle]/F");
-   tree->Branch("phiTrackedHltEle",phiTrackedHltEle,"phiTrackedHltEle[nTrackedHltEle]/F");
-   tree->Branch("clusterShapeTrackedHltEle",clusterShapeTrackedHltEle,"clusterShapeTrackedHltEle[nTrackedHltEle]/F");
-   tree->Branch("hadEmTrackedHltEle",hadEmTrackedHltEle,"hadEmTrackedHltEle[nTrackedHltEle]/F");
-   tree->Branch("ecalIsoTrackedHltEle",ecalIsoTrackedHltEle,"ecalIsoTrackedHltEle[nTrackedHltEle]/F");
-   tree->Branch("hcalIsoTrackedHltEle",hcalIsoTrackedHltEle,"hcalIsoTrackedHltEle[nTrackedHltEle]/F");
-   tree->Branch("epTrackedHltEle",epTrackedHltEle,"epTrackedHltEle[nTrackedHltEle]/F");
-   tree->Branch("dEtaTrackedHltEle",dEtaTrackedHltEle,"dEtaTrackedHltEle[nTrackedHltEle]/F");
-   tree->Branch("dPhiTrackedHltEle",dPhiTrackedHltEle,"dPhiTrackedHltEle[nTrackedHltEle]/F");
-   tree->Branch("trackIsoTrackedHltEle",trackIsoTrackedHltEle,"trackIsoTrackedHltEle[nTrackedHltEle]/F");
+   tree->Branch("nTrackedBarrelHltEle",&nTrackedBarrelHltEle,"nTrackedBarrelHltEle/I");
+   tree->Branch("etaTrackedBarrelHltEle",etaTrackedBarrelHltEle,"etaTrackedBarrelHltEle[nTrackedBarrelHltEle]/F");
+   tree->Branch("ptTrackedBarrelHltEle",ptTrackedBarrelHltEle,"ptTrackedBarrelHltEle[nTrackedBarrelHltEle]/F");
+   tree->Branch("phiTrackedBarrelHltEle",phiTrackedBarrelHltEle,"phiTrackedBarrelHltEle[nTrackedBarrelHltEle]/F");
+   tree->Branch("clusterShapeTrackedBarrelHltEle",clusterShapeTrackedBarrelHltEle,"clusterShapeTrackedBarrelHltEle[nTrackedBarrelHltEle]/F");
+   tree->Branch("hadEmTrackedBarrelHltEle",hadEmTrackedBarrelHltEle,"hadEmTrackedBarrelHltEle[nTrackedBarrelHltEle]/F");
+   tree->Branch("ecalIsoTrackedBarrelHltEle",ecalIsoTrackedBarrelHltEle,"ecalIsoTrackedBarrelHltEle[nTrackedBarrelHltEle]/F");
+   tree->Branch("hcalIsoTrackedBarrelHltEle",hcalIsoTrackedBarrelHltEle,"hcalIsoTrackedBarrelHltEle[nTrackedBarrelHltEle]/F");
+   tree->Branch("epTrackedBarrelHltEle",epTrackedBarrelHltEle,"epTrackedBarrelHltEle[nTrackedBarrelHltEle]/F");
+   tree->Branch("dEtaTrackedBarrelHltEle",dEtaTrackedBarrelHltEle,"dEtaTrackedBarrelHltEle[nTrackedBarrelHltEle]/F");
+   tree->Branch("dPhiTrackedBarrelHltEle",dPhiTrackedBarrelHltEle,"dPhiTrackedBarrelHltEle[nTrackedBarrelHltEle]/F");
+   tree->Branch("trackIsoTrackedBarrelHltEle",trackIsoTrackedBarrelHltEle,"trackIsoTrackedBarrelHltEle[nTrackedBarrelHltEle]/F");
+   tree->Branch("deltaRTrackedBarrelHltEle",deltaRTrackedBarrelHltEle,"deltaRTrackedBarrelHltEle[nTrackedBarrelHltEle]/F");
+
+   tree->Branch("nTrackedEndcapHltEle",&nTrackedEndcapHltEle,"nTrackedEndcapHltEle/I");
+   tree->Branch("etaTrackedEndcapHltEle",etaTrackedEndcapHltEle,"etaTrackedEndcapHltEle[nTrackedEndcapHltEle]/F");
+   tree->Branch("ptTrackedEndcapHltEle",ptTrackedEndcapHltEle,"ptTrackedEndcapHltEle[nTrackedEndcapHltEle]/F");
+   tree->Branch("phiTrackedEndcapHltEle",phiTrackedEndcapHltEle,"phiTrackedEndcapHltEle[nTrackedEndcapHltEle]/F");
+   tree->Branch("clusterShapeTrackedEndcapHltEle",clusterShapeTrackedEndcapHltEle,"clusterShapeTrackedEndcapHltEle[nTrackedEndcapHltEle]/F");
+   tree->Branch("hadEmTrackedEndcapHltEle",hadEmTrackedEndcapHltEle,"hadEmTrackedEndcapHltEle[nTrackedEndcapHltEle]/F");
+   tree->Branch("ecalIsoTrackedEndcapHltEle",ecalIsoTrackedEndcapHltEle,"ecalIsoTrackedEndcapHltEle[nTrackedEndcapHltEle]/F");
+   tree->Branch("hcalIsoTrackedEndcapHltEle",hcalIsoTrackedEndcapHltEle,"hcalIsoTrackedEndcapHltEle[nTrackedEndcapHltEle]/F");
+   tree->Branch("epTrackedEndcapHltEle",epTrackedEndcapHltEle,"epTrackedEndcapHltEle[nTrackedEndcapHltEle]/F");
+   tree->Branch("dEtaTrackedEndcapHltEle",dEtaTrackedEndcapHltEle,"dEtaTrackedEndcapHltEle[nTrackedEndcapHltEle]/F");
+   tree->Branch("dPhiTrackedEndcapHltEle",dPhiTrackedEndcapHltEle,"dPhiTrackedEndcapHltEle[nTrackedEndcapHltEle]/F");
+   tree->Branch("trackIsoTrackedEndcapHltEle",trackIsoTrackedEndcapHltEle,"trackIsoTrackedEndcapHltEle[nTrackedEndcapHltEle]/F");
+   tree->Branch("deltaRTrackedEndcapHltEle",deltaRTrackedEndcapHltEle,"deltaRTrackedEndcapHltEle[nTrackedEndcapHltEle]/F");
+
 
    //trackless leg branches
    tree->Branch("nTracklessHltEle",&nTracklessHltEle,"nTracklessHltEle/I");
@@ -415,6 +495,17 @@ recoAnalyzerBothMatch::recoAnalyzerBothMatch(const edm::ParameterSet& iConfig):
    tree->Branch("ecalIsoTracklessHltEle",ecalIsoTracklessHltEle,"ecalIsoTracklessHltEle[nTracklessHltEle]/F");
    tree->Branch("hadEmTracklessHltEle",hadEmTracklessHltEle,"hadEmTracklessHltEle[nTracklessHltEle]/F");
    tree->Branch("hcalIsoTracklessHltEle",hcalIsoTracklessHltEle,"hcalIsoTracklessHltEle[nTracklessHltEle]/F");
+   tree->Branch("deltaRTracklessHltEle",deltaRTracklessHltEle,"deltaRTracklessHltEle[nTracklessHltEle]/F");
+   
+  
+   //GEN electron branches
+   tree->Branch("etaTrackedGenEle",&etaTrackedGenEle,"etaTrackedGenEle/F");
+   tree->Branch("ptTrackedGenEle",&ptTrackedGenEle,"ptTrackedGenEle/F");
+   tree->Branch("phiTrackedGenEle",&phiTrackedGenEle,"phiTrackedGenEle/F");
+   tree->Branch("etaTracklessGenEle",&etaTracklessGenEle,"etaTracklessGenEle/F");
+   tree->Branch("ptTracklessGenEle",&ptTracklessGenEle,"ptTracklessGenEle/F");
+   tree->Branch("phiTracklessGenEle",&phiTracklessGenEle,"phiTracklessGenEle/F");
+
 
    //general branches not specifically related to one leg or the other
    tree->Branch("evtNumber",&evtNumber,"evtNumber/l");
@@ -456,23 +547,46 @@ recoAnalyzerBothMatch::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	runNumber = iEvent.id().run();
 
 	nTracklessHltEle = 0;
-	nTrackedHltEle = 0;
+	nTrackedBarrelHltEle = 0;
+	nTrackedEndcapHltEle = 0;
+	
+	etaTrackedGenEle = 0;
+	ptTrackedGenEle = 0;
+	phiTrackedGenEle = 0;
+	etaTracklessGenEle = 0;
+	ptTracklessGenEle = 0;
+	phiTracklessGenEle = 0;
 	trackedLegHltRefs.clear();
 	tracklessLegHltRefs.clear();
 
 	for(Int_t r=0; r<NELE; r++){
 		//set all entries in arrays to zero
-		etaTrackedHltEle[r]=0;
-		ptTrackedHltEle[r]=0;
-		phiTrackedHltEle[r]=0;
-		clusterShapeTrackedHltEle[r]=0;
-		hadEmTrackedHltEle[r]=0;
-		ecalIsoTrackedHltEle[r]=0;
-		hcalIsoTrackedHltEle[r]=0;
-		epTrackedHltEle[r]=0;
-		dEtaTrackedHltEle[r]=0;
-		dPhiTrackedHltEle[r]=0;
-		trackIsoTrackedHltEle[r]=0;
+		etaTrackedBarrelHltEle[r]=0;
+		ptTrackedBarrelHltEle[r]=0;
+		phiTrackedBarrelHltEle[r]=0;
+		clusterShapeTrackedBarrelHltEle[r]=0;
+		hadEmTrackedBarrelHltEle[r]=0;
+		ecalIsoTrackedBarrelHltEle[r]=0;
+		hcalIsoTrackedBarrelHltEle[r]=0;
+		epTrackedBarrelHltEle[r]=0;
+		dEtaTrackedBarrelHltEle[r]=0;
+		dPhiTrackedBarrelHltEle[r]=0;
+		trackIsoTrackedBarrelHltEle[r]=0;
+		deltaRTrackedBarrelHltEle[r]=0;
+
+		etaTrackedEndcapHltEle[r]=0;
+		ptTrackedEndcapHltEle[r]=0;
+		phiTrackedEndcapHltEle[r]=0;
+		clusterShapeTrackedEndcapHltEle[r]=0;
+		hadEmTrackedEndcapHltEle[r]=0;
+		ecalIsoTrackedEndcapHltEle[r]=0;
+		hcalIsoTrackedEndcapHltEle[r]=0;
+		epTrackedEndcapHltEle[r]=0;
+		dEtaTrackedEndcapHltEle[r]=0;
+		dPhiTrackedEndcapHltEle[r]=0;
+		trackIsoTrackedEndcapHltEle[r]=0;
+		deltaRTrackedEndcapHltEle[r]=0;
+
 
 		etaTracklessHltEle[r]=0;
 		ptTracklessHltEle[r]=0;
@@ -481,12 +595,22 @@ recoAnalyzerBothMatch::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		hadEmTracklessHltEle[r]=0;
 		ecalIsoTracklessHltEle[r]=0;
 		hcalIsoTracklessHltEle[r]=0;
+		deltaRTracklessHltEle[r]=0;
+
 	}
 
 	iEvent.getByLabel(trackedGenTag,trackedGenElectronHandle);
 	iEvent.getByLabel(tracklessGenTag,tracklessGenElectronHandle);
 
 	edm::OwnVector<reco::Candidate>::const_iterator trackedGenIt = trackedGenElectronHandle->begin(), tracklessGenIt = tracklessGenElectronHandle->begin();
+
+	etaTrackedGenEle = trackedGenIt->eta();
+	ptTrackedGenEle = trackedGenIt->pt();
+	phiTrackedGenEle = trackedGenIt->phi();
+	etaTracklessGenEle = tracklessGenIt->eta();
+	ptTracklessGenEle = tracklessGenIt->pt();
+	phiTracklessGenEle = tracklessGenIt->phi();
+
 
 	//gets the tracked leg trigger objects matched to tracked GEN electrons
 	GetTrackedTriggerObjects(iEvent, trackedGenIt->eta(), trackedGenIt->phi(), trackedDrMatchReqr);

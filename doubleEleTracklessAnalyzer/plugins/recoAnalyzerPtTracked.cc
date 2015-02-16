@@ -1,12 +1,14 @@
 // -*- C++ -*-
 //
-// Package:    doubleElectronTracklessTrigger/recoAnalyzerZero
-// Class:      recoAnalyzerZero
+// Package:    doubleElectronTracklessTrigger/recoAnalyzerPtTracked
+// Class:      recoAnalyzerPtTracked
 // 
-/**\class recoAnalyzerZero recoAnalyzerZero.cc doubleElectronTracklessTrigger/recoAnalyzerZero/plugins/recoAnalyzerZero.cc
+/**\class recoAnalyzerPtTracked recoAnalyzerPtTracked.cc doubleElectronTracklessTrigger/recoAnalyzerPtTracked/plugins/recoAnalyzerPtTracked.cc
 
  Description: [one line class summary]
 
+ used to filter out events with at least one tracked RecoEcalCandidate with pt>27
+ no requirements on trackless REC
  Implementation:
      [Notes on implementation]
 */
@@ -111,10 +113,10 @@
 // class declaration
 //
 
-class recoAnalyzerZero : public edm::EDAnalyzer {
+class recoAnalyzerPtTracked : public edm::EDAnalyzer {
    public:
-      explicit recoAnalyzerZero(const edm::ParameterSet&);
-      ~recoAnalyzerZero();
+      explicit recoAnalyzerPtTracked(const edm::ParameterSet&);
+      ~recoAnalyzerPtTracked();
 
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
      
@@ -140,7 +142,7 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const Float_t genTracked
 	if(!trackedSigmaIEIEHandle.isValid() || !trackedHadEmHandle.isValid() || !trackedHcalIsoHandle.isValid() || !trackedEcalIsoHandle.isValid() || !trackedTrackIsoHandle.isValid() || !trackedDphiHandle.isValid() || !trackedDetaHandle.isValid() || !trackedEpHandle.isValid()) return;
 
 	for(unsigned int h=0; h<trackedLegHltObjectsHandle->size(); h++){
-		if( std::fabs( (getRef(trackedLegHltObjectsHandle, h))->eta()) < 2.5){
+		if( std::fabs( (getRef(trackedLegHltObjectsHandle, h))->eta()) < 2.5 && (getRef(trackedLegHltObjectsHandle, h))->pt() > 27){
 			trackedLegHltRefs.push_back( getRef(trackedLegHltObjectsHandle, h) );
 		}
 	}
@@ -152,9 +154,9 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const Float_t genTracked
 		if(std::fabs(trackedLegHltRefs[i]->eta()) > 1.4791) nTrackedEndcapHltEle += 1;
 	}
 
-	Int_t totalTrackedEles = nTrackedBarrelHltEle + nTrackedEndcapHltEle;
-
 	typedef edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>, float> > forMapIt;
+
+	Int_t totalTrackedEles = nTrackedBarrelHltEle + nTrackedEndcapHltEle;
 	
 	//declare const_iterators to maps outside for loop
 	forMapIt::const_iterator trackedSigmaIEIEIt, trackedHadEmIt, trackedHcalIsoIt, trackedEcalIsoIt, trackedTrackIsoIt, trackedDphiIt, trackedDetaIt, trackedEpIt;
@@ -210,7 +212,7 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const Float_t genTracked
 		}//end endcap eta requirement
 
 	}
-
+	
 }//end GetTrackedTriggerObjects()
 
 
@@ -397,7 +399,7 @@ Long64_t evtNumber;
 // constructors and destructor
 //
 //the order of private member vars which are initialized using iConfig.getParameter<>() is important!
-recoAnalyzerZero::recoAnalyzerZero(const edm::ParameterSet& iConfig):
+recoAnalyzerPtTracked::recoAnalyzerPtTracked(const edm::ParameterSet& iConfig):
 	trackedSigmaIEIETag(iConfig.getParameter<edm::InputTag>("trackedSigmaIEIE")),
 	trackedHadEmTag(iConfig.getParameter<edm::InputTag>("trackedHadEm")),
 	trackedEcalIsoTag(iConfig.getParameter<edm::InputTag>("trackedEcalIso")),
@@ -467,7 +469,7 @@ recoAnalyzerZero::recoAnalyzerZero(const edm::ParameterSet& iConfig):
 }
 
 
-recoAnalyzerZero::~recoAnalyzerZero()
+recoAnalyzerPtTracked::~recoAnalyzerPtTracked()
 {
  
    // do anything here that needs to be done at desctruction time
@@ -482,7 +484,7 @@ recoAnalyzerZero::~recoAnalyzerZero()
 
 // ------------ method called for each event  ------------
 void
-recoAnalyzerZero::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+recoAnalyzerPtTracked::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 	using namespace edm;
 
@@ -563,7 +565,7 @@ recoAnalyzerZero::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-recoAnalyzerZero::beginJob()
+recoAnalyzerPtTracked::beginJob()
 {
 /*
   tree_file = new TFile(foutName.c_str(), "recreate");
@@ -584,7 +586,7 @@ recoAnalyzerZero::beginJob()
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
-recoAnalyzerZero::endJob() 
+recoAnalyzerPtTracked::endJob() 
 {
 	//loop over bins of "EventFraction", divide each bin content by totalNumEvents, then reset the bin content to the old content divided by totalNumEvents
 
@@ -616,7 +618,7 @@ recoAnalyzerZero::endJob()
 // ------------ method called when starting to processes a run  ------------
 /*
 void 
-recoAnalyzerZero::beginRun(edm::Run const&, edm::EventSetup const&)
+recoAnalyzerPtTracked::beginRun(edm::Run const&, edm::EventSetup const&)
 {
 }
 */
@@ -624,7 +626,7 @@ recoAnalyzerZero::beginRun(edm::Run const&, edm::EventSetup const&)
 // ------------ method called when ending the processing of a run  ------------
 /*
 void 
-recoAnalyzerZero::endRun(edm::Run const&, edm::EventSetup const&)
+recoAnalyzerPtTracked::endRun(edm::Run const&, edm::EventSetup const&)
 {
 }
 */
@@ -632,7 +634,7 @@ recoAnalyzerZero::endRun(edm::Run const&, edm::EventSetup const&)
 // ------------ method called when starting to processes a luminosity block  ------------
 /*
 void 
-recoAnalyzerZero::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+recoAnalyzerPtTracked::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
 {
 }
 */
@@ -640,14 +642,14 @@ recoAnalyzerZero::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSe
 // ------------ method called when ending the processing of a luminosity block  ------------
 /*
 void 
-recoAnalyzerZero::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+recoAnalyzerPtTracked::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
 {
 }
 */
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
 void
-recoAnalyzerZero::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+recoAnalyzerPtTracked::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   //The following says we do not know what parameters are allowed so do no validation
   // Please change this to state exactly what you do use, even if it is no parameters
   edm::ParameterSetDescription desc;
@@ -656,7 +658,7 @@ recoAnalyzerZero::fillDescriptions(edm::ConfigurationDescriptions& descriptions)
 }
 
 /*
-void recoAnalyzerZero::InitNewTree(void){
+void recoAnalyzerPtTracked::InitNewTree(void){
 
   //make one branch for each unique variable I want to track - ecal iso, lepton pT, invariant mass of dilepton system, etc
 
@@ -714,7 +716,7 @@ void recoAnalyzerZero::InitNewTree(void){
 }
 
 //negative index means the corresponding electron does not exist
-void recoAnalyzerZero::TreeSetSingleElectronVar(const pat::Electron& electron1, int index){
+void recoAnalyzerPtTracked::TreeSetSingleElectronVar(const pat::Electron& electron1, int index){
 
   if(index<0){
     PtEle[-index] 	  = 0;  
@@ -730,7 +732,7 @@ void recoAnalyzerZero::TreeSetSingleElectronVar(const pat::Electron& electron1, 
   phiEle[index]    = electron1.phi();
 }
 
-void recoAnalyzerZero::TreeSetSingleElectronVar(const reco::SuperCluster& electron1, int index){
+void recoAnalyzerPtTracked::TreeSetSingleElectronVar(const reco::SuperCluster& electron1, int index){
 
   if(index<0){
     PtEle[-index] 	  = 0;
@@ -748,7 +750,7 @@ void recoAnalyzerZero::TreeSetSingleElectronVar(const reco::SuperCluster& electr
   phiEle[index]    = electron1.phi();
 }
 
-void recoAnalyzerZero::TreeSetDiElectronVar(const pat::Electron& electron1, const reco::SuperCluster& electron2){
+void recoAnalyzerPtTracked::TreeSetDiElectronVar(const pat::Electron& electron1, const reco::SuperCluster& electron2){
   
   TreeSetSingleElectronVar(electron1, 0);
   TreeSetSingleElectronVar(electron2, 1);
@@ -769,4 +771,4 @@ void recoAnalyzerZero::TreeSetDiElectronVar(const pat::Electron& electron1, cons
 
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(recoAnalyzerZero);
+DEFINE_FWK_MODULE(recoAnalyzerPtTracked);

@@ -58,9 +58,54 @@ process.recoAnalyzerZero = cms.EDAnalyzer('recoAnalyzerZero',
 	
 		)
 
+#this analyzer filters out events where there is no tracked RecoEcalCandidate object with pt>27
+process.recoAnalyzerOne = cms.EDAnalyzer('recoAnalyzerPtTracked',
+		trackedSigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+		trackedHadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+		trackedEcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+		trackedHcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+		trackedEp=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+		trackedDeta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+		trackedDphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+		trackedTrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+		tracklessClusterShape=cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+		tracklessHadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+		tracklessEcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+		tracklessHcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersTrackedPtRequirement"),
+		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
+		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
+		genTrackedElectronCollection = cms.InputTag("","",""),
+		genTracklessElectronCollection = cms.InputTag("","","")
+	
+		)
+
+#this analyzer filters out events where there is no trackless RecoEcalCandidate object with pt>15
+process.recoAnalyzerTwo = cms.EDAnalyzer('recoAnalyzerPtTrackless',
+		trackedSigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+		trackedHadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+		trackedEcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+		trackedHcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+		trackedEp=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+		trackedDeta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+		trackedDphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+		trackedTrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+		tracklessClusterShape=cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+		tracklessHadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+		tracklessEcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+		tracklessHcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersTracklessPtRequirement"),
+		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
+		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
+		genTrackedElectronCollection = cms.InputTag("","",""),
+		genTracklessElectronCollection = cms.InputTag("","","")
+	
+		)
+
+
 #this analyzer should be used for Z->ee signal evts where both the tracked and trackless HLT objects must be matched to their
 #GEN counterparts
-process.recoAnalyzerOne = cms.EDAnalyzer('recoAnalyzerBothMatch',
+process.recoAnalyzerThree = cms.EDAnalyzer('recoAnalyzerBothMatch',
 		trackedSigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
 		trackedHadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
 		trackedEcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
@@ -100,6 +145,8 @@ process.TFileService = cms.Service("TFileService",
 
 process.p = cms.Path(
 		process.recoAnalyzerZero
+		+process.recoAnalyzerOne
+		+process.recoAnalyzerTwo
 		+process.ZeeFilter
-		*process.recoAnalyzerOne
+		*process.recoAnalyzerThree
 		)
