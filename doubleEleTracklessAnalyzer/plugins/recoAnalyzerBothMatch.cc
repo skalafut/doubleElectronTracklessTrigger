@@ -132,6 +132,16 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const Float_t genTracked
 	iEvent.getByLabel(trackedDetaTag,trackedDetaHandle);
 	iEvent.getByLabel(trackedEpTag,trackedEpHandle);
 
+	iEvent.getByLabel(hltTrackedLegTag, trackedTrackIsoFilterHandle);
+	if(!trackedTrackIsoFilterHandle.isValid() ){
+		return;
+	}
+
+	trackedTrackIsoFilterHandle->getObjects(trigger::TriggerCluster, trackedLegHltRefs);
+	if(trackedLegHltRefs.empty() ) trackedTrackIsoFilterHandle->getObjects(trigger::TriggerPhoton, trackedLegHltRefs);
+	if(trackedLegHltRefs.empty() ) return;
+
+	/*
 	//fill handle to RecoEcalCandidate object collection made by tracked leg
 	iEvent.getByLabel(hltTrackedLegTag, trackedLegHltObjectsHandle);
 	
@@ -149,6 +159,7 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const Float_t genTracked
 	}
 
 	if(trackedLegHltRefs.size() == 0) return; //there is a chance there may not be any REC which passes the |eta|<2.5 requirement in one evt
+	*/
 
 	for(unsigned int i=0; i<trackedLegHltRefs.size(); i++){
 		if(std::fabs(trackedLegHltRefs[i]->eta()) < 1.4791) nTrackedBarrelHltEle += 1;
@@ -229,8 +240,18 @@ void GetMatchedTriggerObjects(
 	iEvent.getByLabel(tracklessHcalIsoTag,tracklessHcalIsoHandle);
 	iEvent.getByLabel(tracklessHadEmTag,tracklessHadEmHandle);
 	iEvent.getByLabel(tracklessClusterShapeTag,tracklessClusterShapeHandle);
+	iEvent.getByLabel(hltTracklessLegTag, tracklessHcalIsoFilterHandle);
 
 
+	if(!tracklessHcalIsoFilterHandle.isValid() ) return;
+
+	tracklessHcalIsoFilterHandle->getObjects(trigger::TriggerCluster, tracklessLegHltRefs);
+	if(tracklessLegHltRefs.empty() ) tracklessHcalIsoFilterHandle->getObjects(trigger::TriggerPhoton, tracklessLegHltRefs);
+	if(tracklessLegHltRefs.empty() ) return;
+
+
+
+	/*
 	//fill handle to RecoEcalCandidate object collection made by the trackless leg
 	iEvent.getByLabel(hltTracklessLegTag, tracklessLegHltObjectsHandle);
 	if(!tracklessLegHltObjectsHandle.isValid() || tracklessLegHltObjectsHandle->size() == 0 ) return;
@@ -247,6 +268,7 @@ void GetMatchedTriggerObjects(
 	}
 
 	if(tracklessLegHltRefs.size() == 0) return;
+	*/
 
 	for(unsigned int i=0; i<tracklessLegHltRefs.size(); i++){
 		nTracklessHltEle += 1;
@@ -321,6 +343,10 @@ edm::InputTag trackedDphiTag;
 edm::Handle<ecalCandToValMap> trackedTrackIsoHandle;
 edm::InputTag trackedTrackIsoTag;
 
+//use tracked hlt object InputTag
+edm::Handle<trigger::TriggerFilterObjectWithRefs> trackedTrackIsoFilterHandle;
+
+
 
 //handles and inputTags to AssociationMaps for RecoEcalCandidate objects made in the trackless leg
 edm::Handle<ecalCandToValMap> tracklessClusterShapeHandle;
@@ -335,6 +361,8 @@ edm::InputTag tracklessEcalIsoTag;
 edm::Handle<ecalCandToValMap> tracklessHcalIsoHandle;
 edm::InputTag tracklessHcalIsoTag;
 
+//use trackless hlt object InputTag
+edm::Handle<trigger::TriggerFilterObjectWithRefs> tracklessHcalIsoFilterHandle;
 
 
 //RecoEcalCandidate and reco::Candidate handles, relevant InputTags, and tree variables
@@ -561,41 +589,41 @@ recoAnalyzerBothMatch::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
 	for(Int_t r=0; r<NELE; r++){
 		//set all entries in arrays to zero
-		etaTrackedBarrelHltEle[r]=0;
-		ptTrackedBarrelHltEle[r]=0;
-		phiTrackedBarrelHltEle[r]=0;
-		clusterShapeTrackedBarrelHltEle[r]=0;
-		hadEmTrackedBarrelHltEle[r]=0;
-		ecalIsoTrackedBarrelHltEle[r]=0;
-		hcalIsoTrackedBarrelHltEle[r]=0;
-		epTrackedBarrelHltEle[r]=0;
-		dEtaTrackedBarrelHltEle[r]=0;
-		dPhiTrackedBarrelHltEle[r]=0;
-		trackIsoTrackedBarrelHltEle[r]=0;
-		deltaRTrackedBarrelHltEle[r]=0;
+		etaTrackedBarrelHltEle[r]=1000;
+		ptTrackedBarrelHltEle[r]=1000;
+		phiTrackedBarrelHltEle[r]=1000;
+		clusterShapeTrackedBarrelHltEle[r]=1000;
+		hadEmTrackedBarrelHltEle[r]=1000;
+		ecalIsoTrackedBarrelHltEle[r]=1000;
+		hcalIsoTrackedBarrelHltEle[r]=1000;
+		epTrackedBarrelHltEle[r]=1000;
+		dEtaTrackedBarrelHltEle[r]=1000;
+		dPhiTrackedBarrelHltEle[r]=1000;
+		trackIsoTrackedBarrelHltEle[r]=1000;
+		deltaRTrackedBarrelHltEle[r]=1000;
 
-		etaTrackedEndcapHltEle[r]=0;
-		ptTrackedEndcapHltEle[r]=0;
-		phiTrackedEndcapHltEle[r]=0;
-		clusterShapeTrackedEndcapHltEle[r]=0;
-		hadEmTrackedEndcapHltEle[r]=0;
-		ecalIsoTrackedEndcapHltEle[r]=0;
-		hcalIsoTrackedEndcapHltEle[r]=0;
-		epTrackedEndcapHltEle[r]=0;
-		dEtaTrackedEndcapHltEle[r]=0;
-		dPhiTrackedEndcapHltEle[r]=0;
-		trackIsoTrackedEndcapHltEle[r]=0;
-		deltaRTrackedEndcapHltEle[r]=0;
+		etaTrackedEndcapHltEle[r]=1000;
+		ptTrackedEndcapHltEle[r]=1000;
+		phiTrackedEndcapHltEle[r]=1000;
+		clusterShapeTrackedEndcapHltEle[r]=1000;
+		hadEmTrackedEndcapHltEle[r]=1000;
+		ecalIsoTrackedEndcapHltEle[r]=1000;
+		hcalIsoTrackedEndcapHltEle[r]=1000;
+		epTrackedEndcapHltEle[r]=1000;
+		dEtaTrackedEndcapHltEle[r]=1000;
+		dPhiTrackedEndcapHltEle[r]=1000;
+		trackIsoTrackedEndcapHltEle[r]=1000;
+		deltaRTrackedEndcapHltEle[r]=1000;
 
 
-		etaTracklessHltEle[r]=0;
-		ptTracklessHltEle[r]=0;
-		phiTracklessHltEle[r]=0;
-		clusterShapeTracklessHltEle[r]=0;
-		hadEmTracklessHltEle[r]=0;
-		ecalIsoTracklessHltEle[r]=0;
-		hcalIsoTracklessHltEle[r]=0;
-		deltaRTracklessHltEle[r]=0;
+		etaTracklessHltEle[r]=1000;
+		ptTracklessHltEle[r]=1000;
+		phiTracklessHltEle[r]=1000;
+		clusterShapeTracklessHltEle[r]=1000;
+		hadEmTracklessHltEle[r]=1000;
+		ecalIsoTracklessHltEle[r]=1000;
+		hcalIsoTracklessHltEle[r]=1000;
+		deltaRTracklessHltEle[r]=1000;
 
 	}
 

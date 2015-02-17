@@ -51,8 +51,10 @@ process.recoAnalyzerZero = cms.EDAnalyzer('recoAnalyzerZero',
 		tracklessEcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
 		tracklessHcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
 		treeName = cms.string("recoTreeBeforeTriggerFilters"),
-		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
-		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
+		#trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
+		trackedElectronCollection = cms.InputTag("hltEle27WPXXTrackIsoFilter","","TEST"),
+		#tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
+		tracklessElectronCollection = cms.InputTag("hltEle15WPYYtracklessHcalIsoFilter","","TEST"),
 		genTrackedElectronCollection = cms.InputTag("","",""),
 		genTracklessElectronCollection = cms.InputTag("","","")
 	
@@ -147,6 +149,6 @@ process.p = cms.Path(
 		process.recoAnalyzerZero
 		+process.recoAnalyzerOne
 		+process.recoAnalyzerTwo
-		+process.ZeeFilter
-		*process.recoAnalyzerThree
+		#+process.ZeeFilter
+		#*process.recoAnalyzerThree
 		)

@@ -3419,12 +3419,12 @@ process.hltEle27WPXXOneOEMinusOneOPFilter = cms.EDFilter( "HLTEgammaGenericFilte
     saveTags = cms.bool( True ),
     thrOverE2EB = cms.double( -1.0 ),
     #ORIGINAL thrRegularEE = cms.double( 0.009 ),
-    thrRegularEE = cms.double( 0.09 ),
+    thrRegularEE = cms.double( 0.3 ),
 	thrOverEEE = cms.double( -1.0 ),
     L1IsoCand = cms.InputTag( "hltEgammaCandidates" ),
     thrOverEEB = cms.double( -1.0 ),
     #ORIGINAL thrRegularEB = cms.double( 0.012 ),
-    thrRegularEB = cms.double( 0.12 ),
+    thrRegularEB = cms.double( 0.4 ),
 	lessThan = cms.bool( True ),
     useEt = cms.bool( True ),
     ncandcut = cms.int32( 1 ),
@@ -4418,8 +4418,8 @@ process.hltEG15WPYYtracklessEtFilterUnseeded = cms.EDFilter( "HLTEgammaEtFilter"
     inputTag = cms.InputTag( "hltEgammaCandidatesWrapperUnseeded" ),
     #ORIGINAL etcutEB = cms.double( 15.0 ),
     #ORIGINAL etcutEE = cms.double( 15.0 ),
-    etcutEB = cms.double( 5.0 ),
-    etcutEE = cms.double( 5.0 ),
+    etcutEB = cms.double( 2.0 ),
+    etcutEE = cms.double( 2.0 ),
 	ncandcut = cms.int32( 2 )
 )
 process.hltEgammaClusterShapeUnseeded = cms.EDProducer( "EgammaHLTClusterShapeProducer",
@@ -4872,9 +4872,61 @@ process.HLTEle27WPXXSequence = cms.Sequence(
 		+ process.hltEgammaEleGsfTrackIso 
 		+ process.hltEle27WPXXTrackIsoFilter )
 
+process.HLTEle27WPXXSequenceStudy = cms.Sequence( 
+		process.HLTDoFullUnpackingEgammaEcalSequence 
+		+ process.HLTPFClusteringForEgamma 
+		+ process.hltEgammaCandidates 
+		#+ process.hltEGL1SingleEG20ORL1SingleEG22Filter 
+		#+ process.hltEG27WPXXEtFilter 
+		+ process.hltEgammaClusterShape 
+		#+ process.hltEle27WPXXClusterShapeFilter 
+		+ process.HLTDoLocalHcalWithTowerSequence 
+		+ process.HLTPFHcalClusteringForEgamma 
+		+ process.HLTFastJetForEgamma 
+		+ process.hltEgammaHoverE 
+		#+ process.hltEle27WPXXHEFilter 
+		+ process.hltEgammaEcalPFClusterIso 
+		#+ process.hltEle27WPXXEcalIsoFilter 
+		+ process.hltEgammaHcalPFClusterIso 
+		#+ process.hltEle27WPXXHcalIsoFilter 
+		+ process.HLTDoLocalPixelSequence 
+		+ process.HLTDoLocalStripSequence 
+		+ process.hltMixedLayerPairs 
+		+ process.hltEgammaElectronPixelSeeds 
+		#+ process.hltEle27WPXXPixelMatchFilter 
+		+ process.HLTGsfElectronSequence 
+		#+ process.hltEle27WPXXOneOEMinusOneOPFilter 
+		#+ process.hltEle27WPXXDetaFilter 
+		#+ process.hltEle27WPXXDphiFilter 
+		+ process.HLTTrackReconstructionForIsoElectronIter02 
+		+ process.hltEgammaEleGsfTrackIso 
+		#+ process.hltEle27WPXXTrackIsoFilter
+)
+
+
 
 process.HLTPFClusteringForEgammaUnseeded = cms.Sequence( process.HLTDoFullUnpackingEgammaEcalSequence + process.hltParticleFlowRecHitECALUnseeded + process.hltParticleFlowRecHitPSUnseeded + process.hltParticleFlowClusterPSUnseeded + process.hltParticleFlowClusterECALUncorrectedUnseeded + process.hltParticleFlowClusterECALUnseeded + process.hltParticleFlowSuperClusterECALUnseeded )
 process.HLTPFHcalClusteringForEgammaUnseeded = cms.Sequence( process.hltParticleFlowRecHitHCALForEgammaUnseeded + process.hltParticleFlowClusterHCALForEgammaUnseeded + process.hltParticleFlowClusterHFEMForEgammaUnseeded + process.hltParticleFlowClusterHFHADForEgammaUnseeded )
+
+process.HLTEle15WPYYtracklessSequenceStudy = cms.Sequence( 
+		process.HLTPFClusteringForEgammaUnseeded 
+		+ process.hltEgammaCandidatesUnseeded 
+		+ process.hltEgammaCandidatesWrapperUnseeded 
+		#+ process.hltEG15WPYYtracklessEtFilterUnseeded 
+		+ process.hltEgammaClusterShapeUnseeded 
+		#+ process.hltEle15WPYYtracklessClusterShapeFilter 
+		+ process.hltEgammaEcalPFClusterIsoUnseeded 
+		#+ process.hltEle15WPYYtracklessEcalIsoFilter 
+		+ process.HLTPFHcalClusteringForEgammaUnseeded 
+		+ process.hltEgammaHoverEUnseeded 
+		#+ process.hltEle15WPYYtracklessHEFilter 
+		+ process.hltEgammaHcalPFClusterIsoUnseeded 
+		#+ process.hltEle15WPYYtracklessHcalIsoFilter 
+		+ process.hltEgammaNoTrackerCandidates 
+		#+ process.hltEgammaNoTrackerEtaPtFilter 
+		#+ process.hltEgammaNoTrackerNCandidatesFilter
+)
+
 
 #trackless leg
 process.HLTEle15WPYYtracklessSequence = cms.Sequence( 
@@ -4961,29 +5013,6 @@ process.genAnalyzerFour = cms.EDAnalyzer('specificGenAnalyzer',
 		)
 
 
-#These recoAnalyzer modules will never be used in this python file.  They will only work when running over
-#.root files with HLT objects!
-
-#this analyzer will make distributions of tracked and trackless leg cut variables
-#before any tracked or trackless leg filters are applied
-#process.recoAnalyzerZero = cms.EDAnalyzer('recoAnalyzerZero',
-#		treeName = cms.string("recoTreeBeforeTriggerFilters"),
-#		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
-#		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
-#		genTrackedElectronCollection = cms.InputTag("","",""),
-#		genTracklessElectronCollection = cms.InputTag("","","")
-#	
-#		)
-
-#this analyzer will be used for Z->ee signal evts where dR matching btwn GEN and HLT objects should be required
-#process.recoAnalyzerOne = cms.EDAnalyzer('recoAnalyzerOne',
-#		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
-#		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
-#		genTrackedElectronCollection = cms.InputTag("need something here","","and here"),
-#		genTracklessElectronCollection = cms.InputTag("need something here","","and here")
-#	
-#		)
-
 process.HLTriggerFirstPath = cms.Path( 
 		process.genEle
 		*process.genAnalyzerOne
@@ -5006,6 +5035,17 @@ process.HLTriggerFirstPath = cms.Path(
 
 #process.AlCa_EcalPhiSym_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ZeroBias + process.hltPreAlCaEcalPhiSym + process.HLTDoFullUnpackingEgammaEcalWithoutPreshowerSequence + process.hltAlCaPhiSymStream + process.hltAlCaPhiSymUncalibrator + process.HLTEndSequence )
 
+process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study = cms.Path( 
+		process.HLTBeginSequence 
+		#+ process.hltL1sL1SingleEG20ORL1SingleEG22 
+		+ process.hltPreEle27WPXXEle15WPYYtrackless 
+		+ process.HLTEle27WPXXSequenceStudy 
+		+ process.HLTEle15WPYYtracklessSequenceStudy
+		+ process.HLTEndSequence
+		#+ process.recoAnalyzer
+		)
+
+
 process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_v1 = cms.Path( 
 		process.HLTBeginSequence 
 		+ process.hltL1sL1SingleEG20ORL1SingleEG22 
@@ -5017,14 +5057,13 @@ process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_v1 = cms.Path(
 process.HLTriggerFinalPath = cms.Path( 
 		process.hltGtDigis 
 		+ process.hltScalersRawToDigi + process.hltFEDSelector + process.hltTriggerSummaryAOD + process.hltTriggerSummaryRAW
-		#*process.recoAnalyzerZero
 		)
 
 
 process.TFileService = cms.Service("TFileService",
-		fileName = cms.string('genAnalyzerTree.root')
-		#fileName = cms.string('treeTest_genAnalyzer.root')
-		#fileName = cms.string('speedTrial_no_early_filter.root')
+		#fileName = cms.string('genAnalyzerTree.root')
+		fileName = cms.string('testTree.root')
+
 )
 
 process.source = cms.Source( "PoolSource",
@@ -5095,9 +5134,8 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 #this is a standalone module to save the output from cmsRun hlt_tracklessDoubleElectron.py into a .root file
 #This .root file can then be analyzed by the trigger optimization script
 process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
-    #fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/Test_signal_contains_HLT_objects.root"),
-	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects.root"),
-	#fileName = cms.untracked.string("/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/Test_signal_has_hlt_objects.root"),
+	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects.root"),
+	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/small_signal_sample_with_HLT_objects.root"),
 	fastCloning = cms.untracked.bool( False ),
     dataset = cms.untracked.PSet(
         dataTier = cms.untracked.string( 'RECO' ),
@@ -5118,7 +5156,7 @@ process.FULLOutput = cms.EndPath( process.hltOutputFULL )
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(50)
 )
 
 # enable the TrigReport and TimeReport

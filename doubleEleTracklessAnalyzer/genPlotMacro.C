@@ -3,6 +3,7 @@
 #include <TROOT.h>
 #include <TCanvas.h>
 #include <TString.h>
+#include <TStyle.h>
 #include <TCut.h>
 #include <TH1F.h>
 #include <TMath.h>
@@ -66,8 +67,10 @@ void genPlotMacro(){
 	//TCut objects 
 	TCut trackedEta0 = "TMath::Abs(etaGenEle[0])<2.5";
 	TCut trackedPt0 = "ptGenEle[0]>27";
+	TCut trackedPtAndEta0 = trackedEta0 + trackedPt0;
 	TCut trackedEta1 = "TMath::Abs(etaGenEle[1])<2.5";
 	TCut trackedPt1 = "ptGenEle[1]>27";
+	TCut trackedPtAndEta1 = trackedEta1 + trackedPt1;
 
 	TCut tracklessEtaLow0 = "TMath::Abs(etaGenEle[0])>2.5";
 	TCut tracklessEtaHigh0 = "TMath::Abs(etaGenEle[0])<3.0";
@@ -75,7 +78,15 @@ void genPlotMacro(){
 	TCut tracklessEtaHigh1 = "TMath::Abs(etaGenEle[1])<3.0";
 	TCut tracklessPt0 = "ptGenEle[0]>15";
 	TCut tracklessPt1 = "ptGenEle[1]>15";
-//void makeAndSaveSingleTreeHisto(TTree * tree,TString plotArgs,TString histName,TString histTitle,TString xAxisTitle,TString canvName,TCut filters,TString outputFile, Bool_t isPlottingGeV){
+
+	TCut tracklessPtAndEta0 = tracklessEtaLow0 + tracklessEtaHigh0 + tracklessPt0;
+	TCut tracklessPtAndEta1 = tracklessEtaLow1 + tracklessEtaHigh1 + tracklessPt1;
+
+	TCut dileptonMassLow = "invMassGen>60.";
+	TCut dileptonMassHigh = "invMassGen<120.";
+	TCut totalDileptonMass = dileptonMassLow + dileptonMassHigh;
+
+	gStyle->SetOptStat(1111111);
 
 	//plot leading pt, eta, phi
 	makeAndSaveSingleTreeHisto(bothGenLeptonsTree,"ptGenEle[0]>>leadingpt(100,0.,140.0)","leadingpt","leading GEN electron P_{T}","pT (GeV)","c1","","leading_gen_electron_pt.png",true);
@@ -114,14 +125,19 @@ void genPlotMacro(){
 
 	//plot eta,pt,phi of all tracked GEN electrons with one requirement: tracked pt>27
 
+	//void makeAndSaveSingleTreeHisto(TTree * tree,TString plotArgs,TString histName,TString histTitle,TString xAxisTitle,TString canvName,TCut filters,TString outputFile, Bool_t isPlottingEnergy)
+	
+	makeAndSaveSingleTreeHisto(bothGenLeptonsTree,"evtNumber>>numEvtsPassingTracked","numEvtsPassingTracked","Evts with at least one GEN electron with |#eta| < 2.5 and pt>27","evt number","c30",trackedPtAndEta0 || trackedPtAndEta1,"numEvts_passing_gen_tracked_requirements.png",false);
+	
 	plotArgsVector.push_back("etaGenEle[0]>>+allTrackedElectronetasminpt(100,-3.0,3.0)");
 	plotArgsVector.push_back("etaGenEle[1]>>+allTrackedElectronetasminpt");
 	cutsVector.push_back(trackedEta0+trackedPt0);
 	cutsVector.push_back(trackedEta1+trackedPt1);
 	makeAndSaveOverlayTreeHisto(bothGenLeptonsTree,plotArgsVector,"allTrackedElectronetasminpt","#eta of tracked GEN electrons whose pt>27","#eta","c10",cutsVector,"tracked_gen_electron_etas_with_tracked_pt_above_27.png",false);
 
+	
 	plotArgsVector.clear();
-
+	
 
 	plotArgsVector.push_back("ptGenEle[0]>>+allTrackedElectronptsminpt(100,0.,140.0)");
 	plotArgsVector.push_back("ptGenEle[1]>>+allTrackedElectronptsminpt");
@@ -137,20 +153,24 @@ void genPlotMacro(){
 	plotArgsVector.clear();
 	cutsVector.clear();
 
-	//plot eta,pt,phi of all tracked GEN electrons with two requirements: tracked pt>27, and a trackless electron is in the evt with pt>15
+	//plot eta,pt,phi of all tracked GEN electrons with three requirements: tracked pt>27, dilepton mass between 60 and 120,
+	//and a trackless electron is in the evt with pt>15
+	
+	makeAndSaveSingleTreeHisto(bothGenLeptonsTree,"evtNumber>>numEvtsPassingAll","numEvtsPassingAll","Evts passing all GEN requirements","evt number","c32",(trackedPtAndEta0 || trackedPtAndEta1) && (tracklessPtAndEta0 || tracklessPtAndEta1) && totalDileptonMass,"numEvts_passing_all_gen_requirements.png",false);
+	
 
 	plotArgsVector.push_back("etaGenEle[0]>>+allTrackedElectronetasminptAndTracklessElectron(100,-3.0,3.0)");
 	plotArgsVector.push_back("etaGenEle[1]>>+allTrackedElectronetasminptAndTracklessElectron");
-	cutsVector.push_back(trackedEta0+trackedPt0+tracklessEtaLow1+tracklessEtaHigh1+tracklessPt1);
-	cutsVector.push_back(trackedEta1+trackedPt1+tracklessEtaLow0+tracklessEtaHigh0+tracklessPt0);
+	cutsVector.push_back(trackedEta0+trackedPt0+tracklessEtaLow1+tracklessEtaHigh1+tracklessPt1+totalDileptonMass);
+	cutsVector.push_back(trackedEta1+trackedPt1+tracklessEtaLow0+tracklessEtaHigh0+tracklessPt0+totalDileptonMass);
 	makeAndSaveOverlayTreeHisto(bothGenLeptonsTree,plotArgsVector,"allTrackedElectronetasminptAndTracklessElectron","#eta of tracked GEN electrons whose pt>27 in events with trackless GEN ele with pt>15","#eta","c13",cutsVector,"tracked_gen_electron_etas_with_tracked_pt_above_27_and_trackless_ele.png",false);
 
 	plotArgsVector.clear();
 
 	plotArgsVector.push_back("ptGenEle[0]>>+allTrackedElectronptsminptAndTracklessElectron(100,0.,140.0)");
 	plotArgsVector.push_back("ptGenEle[1]>>+allTrackedElectronptsminptAndTracklessElectron");
-	cutsVector.push_back(trackedEta0+trackedPt0+tracklessEtaLow1+tracklessEtaHigh1+tracklessPt1);
-	cutsVector.push_back(trackedEta1+trackedPt1+tracklessEtaLow0+tracklessEtaHigh0+tracklessPt0);
+	cutsVector.push_back(trackedEta0+trackedPt0+tracklessEtaLow1+tracklessEtaHigh1+tracklessPt1+totalDileptonMass);
+	cutsVector.push_back(trackedEta1+trackedPt1+tracklessEtaLow0+tracklessEtaHigh0+tracklessPt0+totalDileptonMass);
 	makeAndSaveOverlayTreeHisto(bothGenLeptonsTree,plotArgsVector,"allTrackedElectronptsminptAndTracklessElectron","P_{T} of tracked GEN electrons whose pt>27 in events with trackless GEN ele with pt>15","#pt","c14",cutsVector,"tracked_gen_electron_pts_with_tracked_pt_above_27_and_trackless_ele.png",false);
 
 	plotArgsVector.clear();
@@ -158,8 +178,8 @@ void genPlotMacro(){
 
 	plotArgsVector.push_back("phiGenEle[0]>>+allTrackedElectronphisminptAndTracklessElectron(100,-4.0,4.0)");
 	plotArgsVector.push_back("phiGenEle[1]>>+allTrackedElectronphisminptAndTracklessElectron");
-	cutsVector.push_back(trackedEta0+trackedPt0+tracklessEtaLow1+tracklessEtaHigh1+tracklessPt1);
-	cutsVector.push_back(trackedEta1+trackedPt1+tracklessEtaLow0+tracklessEtaHigh0+tracklessPt0);
+	cutsVector.push_back(trackedEta0+trackedPt0+tracklessEtaLow1+tracklessEtaHigh1+tracklessPt1+totalDileptonMass);
+	cutsVector.push_back(trackedEta1+trackedPt1+tracklessEtaLow0+tracklessEtaHigh0+tracklessPt0+totalDileptonMass);
 	makeAndSaveOverlayTreeHisto(bothGenLeptonsTree,plotArgsVector,"allTrackedElectronphisminptAndTracklessElectron","#phi of tracked GEN electrons whose pt>27 in events with trackless GEN ele with pt>15","#phi (rad)","c15",cutsVector,"tracked_gen_electron_phis_with_tracked_pt_above_27_and_trackless_ele.png",false);
 
 	plotArgsVector.clear();
@@ -189,6 +209,9 @@ void genPlotMacro(){
 	cutsVector.clear();
 
 	//plot eta,pt,phi of all trackless GEN electrons with one requirement: trackless pt>15 
+	
+	makeAndSaveSingleTreeHisto(bothGenLeptonsTree,"evtNumber>>numEvtsPassingTrackless","numEvtsPassingTrackless","Evts with at least one GEN electron with 2.5 < | #eta | < 3.0 and pt>15","evt number","c33",tracklessPtAndEta0 || tracklessPtAndEta1,"numEvts_passing_trackless_gen_requirements.png",false);
+	
 
 	plotArgsVector.push_back("etaGenEle[0]>>+allTracklessElectronetasminpt(100,-3.0,3.0)");
 	plotArgsVector.push_back("etaGenEle[1]>>+allTracklessElectronetasminpt");
