@@ -132,6 +132,7 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const Float_t genTracked
 	iEvent.getByLabel(trackedDetaTag,trackedDetaHandle);
 	iEvent.getByLabel(trackedEpTag,trackedEpHandle);
 
+	/*
 	iEvent.getByLabel(hltTrackedLegTag, trackedTrackIsoFilterHandle);
 	if(!trackedTrackIsoFilterHandle.isValid() ){
 		return;
@@ -140,23 +141,22 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const Float_t genTracked
 	trackedTrackIsoFilterHandle->getObjects(trigger::TriggerCluster, trackedLegHltRefs);
 	if(trackedLegHltRefs.empty() ) trackedTrackIsoFilterHandle->getObjects(trigger::TriggerPhoton, trackedLegHltRefs);
 	if(trackedLegHltRefs.empty() ) return;
+	*/
 
-	/*
 	//fill handle to RecoEcalCandidate object collection made by tracked leg
 	iEvent.getByLabel(hltTrackedLegTag, trackedLegHltObjectsHandle);
 	
-	if(!trackedLegHltObjectsHandle.isValid() || trackedLegHltObjectsHandle->size() == 0 ) return;
+	if(!trackedLegHltObjectsHandle.isValid() ) return;
 
 	if(!trackedSigmaIEIEHandle.isValid() || !trackedHadEmHandle.isValid() || !trackedHcalIsoHandle.isValid() || !trackedEcalIsoHandle.isValid() || !trackedTrackIsoHandle.isValid() || !trackedDphiHandle.isValid() || !trackedDetaHandle.isValid() || !trackedEpHandle.isValid()) return;
 
 	for(unsigned int h=0; h<trackedLegHltObjectsHandle->size(); h++){
-		if( std::fabs( (getRef(trackedLegHltObjectsHandle, h))->eta()) < 2.5){
+		if( std::fabs( (getRef(trackedLegHltObjectsHandle, h))->eta()) < 2.5 && (getRef(trackedLegHltObjectsHandle, h))->pt() > 27){
 			trackedLegHltRefs.push_back( getRef(trackedLegHltObjectsHandle, h) );
 		}
 	}
 
 	if(trackedLegHltRefs.size() == 0) return; //there is a chance there may not be any REC which passes the |eta|<2.5 requirement in one evt
-	*/
 
 	for(unsigned int i=0; i<trackedLegHltRefs.size(); i++){
 		if(std::fabs(trackedLegHltRefs[i]->eta()) < 1.4791 && trackedLegHltRefs[i]->pt() > 27) nTrackedBarrelHltEle += 1;
@@ -171,7 +171,7 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const Float_t genTracked
 	Int_t indexBarrel = -1;
 	Int_t indexEndcap = -1;
 	for(unsigned int j=0; j<trackedLegHltRefs.size(); j++){
-		if(std::fabs(trackedLegHltRefs[j]->eta()) < 1.4791 && trackedLegHltRefs[j]->pt() > 27){
+		if(std::fabs(trackedLegHltRefs[j]->eta()) < 1.4791 ){
 			indexBarrel += 1;
 			etaTrackedBarrelHltEle[indexBarrel] = trackedLegHltRefs[j]->eta();
 			ptTrackedBarrelHltEle[indexBarrel] = trackedLegHltRefs[j]->pt();
@@ -197,7 +197,7 @@ void GetTrackedTriggerObjects(const edm::Event& iEvent, const Float_t genTracked
 			epTrackedBarrelHltEle[indexBarrel] = trackedEpIt->val;
 		}//end barrel eta filter
 		
-		if(std::fabs(trackedLegHltRefs[j]->eta()) > 1.4791 && std::fabs(trackedLegHltRefs[j]->eta()) < 2.5 && trackedLegHltRefs[j]->pt() >27){
+		if(std::fabs(trackedLegHltRefs[j]->eta()) > 1.4791 && std::fabs(trackedLegHltRefs[j]->eta()) < 2.5){
 			indexEndcap += 1;
 			etaTrackedEndcapHltEle[indexEndcap] = trackedLegHltRefs[j]->eta();
 			ptTrackedEndcapHltEle[indexEndcap] = trackedLegHltRefs[j]->pt();
@@ -238,30 +238,31 @@ void GetMatchedTriggerObjects(
 	iEvent.getByLabel(tracklessHcalIsoTag,tracklessHcalIsoHandle);
 	iEvent.getByLabel(tracklessHadEmTag,tracklessHadEmHandle);
 	iEvent.getByLabel(tracklessClusterShapeTag,tracklessClusterShapeHandle);
-	iEvent.getByLabel(hltTracklessLegTag, tracklessHcalIsoFilterHandle);
 
-	//if(!tracklessEcalIsoHandle.isValid() || !tracklessHcalIsoHandle.isValid() || !tracklessHadEmHandle.isValid() || !tracklessClusterShapeHandle.isValid() || !tracklessHcalIsoFilterHandle.isValid() ) return;
+	if(!tracklessEcalIsoHandle.isValid() || !tracklessHcalIsoHandle.isValid() || !tracklessHadEmHandle.isValid() || !tracklessClusterShapeHandle.isValid() ) return;
+
+	/*
+	iEvent.getByLabel(hltTracklessLegTag, tracklessHcalIsoFilterHandle);
 
 	if(!tracklessHcalIsoFilterHandle.isValid() ) return;
 
 	tracklessHcalIsoFilterHandle->getObjects(trigger::TriggerCluster, tracklessLegHltRefs);
 	if(tracklessLegHltRefs.empty() ) tracklessHcalIsoFilterHandle->getObjects(trigger::TriggerPhoton, tracklessLegHltRefs);
 	if(tracklessLegHltRefs.empty() ) return;
+	*/
 
-	/*
 	//fill handle to RecoEcalCandidate object collection made by the trackless leg
 	iEvent.getByLabel(hltTracklessLegTag, tracklessLegHltObjectsHandle);
 	if(!tracklessLegHltObjectsHandle.isValid() || tracklessLegHltObjectsHandle->size() == 0 ) return;
 
 
 	for(unsigned int h=0; h<tracklessLegHltObjectsHandle->size(); h++){
-		if(std::fabs( (getRef(tracklessLegHltObjectsHandle, h))->eta() ) > 2.5 && std::fabs( (getRef(tracklessLegHltObjectsHandle, h))->eta() ) < 3.0){
+		if(std::fabs( (getRef(tracklessLegHltObjectsHandle, h))->eta() ) > 2.4 && std::fabs( (getRef(tracklessLegHltObjectsHandle, h))->eta() ) < 3.0){
 			tracklessLegHltRefs.push_back( getRef(tracklessLegHltObjectsHandle, h) );
 		}
 	}
 
 	if(tracklessLegHltRefs.size() == 0) return;
-	*/
 
 	for(unsigned int i=0; i<tracklessLegHltRefs.size(); i++){
 		if(std::fabs(tracklessLegHltRefs[i]->eta()) > 2.4 && std::fabs(tracklessLegHltRefs[i]->eta()) < 3.0 ) nTracklessHltEle += 1;
@@ -336,7 +337,7 @@ edm::Handle<ecalCandToValMap> trackedTrackIsoHandle;
 edm::InputTag trackedTrackIsoTag;
 
 //use tracked hlt object InputTag
-edm::Handle<trigger::TriggerFilterObjectWithRefs> trackedTrackIsoFilterHandle;
+//edm::Handle<trigger::TriggerFilterObjectWithRefs> trackedTrackIsoFilterHandle;
 
 
 //handles and inputTags to AssociationMaps for RecoEcalCandidate objects made in the trackless leg
@@ -353,7 +354,7 @@ edm::Handle<ecalCandToValMap> tracklessHcalIsoHandle;
 edm::InputTag tracklessHcalIsoTag;
 
 //use trackless hlt object InputTag
-edm::Handle<trigger::TriggerFilterObjectWithRefs> tracklessHcalIsoFilterHandle;
+//edm::Handle<trigger::TriggerFilterObjectWithRefs> tracklessHcalIsoFilterHandle;
 
 
 //RecoEcalCandidate and reco::Candidate handles, relevant InputTags, and tree variables

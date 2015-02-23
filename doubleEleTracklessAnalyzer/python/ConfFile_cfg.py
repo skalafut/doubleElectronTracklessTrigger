@@ -60,7 +60,7 @@ process.recoAnalyzerZero = cms.EDAnalyzer('recoAnalyzerZero',
 	
 		)
 
-#this analyzer filters out events where there is no tracked RecoEcalCandidate object with pt>27
+#this analyzer filters out events where there is at least one tracked RecoEcalCandidate object with pt>27
 process.recoAnalyzerOne = cms.EDAnalyzer('recoAnalyzerPtTracked',
 		trackedSigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
 		trackedHadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
@@ -82,7 +82,7 @@ process.recoAnalyzerOne = cms.EDAnalyzer('recoAnalyzerPtTracked',
 	
 		)
 
-#this analyzer filters out events where there is no trackless RecoEcalCandidate object with pt>15
+#this analyzer filters out events where there is at least one trackless RecoEcalCandidate object with pt>15
 process.recoAnalyzerTwo = cms.EDAnalyzer('recoAnalyzerPtTrackless',
 		trackedSigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
 		trackedHadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
