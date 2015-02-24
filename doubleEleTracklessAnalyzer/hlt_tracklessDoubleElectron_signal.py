@@ -5078,19 +5078,19 @@ process.HLTriggerFirstPath = cms.Path(
 
 #######################################################################################################
 #reco selectors, filters and producers
-process.noTrackerCandidates = cms.EDFilter( "CandViewSelector",
-    src = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
-	#cut = cms.string('pt>15 && ( (eta > -2.5 && eta < -3.0 ) || ( eta > 2.5 && eta < 3.0 ) )')
-	cut = cms.string('')
-)
+#process.noTrackerCandidates = cms.EDFilter( "CandViewSelector",
+#    src = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
+#	#cut = cms.string('pt>15 && ( (eta > -2.5 && eta < -3.0 ) || ( eta > 2.5 && eta < 3.0 ) )')
+#	cut = cms.string('')
+#)
 
-process.trackerCandidates = cms.EDFilter( "CandViewSelector",
-    src = cms.InputTag( "hltEgammaCandidates" ),
-	#cut = cms.string('pt>27 && eta < 2.5 && eta > -2.5')
-	cut = cms.string('')
-)
+#process.trackerCandidates = cms.EDFilter( "CandViewSelector",
+#    src = cms.InputTag( "hltEgammaCandidates" ),
+#	#cut = cms.string('pt>27 && eta < 2.5 && eta > -2.5')
+#	cut = cms.string('')
+#)
 
-process.combRecoEle = cms.EDProducer("CandViewCombiner",
+process.combRecoEle = cms.EDProducer("CandViewShallowCloneCombiner",
 		decay = cms.string("hltEgammaCandidatesUnseeded hltEgammaCandidates"),
 		#checkCharge = cms.bool(False),
 		#cut = cms.string("mass > 60 && mass < 120"),
@@ -5109,8 +5109,6 @@ process.recoZeeFilter = cms.EDFilter("CandViewCountFilter",
 
 process.recoDaughterProducer = cms.EDProducer("SeparateCombCandidate",
 		zedLabel = cms.InputTag("combRecoEle"),
-		#tracklessHltEle = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
-		#trackedHltEle = cms.InputTag("hltEgammaCandidates","","TEST"),
 		tracklessHltEle = cms.InputTag("hltEgammaCandidatesUnseeded"),
 		trackedHltEle = cms.InputTag("hltEgammaCandidates"),
 		tracklessEleCollectionName = cms.string("tracklessDaughters"),
@@ -5120,96 +5118,170 @@ process.recoDaughterProducer = cms.EDProducer("SeparateCombCandidate",
 
 #######################################################################################################
 #reco analyzers to run in HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study path
-process.recoAnalyzerZero = cms.EDAnalyzer('recoAnalyzerZero',
-		trackedSigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
-		trackedHadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
-		trackedEcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
-		trackedHcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
-		trackedEp=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
-		trackedDeta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
-		trackedDphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
-		trackedTrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
-		tracklessClusterShape=cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
-		tracklessHadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
-		tracklessEcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
-		tracklessHcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
-		treeName = cms.string("recoTreeBeforeTriggerFilters"),
-		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
-		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
-		genTrackedElectronCollection = cms.InputTag("","",""),
-		genTracklessElectronCollection = cms.InputTag("","","")
-	
-		)
-
-#this analyzer filters out events where there is at least one tracked RecoEcalCandidate object with pt>27
-process.recoAnalyzerOne = cms.EDAnalyzer('recoAnalyzerPtTracked',
-		trackedSigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
-		trackedHadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
-		trackedEcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
-		trackedHcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
-		trackedEp=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
-		trackedDeta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
-		trackedDphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
-		trackedTrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
-		tracklessClusterShape=cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
-		tracklessHadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
-		tracklessEcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
-		tracklessHcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
-		treeName = cms.string("recoTreeBeforeTriggerFiltersTrackedPtRequirement"),
-		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
-		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
-		genTrackedElectronCollection = cms.InputTag("","",""),
-		genTracklessElectronCollection = cms.InputTag("","","")
-	
-		)
-
-#this analyzer filters out events where there is at least one trackless RecoEcalCandidate object with pt>15
-process.recoAnalyzerTwo = cms.EDAnalyzer('recoAnalyzerPtTrackless',
-		trackedSigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
-		trackedHadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
-		trackedEcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
-		trackedHcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
-		trackedEp=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
-		trackedDeta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
-		trackedDphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
-		trackedTrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
-		tracklessClusterShape=cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
-		tracklessHadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
-		tracklessEcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
-		tracklessHcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
-		treeName = cms.string("recoTreeBeforeTriggerFiltersTracklessPtRequirement"),
-		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
-		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
-		genTrackedElectronCollection = cms.InputTag("","",""),
-		genTracklessElectronCollection = cms.InputTag("","","")
+#run these after recoDaughterProducer
+process.recoAnalyzerTracked = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+		Ep=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+		Deta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+		Dphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+		TrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersTrackedSignal"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducer","trackedDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(True),
+		genCollection = cms.InputTag("","",""),
+		dRMatch = cms.double(-1)
 	
 		)
 
 
-#this analyzer should be used for Z->ee signal evts where both the tracked and trackless HLT objects must be matched to their
-#GEN counterparts
-process.recoAnalyzerThree = cms.EDAnalyzer('recoAnalyzerBothMatch',
-		trackedSigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
-		trackedHadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
-		trackedEcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
-		trackedHcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
-		trackedEp=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
-		trackedDeta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
-		trackedDphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
-		trackedTrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
-		tracklessClusterShape=cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
-		tracklessHadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
-		tracklessEcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
-		tracklessHcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
-		treeName = cms.string("recoTreeBeforeTriggerFiltersBothMatch"),
-		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
-		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
-		genTrackedElectronCollection = cms.InputTag("genEleTrack","","TEST"),
-		genTracklessElectronCollection = cms.InputTag("genUntrack","","TEST"),
-		trackedDr = cms.double(0.1),
-		tracklessDr = cms.double(0.1)
+process.recoAnalyzerTrackless = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+		Ep=cms.InputTag("","",""),
+		Deta=cms.InputTag("","",""),
+		Dphi=cms.InputTag("","",""),
+		TrackIso=cms.InputTag("","",""),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersTracklessSignal"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducer","tracklessDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(False),
+		genCollection = cms.InputTag("","",""),
+		dRMatch = cms.double(-1)
 	
 		)
+
+#run these two analyzers after process.ZeeFilter
+process.recoAnalyzerMatchedTracked = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+		Ep=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+		Deta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+		Dphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+		TrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersMatchedTrackedSignal"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducer","trackedDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(True),
+		genCollection = cms.InputTag("genEleTrack","","TEST"),
+		dRMatch = cms.double(0.1)
+		
+		)
+
+
+process.recoAnalyzerMatchedTrackless = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+		Ep=cms.InputTag("","",""),
+		Deta=cms.InputTag("","",""),
+		Dphi=cms.InputTag("","",""),
+		TrackIso=cms.InputTag("","",""),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersMatchedTracklessSignal"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducer","tracklessDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(False),
+		genCollection = cms.InputTag("genUntrack","","TEST"),
+		dRMatch = cms.double(0.1)
+	
+		)
+
+
+
+#process.recoAnalyzerZero = cms.EDAnalyzer('recoAnalyzerZero',
+#		trackedSigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+#		trackedHadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+#		trackedEcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+#		trackedHcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+#		trackedEp=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+#		trackedDeta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+#		trackedDphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+#		trackedTrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+#		tracklessClusterShape=cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+#		tracklessHadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+#		tracklessEcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+#		tracklessHcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+#		treeName = cms.string("recoTreeBeforeTriggerFilters"),
+#		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
+#		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
+#		genTrackedElectronCollection = cms.InputTag("","",""),
+#		genTracklessElectronCollection = cms.InputTag("","","")
+#	
+#		)
+#
+##this analyzer filters out events where there is at least one tracked RecoEcalCandidate object with pt>27
+#process.recoAnalyzerOne = cms.EDAnalyzer('recoAnalyzerPtTracked',
+#		trackedSigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+#		trackedHadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+#		trackedEcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+#		trackedHcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+#		trackedEp=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+#		trackedDeta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+#		trackedDphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+#		trackedTrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+#		tracklessClusterShape=cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+#		tracklessHadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+#		tracklessEcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+#		tracklessHcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+#		treeName = cms.string("recoTreeBeforeTriggerFiltersTrackedPtRequirement"),
+#		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
+#		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
+#		genTrackedElectronCollection = cms.InputTag("","",""),
+#		genTracklessElectronCollection = cms.InputTag("","","")
+#	
+#		)
+#
+##this analyzer filters out events where there is at least one trackless RecoEcalCandidate object with pt>15
+#process.recoAnalyzerTwo = cms.EDAnalyzer('recoAnalyzerPtTrackless',
+#		trackedSigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+#		trackedHadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+#		trackedEcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+#		trackedHcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+#		trackedEp=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+#		trackedDeta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+#		trackedDphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+#		trackedTrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+#		tracklessClusterShape=cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+#		tracklessHadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+#		tracklessEcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+#		tracklessHcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+#		treeName = cms.string("recoTreeBeforeTriggerFiltersTracklessPtRequirement"),
+#		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
+#		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
+#		genTrackedElectronCollection = cms.InputTag("","",""),
+#		genTracklessElectronCollection = cms.InputTag("","","")
+#	
+#		)
+#
+#
+##this analyzer should be used for Z->ee signal evts where both the tracked and trackless HLT objects must be matched to their
+##GEN counterparts
+#process.recoAnalyzerThree = cms.EDAnalyzer('recoAnalyzerBothMatch',
+#		trackedSigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+#		trackedHadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+#		trackedEcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+#		trackedHcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+#		trackedEp=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+#		trackedDeta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+#		trackedDphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+#		trackedTrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+#		tracklessClusterShape=cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+#		tracklessHadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+#		tracklessEcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+#		tracklessHcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+#		treeName = cms.string("recoTreeBeforeTriggerFiltersBothMatch"),
+#		trackedElectronCollection = cms.InputTag("hltEgammaCandidates","","TEST"),
+#		tracklessElectronCollection = cms.InputTag("hltEgammaCandidatesUnseeded","","TEST"),
+#		genTrackedElectronCollection = cms.InputTag("genEleTrack","","TEST"),
+#		genTracklessElectronCollection = cms.InputTag("genUntrack","","TEST"),
+#		trackedDr = cms.double(0.1),
+#		tracklessDr = cms.double(0.1)
+#	
+#		)
 
 
 process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study = cms.Path( 
@@ -5223,7 +5295,12 @@ process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study = cms.Path(
 		#+ process.trackerCandidates
 		+ process.combRecoEle
 		*process.recoZeeFilter
-		#*process.recoDaughterProducer
+		*process.recoDaughterProducer
+		*process.recoAnalyzerTracked
+		*process.recoAnalyzerTrackless
+		*process.ZeeFilter
+		*process.recoAnalyzerMatchedTracked
+		*process.recoAnalyzerMatchedTrackless
 		#+ process.recoAnalyzerZero
 		#+ process.recoAnalyzerOne
 		#+ process.recoAnalyzerTwo
@@ -5270,7 +5347,7 @@ process.TFileService = cms.Service("TFileService",
 		#fileName = cms.string('genAnalyzerTree.root')
 		#fileName = cms.string('gen_and_reco_signal_analyzer_trees.root')
 		#fileName = cms.string('genCheckup.root')
-		fileName = cms.string('test.root')
+		fileName = cms.string('signal_analyzer_trees.root')
 
 )
 
@@ -5339,7 +5416,7 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
 	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects.root"),
 	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects_no_filter_refs.root"),
-	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/omit.root"),
+	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/makingSignalTuples_50evts_Febr24.root"),
 	
 	fastCloning = cms.untracked.bool( False ),
     dataset = cms.untracked.PSet(
@@ -5361,7 +5438,7 @@ process.FULLOutput = cms.EndPath( process.hltOutputFULL )
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(5)
+    input = cms.untracked.int32(60)
 )
 
 # enable the TrigReport and TimeReport

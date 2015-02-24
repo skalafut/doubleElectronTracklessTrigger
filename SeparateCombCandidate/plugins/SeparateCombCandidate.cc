@@ -49,7 +49,7 @@
 
 #include "DataFormats/RecoCandidate/interface/RecoEcalCandidate.h"
 #include "DataFormats/RecoCandidate/interface/RecoEcalCandidateFwd.h"
-#include "DataFormats/RecoCandidate/interface/RecoEcalCandidateIsolation.h"
+//#include "DataFormats/RecoCandidate/interface/RecoEcalCandidateIsolation.h"
 #include "DataFormats/RecoCandidate/interface/RecoCandidate.h"
 
 
@@ -131,9 +131,9 @@ class SeparateCombCandidate : public edm::EDProducer {
       //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
  
       // ----------member data ---------------------------
-	  edm::EDGetTokenT<reco::CompositeCandidate> momToken;
-	  edm::EDGetTokenT<reco::RecoEcalCandidate> momParentOneToken;
-      edm::EDGetTokenT<reco::RecoEcalCandidate> momParentTwoToken;
+	  edm::EDGetTokenT<std::vector<reco::CompositeCandidate>> momToken;
+	  edm::EDGetTokenT<std::vector<reco::RecoEcalCandidate>> momParentOneToken;
+      edm::EDGetTokenT<std::vector<reco::RecoEcalCandidate>> momParentTwoToken;
 	
    	  std::string daughterOneCollection;
 	  std::string daughterTwoCollection;
@@ -144,7 +144,6 @@ class SeparateCombCandidate : public edm::EDProducer {
 // constants, enums and typedefs
 //
 
-//typedef std::vector<edm::Ref<reco::RecoEcalCandidateCollection> > recRefsVect;
 
 //
 // static data member definitions
@@ -153,7 +152,9 @@ class SeparateCombCandidate : public edm::EDProducer {
 //
 // constructors and destructor
 //
-SeparateCombCandidate::SeparateCombCandidate(const edm::ParameterSet& iConfig)
+SeparateCombCandidate::SeparateCombCandidate(const edm::ParameterSet& iConfig):
+	daughterOneCollection(iConfig.getParameter<std::string>("tracklessEleCollectionName")),
+	daughterTwoCollection(iConfig.getParameter<std::string>("trackedEleCollectionName"))
 {
    //register your products
 /* Examples
@@ -166,17 +167,15 @@ SeparateCombCandidate::SeparateCombCandidate(const edm::ParameterSet& iConfig)
    produces<ExampleData2,InRun>();
 */
    
-   momToken = consumes<reco::CompositeCandidate>(iConfig.getParameter<edm::InputTag>("zedLabel"));
-   momParentOneToken = consumes<reco::RecoEcalCandidate>(iConfig.getParameter<edm::InputTag>("tracklessHltEle"));
-   momParentTwoToken = consumes<reco::RecoEcalCandidate>(iConfig.getParameter<edm::InputTag>("trackedHltEle"));
-   daughterOneCollection = iConfig.getParameter<std::string>("tracklessEleCollectionName");
-   daughterTwoCollection = iConfig.getParameter<std::string>("trackedEleCollectionName");
+   momToken = consumes<std::vector<reco::CompositeCandidate>>(iConfig.getParameter<edm::InputTag>("zedLabel"));
+   momParentOneToken = consumes<std::vector<reco::RecoEcalCandidate>>(iConfig.getParameter<edm::InputTag>("tracklessHltEle"));
+   momParentTwoToken = consumes<std::vector<reco::RecoEcalCandidate>>(iConfig.getParameter<edm::InputTag>("trackedHltEle"));
+   //daughterOneCollection = iConfig.getParameter<std::string>("tracklessEleCollectionName");
+   //daughterTwoCollection = iConfig.getParameter<std::string>("trackedEleCollectionName");
    
    //register the two collections of products - std::vector<edm::Refs to RecoEcalCandidate objects> (daughters of Z)
-   //produces<std::vector<edm::Ref<reco::RecoEcalCandidateCollection> >>(daughterOneCollection);
-   //produces<std::vector<edm::Ref<reco::RecoEcalCandidateCollection> >>(daughterTwoCollection);
-   produces<std::vector<reco::RecoEcalCandidateRef>>(daughterOneCollection);
-   produces<std::vector<reco::RecoEcalCandidateRef>>(daughterTwoCollection);
+   produces<reco::RecoEcalCandidateRefVector>(daughterOneCollection);
+   produces<reco::RecoEcalCandidateRefVector>(daughterTwoCollection);
 
 
 }
@@ -216,58 +215,71 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
    std::cout<<"made handles to input collections"<<std::endl;
 
    //create empty output collections, one for each daughter, and pointers to each collection
-   //std::unique_ptr<std::vector<edm::Ref<reco::RecoEcalCandidateCollection> >> daughterOneRefColl(new std::vector<edm::Ref<reco::RecoEcalCandidateCollection> > );	//trackless collection
-   //std::unique_ptr<std::vector<edm::Ref<reco::RecoEcalCandidateCollection> >> daughterTwoRefColl(new std::vector<edm::Ref<reco::RecoEcalCandidateCollection> > );	//tracked collection
-   std::auto_ptr<std::vector<reco::RecoEcalCandidateRef>> daughterOneRefColl(new std::vector<reco::RecoEcalCandidateRef> );	//trackless collection
-   std::auto_ptr<std::vector<reco::RecoEcalCandidateRef>> daughterTwoRefColl(new std::vector<reco::RecoEcalCandidateRef> );	//tracked collection
+   std::auto_ptr<reco::RecoEcalCandidateRefVector> daughterOneRefColl(new reco::RecoEcalCandidateRefVector );	//trackless collection
+   std::auto_ptr<reco::RecoEcalCandidateRefVector> daughterTwoRefColl(new reco::RecoEcalCandidateRefVector );	//tracked collection
 
 
    std::cout<<"made ptrs to output daughter collections"<<std::endl;
 
-
-   /*
+   /**/
+   int numDauOne = 0;
+   int numDauTwo = 0;
+   
    for(std::vector<reco::CompositeCandidate>::const_iterator momIt = momIn->begin(); momIt != momIn->end(); momIt++){
 	   //get a Ref to a daughter via momIt->daughter()->masterClone()
 	   //then find the matching (pt, eta, phi) object in momParent(One or Two)In handles, and
 	   //save a reference to the object into the appropriate output collection via
 	   //getRef(momParent(One or Two)In, index number) 
-	   reco::CandidateBaseRef dauOneRef = (momIt->daughter("tracklessRecoEle"))->masterClone();
-	   std::cout<<"made a reference obj to a trackless daughter"<<std::endl;
-	   for(unsigned int h=0; h<momParentOneIn->size(); h++){
-		   if(dauOneRef->pt() == (getRef(momParentOneIn, h))->pt() ){
-			   if(dauOneRef->eta() == (getRef(momParentOneIn, h))->eta() ){
-				   if(dauOneRef->phi() == (getRef(momParentOneIn, h))->phi() ){
-					   daughterOneRefColl->push_back( getRef(momParentOneIn, h) );
-				   }//end filter on phi
+	   //std::cout<<"looping over CompositeCandidate objects"<<std::endl;
+	   if((momIt->daughter("tracklessRecoEle"))->hasMasterClone() ){
+		   std::cout<<"found tracklessRecoEle daughter with a master clone"<<std::endl;
+		   reco::CandidateBaseRef dauOneRef = (momIt->daughter("tracklessRecoEle"))->masterClone();
+		   std::cout<<"made a reference obj to a trackless daughter"<<std::endl;
+		   for(unsigned int h=0; h<momParentOneIn->size(); h++){
+			   if(dauOneRef->pt() == (getRef(momParentOneIn, h))->pt() ){
+				   if(dauOneRef->eta() == (getRef(momParentOneIn, h))->eta() ){
+					   if(dauOneRef->phi() == (getRef(momParentOneIn, h))->phi() ){
+						   daughterOneRefColl->push_back( getRef(momParentOneIn, h) );
+						   numDauOne +=1;
+					   }//end filter on phi
 
-			   }//end filter on eta
+				   }//end filter on eta
 
-		   }//end filter on pt
-	   
-	   }//end loop over objects in momParentOneIn
+			   }//end filter on pt
 
-	   reco::CandidateBaseRef dauTwoRef = (momIt->daughter("trackedRecoEle"))->masterClone();
-	   for(unsigned int m=0; m<momParentTwoIn->size(); m++){
-		   if(dauTwoRef->pt() == (getRef(momParentTwoIn, m))->pt() ){
-			   if(dauTwoRef->eta() == (getRef(momParentTwoIn, m))->eta() ){
-				   if(dauTwoRef->phi() == (getRef(momParentTwoIn, m))->phi() ){
-					   daughterTwoRefColl->push_back( getRef(momParentTwoIn, m) );
-				   }//end filter on phi
+		   }//end loop over objects in momParentOneIn
 
-			   }//end filter on eta
+	   }//end requirement that a master clone exists
 
-		   }//end filter on pt
-	   
-	   }//end loop over objects in momParentTwoIn
+	   if((momIt->daughter("trackedRecoEle"))->hasMasterClone() ){
+		   std::cout<<"found trackedRecoEle daughter with a master clone"<<std::endl;
+		   reco::CandidateBaseRef dauTwoRef = (momIt->daughter("trackedRecoEle"))->masterClone();
+		   for(unsigned int m=0; m<momParentTwoIn->size(); m++){
+			   if(dauTwoRef->pt() == (getRef(momParentTwoIn, m))->pt() ){
+				   if(dauTwoRef->eta() == (getRef(momParentTwoIn, m))->eta() ){
+					   if(dauTwoRef->phi() == (getRef(momParentTwoIn, m))->phi() ){
+						   daughterTwoRefColl->push_back( getRef(momParentTwoIn, m) );
+						   numDauTwo += 1;
+					   }//end filter on phi
 
+				   }//end filter on eta
+
+			   }//end filter on pt
+
+		   }//end loop over objects in momParentTwoIn
+
+	   }//end requirement that a master clone exists
+	
    }//end loop over all CompositeCandidate objects in the event
 
-   */
+   std::cout<<" "<<std::endl;
+   std::cout<<"added "<<numDauOne<<" refs to daughterOneRefColl"<<std::endl;
+   std::cout<<"added "<<numDauTwo<<" refs to daughterTwoRefColl"<<std::endl;
+   std::cout<<" "<<std::endl;
+   /**/
 
    std::cout<<"about to put daughter collections into root file"<<std::endl;
    //now put the two collections of Refs to daughter particles into the event
-   //iEvent.put(std::move(daughterOneRefColl) );
-   //iEvent.put(std::move(daughterTwoRefColl) );
    iEvent.put(daughterOneRefColl, daughterOneCollection);
    iEvent.put(daughterTwoRefColl, daughterTwoCollection);
 
