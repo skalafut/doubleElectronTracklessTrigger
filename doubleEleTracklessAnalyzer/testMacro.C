@@ -16,6 +16,55 @@
 //#include <array>
 #include <vector>
 
+
+void makeAndSaveHistoUsingEntryList(TTree * tree,TString listFillArgs,TString listName,TString histPlotArgs,TString histName,TString histTitle,TString xAxisTitle,TString canvName,TCut filters,TString outputFile, Bool_t isPlottingEnergy, Bool_t isPlottingInverseEnergy){
+	//fill the TEntryList named listName, and apply the filters when the list is made
+	tree->Draw(listFillArgs,filters,"entrylistarray");
+	//tell the tree to only use entries in the object named listName when calling TTree::Draw() in the future
+	tree->SetEntryList((TEntryListArray*) gROOT->FindObject(listName) );
+	
+	//run the code in makeAndSaveSingleTreeHisto() to make comprehendible plots with useful labels and title 
+	TCanvas * canv = new TCanvas(canvName,canvName,500,500);
+	canv->cd();
+	tree->Draw(histPlotArgs);
+	TH1F * pHist = (TH1F*) gROOT->FindObject(histName);
+	pHist->SetTitle(histTitle);
+	pHist->GetXaxis()->SetTitle(xAxisTitle);
+	if(histTitle.Contains("Iso") ){
+		canv->SetLogy(1);
+		pHist->SetMinimum(1);
+	}
+	//every histo should have at least three bins.
+	//if a histo is created with numBins = 1, then bin #1 is the bin which is plotted 
+	char temp[130];
+	if(isPlottingInverseEnergy && pHist->GetXaxis()->GetBinWidth(1) > 0.01){
+		sprintf(temp,"Events / %.2f / GeV", pHist->GetXaxis()->GetBinWidth(1));
+	}
+	if(isPlottingEnergy && pHist->GetXaxis()->GetBinWidth(1) > 0.01){
+		sprintf(temp,"Events / %.2f GeV", pHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( isPlottingEnergy && pHist->GetXaxis()->GetBinWidth(1) <= 0.01){
+		sprintf(temp,"Events / %.3f GeV", pHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( isPlottingInverseEnergy && pHist->GetXaxis()->GetBinWidth(1) <= 0.01){
+		sprintf(temp,"Events / %.3f / GeV", pHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( isPlottingInverseEnergy && pHist->GetXaxis()->GetBinWidth(1) <= 0.001){
+		sprintf(temp,"Events / %.4f / GeV", pHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( !isPlottingInverseEnergy && !isPlottingEnergy && pHist->GetXaxis()->GetBinWidth(1) <= 0.01){
+		sprintf(temp,"Events / %.3f ", pHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( !isPlottingInverseEnergy && !isPlottingEnergy && pHist->GetXaxis()->GetBinWidth(1) > 0.01){
+		sprintf(temp,"Events / %.2f ", pHist->GetXaxis()->GetBinWidth(1));
+	}
+	pHist->GetYaxis()->SetTitle(temp);
+	pHist->Draw();
+	canv->SaveAs(outputFile,"recreate");
+
+}//end makeAndSaveHistoUsingEntryList()
+
+
 //use this to make and save a histogram from a single TTree branch
 //plotArgs is used in TTree::Draw, and could be something like "etaGenEle[0]>>leadingEta(100,-3.0,3.0)"
 //histName is the name of the histogram object, and is contained in plotArgs
@@ -62,10 +111,6 @@ void makeAndSaveSingleTreeHisto(TTree * tree,TString plotArgs,TString histName,T
 
 }//end makeAndSaveSingleTreeHisto()
 
-//use this method to loop over all evts in a tree, identify the  
-//void filterMakeAndSaveTreeHisto(){
-//
-//}
 
 //void makeAndSaveOverlayTreeHisto(TTree * tree,std::vector<TString> plotArgsVect,TString histName,TString histTitle,TString xAxisTitle,TString canvName,std::vector<TCut> filtersVect,TString outputFile,Bool_t isPlottingEnergy){
 //	TCanvas * canv = new TCanvas(canvName,canvName,500,500);
@@ -91,13 +136,18 @@ void makeAndSaveSingleTreeHisto(TTree * tree,TString plotArgs,TString histName,T
 
 void testMacro(){
 
-	TFile * f1 = new TFile("/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/gen_and_reco_signal_analyzer_trees.root");
-	//TFile * f1 = new TFile("/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/reco_bkgnd_analyzer_trees.root");
+	//TFile * f1 = new TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr25/signal_analyzer_trees_3.root");
+	//TTree * hltTrackedObjectsTree = (TTree*) f1->Get("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedSignal");		//tracked
+	//TTree * hltTracklessObjectsTree = (TTree*) f1->Get("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessSignal");	//trackless
+	//TTree * hltTrackedObjectsTree = (TTree*) f1->Get("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal");		//matched tracked
+	//TTree * hltTracklessObjectsTree = (TTree*) f1->Get("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal");		//matched trackless
 
-	TTree * hltObjectsTree = (TTree*) f1->Get("recoAnalyzerZero/recoTreeBeforeTriggerFilters");
-	
+	//TFile * f1 = new TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr25/high_pt_bkgnd_analyzer_trees_234.root");
+	TFile * f1 = new TFile("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr25/low_pt_bkgnd_analyzer_trees_10.root");
+	TTree * hltTrackedObjectsTree = (TTree*) f1->Get("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd");
+	//TTree * hltTracklessObjectsTree = (TTree*) f1->Get("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd");
 
-
+	/*
 	//TCut objects 
 	//TCut tracklessEtaLow = "TMath::Abs(etaTracklessHltEle)>2.5";
 	//require that a tracked leg or trackless leg REC object exists
@@ -105,68 +155,95 @@ void testMacro(){
 	TCut hasTrackedEndcapHlt = "nTrackedEndcapHltEle>0";
 	TCut hasTrackedHlt = (hasTrackedBarrelHlt || hasTrackedEndcapHlt);
 	TCut hasTracklessHlt = "nTracklessHltEle>0";
+	*/
+
+	//hlt eta cuts
+	TCut trackedEBHltEta = "TMath::Abs(etaHltEle)<1.479";
+	TCut trackedEEHltLowEta = "TMath::Abs(etaHltEle)>1.479";
+	TCut trackedEEHltHighEta = "TMath::Abs(etaHltEle)<2.5";
+	TCut trackedEEHltEta = trackedEEHltLowEta + trackedEEHltHighEta;
+	TCut tracklessEEHltLowEta = "TMath::Abs(etaHltEle)>2.5";
+	TCut tracklessEEHltHighEta = "TMath::Abs(etaHltEle)<3.0";
+	TCut tracklessEEHltEta = tracklessEEHltLowEta + tracklessEEHltHighEta;
+
+	//hlt Et cuts
+	TCut trackedLegHltEt = "ptHltEle>27";
+	TCut tracklessLegHltEt = "ptHltEle>15";
+
+	//combined Et and eta cuts
+	TCut trackedEBPtEta = trackedEBHltEta + trackedLegHltEt;
+	TCut trackedEEPtEta = trackedEEHltEta + trackedLegHltEt;
+	TCut tracklessEEPtEta = tracklessEEHltEta + tracklessLegHltEt;
 
 	gStyle->SetOptStat(1111111);
+	
+
 
 	////plot pt,eta,phi,and tracked leg cut variables of all RecoEcalCandidate objects which would normally be run through the tracked leg
-	//makeAndSaveSingleTreeHisto(hltObjectsTree,"evtNumber>>numEvtsBothRecoMatchingThree","numEvtsBothRecoMatchingThree","Evt numbers where tracked and trackless reco objects are matched to GEN","evt nums","c55",hasTracklessHlt+hasTrackedHlt,"num_evts_both_reco_objs_matching_three.png",false, false);
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"ptTrackedBarrelHltEle>>trackedptZeroBarrel(100,0.,100.)","trackedptZeroBarrel","P_{T} of tracked leg hlt objects in barrel before all filters","pt (GeV)","c1","","tracked_barrel_hlt_object_pt_ZeroBarrel.png",true, false);
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"etaTrackedBarrelHltEle>>trackedetaZeroBarrel(100,-3.0,3.0)","trackedetaZeroBarrel","#eta of tracked leg hlt objects in barrel before all filters","#eta","c2","","tracked_barrel_hlt_object_eta_ZeroBarrel.png",false, false);
+	//makeAndSaveHistoUsingEntryList(hltObjectsTree,"evtNumber>>numEvtsBothRecoMatchingThree","numEvtsBothRecoMatchingThree","Evt numbers where tracked and trackless reco objects are matched to GEN","evt nums","c55",hasTracklessHlt+hasTrackedHlt,"num_evts_both_reco_objs_matching_three.png",false, false);
+	/*
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedptBarrelZeroList","trackedptBarrelZeroList","ptHltEle>>trackedptZeroBarrel(100,0.,100.)","trackedptZeroBarrel","P_{T} of tracked leg hlt objects in barrel before all filters","pt (GeV)","c1",trackedEBHltEta,"tracked_barrel_hlt_object_pt_ZeroBarrel.png",true, false);
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedetaBarrelZeroList","trackedetaBarrelZeroList","etaHltEle>>trackedetaZeroBarrel(100,-3.0,3.0)","trackedetaZeroBarrel","#eta of tracked leg hlt objects in barrel before all filters","#eta","c2",trackedEBHltEta,"tracked_barrel_hlt_object_eta_ZeroBarrel.png",false, false);
+
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedphiBarrelZeroList","trackedphiBarrelZeroList","phiHltEle>>trackedphiZeroBarrel(100,-4.0,4.0)","trackedphiZeroBarrel","#phi of tracked leg hlt objects in barrel before all filters","#phi","c3",trackedEBHltEta,"tracked_barrel_hlt_object_phi_ZeroBarrel.png",false, false);
+	
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedclusterShapeBarrelZeroList","trackedclusterShapeBarrelZeroList","clusterShapeHltEle>>trackedclusterShapeZeroBarrel(100,0.,0.05)","trackedclusterShapeZeroBarrel","#sigma i#eta i#eta of tracked leg hlt objects in barrel before all filters","#sigma i#eta i#eta","c4",trackedEBHltEta,"tracked_barrel_hlt_object_clusterShape_ZeroBarrel.png",false, false);
+
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedhadEmBarrelZeroList","trackedhadEmBarrelZeroList","hadEmHltEle>>trackedhadEmZeroBarrel(100,0.,0.3)","trackedhadEmZeroBarrel","Had/Em/energy of tracked leg hlt objects in barrel before all filters","Had/Em/Energy (1/GeV)","c5",trackedEBHltEta,"tracked_barrel_hlt_object_hadEm_ZeroBarrel.png",false, true);
+	
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedecalIsoBarrelZeroList","trackedecalIsoBarrelZeroList","ecalIsoHltEle>>trackedecalIsoZeroBarrel(100,-0.2,1.8)","trackedecalIsoZeroBarrel","EcalIso/pt of tracked leg hlt objects in barrel before all filters","EcalIso/pt (1/GeV)","c6",trackedEBHltEta,"tracked_barrel_hlt_object_ecalIso_ZeroBarrel.png",false, true);
+	
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedhcalIsoBarrelZeroList","trackedhcalIsoBarrelZeroList","hcalIsoHltEle>>trackedhcalIsoZeroBarrel(100,-0.2,1.1)","trackedhcalIsoZeroBarrel","HcalIso/pt of tracked leg hlt objects in barrel before all filters","HcalIso/pt","c7",trackedEBHltEta,"tracked_barrel_hlt_object_hcalIso_ZeroBarrel.png",false, true);
+	
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedepBarrelZeroList","trackedepBarrelZeroList","epHltEle>>trackedepZeroBarrel(100,-0.015,0.3)","trackedepZeroBarrel","(1/E) - (1/P) of tracked leg hlt objects in barrel before all filters","(1/E)-(1/P) (1/GeV)","c8",trackedEBHltEta,"tracked_barrel_hlt_object_ep_ZeroBarrel.png",false, true);
+	
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackeddEtaBarrelZeroList","trackeddEtaBarrelZeroList","dEtaHltEle>>trackeddEtaZeroBarrel(100,-0.01,0.03)","trackeddEtaZeroBarrel","#Delta #eta of tracked leg hlt objects in barrel before all filters","#Delta #eta","c9",trackedEBHltEta,"tracked_barrel_hlt_object_dEta_ZeroBarrel.png",false, false);
+	
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackeddPhiBarrelZeroList","trackeddPhiBarrelZeroList","dPhiHltEle>>trackeddPhiZeroBarrel(100,-0.03,0.2)","trackeddPhiZeroBarrel","#Delta #phi of tracked leg hlt objects in barrel before all filters","#Delta #phi","c10",trackedEBHltEta,"tracked_barrel_hlt_object_dPhi_ZeroBarrel.png",false, false);
+	
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedtrackIsoBarrelZeroList","trackedtrackIsoBarrelZeroList","trackIsoHltEle>>trackedtrackIsoZeroBarrel(100,-0.05,0.65)","trackedtrackIsoZeroBarrel","TrackIso/pt of tracked leg hlt objects in barrel before all filters","TrackIso/pt (1/GeV)","c11",trackedEBHltEta,"tracked_barrel_hlt_object_trackIso_ZeroBarrel.png",false, true);
+
+	*/
+
+	/**/
+	//tracked objs in endcap before all filters
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedptEndcapZeroList","trackedptEndcapZeroList","ptHltEle>>trackedptZeroEndcap(100,0.,100.)","trackedptZeroEndcap","P_{T} of tracked leg hlt objects in endcap before all filters","pt (GeV)","c31",trackedEEHltEta,"tracked_endcap_hlt_object_pt_ZeroEndcap.png",true, false);
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedetaEndcapZeroList","trackedetaEndcapZeroList","etaHltEle>>trackedetaZeroEndcap(100,-3.0,3.0)","trackedetaZeroEndcap","#eta of tracked leg hlt objects in endcap before all filters","#eta","c32",trackedEEHltEta,"tracked_endcap_hlt_object_eta_ZeroEndcap.png",false, false);
+
+	
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedphiEndcapZeroList","trackedphiEndcapZeroList","phiHltEle>>trackedphiZeroEndcap(100,-4.0,4.0)","trackedphiZeroEndcap","#phi of tracked leg hlt objects in endcap before all filters","#phi","c33",trackedEEHltEta,"tracked_endcap_hlt_object_phi_ZeroEndcap.png",false, false);
+	
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedclusterShapeEndcapZeroList","trackedclusterShapeEndcapZeroList","clusterShapeHltEle>>trackedclusterShapeZeroEndcap(100,0.,0.06)","trackedclusterShapeZeroEndcap","#sigma i#eta i#eta of tracked leg hlt objects in endcap before all filters","#sigma i#eta i#eta","c34",trackedEEHltEta,"tracked_endcap_hlt_object_clusterShape_ZeroEndcap.png",false, false);
+
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedhadEmEndcapZeroList","trackedhadEmEndcapZeroList","hadEmHltEle>>trackedhadEmZeroEndcap(100,0.,0.6)","trackedhadEmZeroEndcap","Had/Em/energy of tracked leg hlt objects in endcap before all filters","Had/Em/Energy (1/GeV)","c35",trackedEEHltEta,"tracked_endcap_hlt_object_hadEm_ZeroEndcap.png",false, true);
+
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedecalIsoEndcapZeroList","trackedecalIsoEndcapZeroList","ecalIsoHltEle>>trackedecalIsoZeroEndcap(100,-0.2,1.8)","trackedecalIsoZeroEndcap","EcalIso/pt of tracked leg hlt objects in endcap before all filters","EcalIso/pt (1/GeV)","c36",trackedEEHltEta,"tracked_endcap_hlt_object_ecalIso_ZeroEndcap.png",false, true);
+	
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedhcalIsoEndcapZeroList","trackedhcalIsoEndcapZeroList","hcalIsoHltEle>>trackedhcalIsoZeroEndcap(100,-0.2,1.1)","trackedhcalIsoZeroEndcap","HcalIso/pt of tracked leg hlt objects in endcap before all filters","HcalIso/pt","c37",trackedEEHltEta,"tracked_endcap_hlt_object_hcalIso_ZeroEndcap.png",false, true);
+	
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedepEndcapZeroList","trackedepEndcapZeroList","epHltEle>>trackedepZeroEndcap(100,-0.015,0.3)","trackedepZeroEndcap","(1/E) - (1/P) of tracked leg hlt objects in endcap before all filters","(1/E)-(1/P) (1/GeV)","c38",trackedEEHltEta,"tracked_endcap_hlt_object_ep_ZeroEndcap.png",false, true);
+	
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackeddEtaEndcapZeroList","trackeddEtaEndcapZeroList","dEtaHltEle>>trackeddEtaZeroEndcap(100,-0.01,0.03)","trackeddEtaZeroEndcap","#Delta #eta of tracked leg hlt objects in endcap before all filters","#Delta #eta","c39",trackedEEHltEta,"tracked_endcap_hlt_object_dEta_ZeroEndcap.png",false, false);
+	
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackeddPhiEndcapZeroList","trackeddPhiEndcapZeroList","dPhiHltEle>>trackeddPhiZeroEndcap(100,-0.03,0.2)","trackeddPhiZeroEndcap","#Delta #phi of tracked leg hlt objects in endcap before all filters","#Delta #phi","c40",trackedEEHltEta,"tracked_endcap_hlt_object_dPhi_ZeroEndcap.png",false, false);
+	
+	makeAndSaveHistoUsingEntryList(hltTrackedObjectsTree,">>trackedtrackIsoEndcapZeroList","trackedtrackIsoEndcapZeroList","trackIsoHltEle>>trackedtrackIsoZeroEndcap(100,-0.05,0.65)","trackedtrackIsoZeroEndcap","TrackIso/pt of tracked leg hlt objects in endcap before all filters","TrackIso/pt (1/GeV)","c41",trackedEEHltEta,"tracked_endcap_hlt_object_trackIso_ZeroEndcap.png",false, true);
+
+	/**/
 
 	/*
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"phiTrackedBarrelHltEle>>trackedphiZeroBarrel(100,-4.0,4.0)","trackedphiZeroBarrel","#phi of tracked leg hlt objects in barrel before all filters","#phi","c3","","tracked_barrel_hlt_object_phi_ZeroBarrel.png",false, false);
-	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"clusterShapeTrackedBarrelHltEle>>trackedclusterShapeZeroBarrel(100,0.,0.03)","trackedclusterShapeZeroBarrel","#sigma i#eta i#eta of tracked leg hlt objects in barrel before all filters","#sigma i#eta i#eta","c4","","tracked_barrel_hlt_object_clusterShape_ZeroBarrel.png",false, false);
-
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"hadEmTrackedBarrelHltEle>>trackedhadEmZeroBarrel(100,0.,0.3)","trackedhadEmZeroBarrel","Had/Em/energy of tracked leg hlt objects in barrel before all filters","Had/Em/Energy (1/GeV)","c5","","tracked_barrel_hlt_object_hadEm_ZeroBarrel.png",false, true);
-	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"ecalIsoTrackedBarrelHltEle>>trackedecalIsoZeroBarrel(100,-0.2,1.8)","trackedecalIsoZeroBarrel","EcalIso/pt of tracked leg hlt objects in barrel before all filters","EcalIso/pt (1/GeV)","c6","","tracked_barrel_hlt_object_ecalIso_ZeroBarrel.png",false, true);
-	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"hcalIsoTrackedBarrelHltEle>>trackedhcalIsoZeroBarrel(100,-0.2,1.1)","trackedhcalIsoZeroBarrel","HcalIso/pt of tracked leg hlt objects in barrel before all filters","HcalIso/pt","c7","","tracked_barrel_hlt_object_hcalIso_ZeroBarrel.png",false, true);
-	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"epTrackedBarrelHltEle>>trackedepZeroBarrel(100,-0.015,0.3)","trackedepZeroBarrel","(1/E) - (1/P) of tracked leg hlt objects in barrel before all filters","(1/E)-(1/P) (1/GeV)","c8","","tracked_barrel_hlt_object_ep_ZeroBarrel.png",false, true);
-	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"dEtaTrackedBarrelHltEle>>trackeddEtaZeroBarrel(100,-0.01,0.03)","trackeddEtaZeroBarrel","#Delta #eta of tracked leg hlt objects in barrel before all filters","#Delta #eta","c9","","tracked_barrel_hlt_object_dEta_ZeroBarrel.png",false, false);
-	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"dPhiTrackedBarrelHltEle>>trackeddPhiZeroBarrel(100,-0.03,0.2)","trackeddPhiZeroBarrel","#Delta #phi of tracked leg hlt objects in barrel before all filters","#Delta #phi","c10","","tracked_barrel_hlt_object_dPhi_ZeroBarrel.png",false, false);
-	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"trackIsoTrackedBarrelHltEle>>trackedtrackIsoZeroBarrel(100,-0.05,0.65)","trackedtrackIsoZeroBarrel","TrackIso/pt of tracked leg hlt objects in barrel before all filters","TrackIso/pt (1/GeV)","c11","","tracked_barrel_hlt_object_trackIso_ZeroBarrel.png",false, true);
-
-
-	//tracked objs in endcap before all filters
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"ptTrackedEndcapHltEle>>trackedptZeroEndcap(100,0.,100.)","trackedptZeroEndcap","P_{T} of tracked leg hlt objects in endcap before all filters","pt (GeV)","c31","","tracked_endcap_hlt_object_pt_ZeroEndcap.png",true, false);
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"etaTrackedEndcapHltEle>>trackedetaZeroEndcap(100,-3.0,3.0)","trackedetaZeroEndcap","#eta of tracked leg hlt objects in endcap before all filters","#eta","c32","","tracked_endcap_hlt_object_eta_ZeroEndcap.png",false, false);
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"phiTrackedEndcapHltEle>>trackedphiZeroEndcap(100,-4.0,4.0)","trackedphiZeroEndcap","#phi of tracked leg hlt objects in endcap before all filters","#phi","c33","","tracked_endcap_hlt_object_phi_ZeroEndcap.png",false, false);
-	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"clusterShapeTrackedEndcapHltEle>>trackedclusterShapeZeroEndcap(100,0.,0.06)","trackedclusterShapeZeroEndcap","#sigma i#eta i#eta of tracked leg hlt objects in endcap before all filters","#sigma i#eta i#eta","c34","","tracked_endcap_hlt_object_clusterShape_ZeroEndcap.png",false, false);
-
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"hadEmTrackedEndcapHltEle>>trackedhadEmZeroEndcap(100,0.,0.6)","trackedhadEmZeroEndcap","Had/Em/energy of tracked leg hlt objects in endcap before all filters","Had/Em/Energy (1/GeV)","c35","","tracked_endcap_hlt_object_hadEm_ZeroEndcap.png",false, true);
-	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"ecalIsoTrackedEndcapHltEle>>trackedecalIsoZeroEndcap(100,-0.15,1.1)","trackedecalIsoZeroEndcap","EcalIso/pt of tracked leg hlt objects in endcap before all filters","EcalIso/pt (1/GeV)","c36","","tracked_endcap_hlt_object_ecalIso_ZeroEndcap.png",false, true);
-	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"hcalIsoTrackedEndcapHltEle>>trackedhcalIsoZeroEndcap(100,-0.15,1.1)","trackedhcalIsoZeroEndcap","HcalIso/pt of tracked leg hlt objects in endcap before all filters","HcalIso/pt","c37","","tracked_endcap_hlt_object_hcalIso_ZeroEndcap.png",false, true);
-	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"epTrackedEndcapHltEle>>trackedepZeroEndcap(100,-0.01,0.15)","trackedepZeroEndcap","(1/E) - (1/P) of tracked leg hlt objects in endcap before all filters","(1/E)-(1/P) (1/GeV)","c38","","tracked_endcap_hlt_object_ep_ZeroEndcap.png",false, true);
-	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"dEtaTrackedEndcapHltEle>>trackeddEtaZeroEndcap(100,-0.015,0.06)","trackeddEtaZeroEndcap","#Delta #eta of tracked leg hlt objects in endcap before all filters","#Delta #eta","c39","","tracked_endcap_hlt_object_dEta_ZeroEndcap.png",false, false);
-	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"dPhiTrackedEndcapHltEle>>trackeddPhiZeroEndcap(100,-0.02,0.15)","trackeddPhiZeroEndcap","#Delta #phi of tracked leg hlt objects in endcap before all filters","#Delta #phi","c40","","tracked_endcap_hlt_object_dPhi_ZeroEndcap.png",false, false);
-	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"trackIsoTrackedEndcapHltEle>>trackedtrackIsoZeroEndcap(100,-0.05,0.65)","trackedtrackIsoZeroEndcap","TrackIso/pt of tracked leg hlt objects in endcap before all filters","TrackIso/pt (1/GeV)","c41","","tracked_endcap_hlt_object_trackIso_ZeroEndcap.png",false, true);
-	
-	
 	//plot eta,pt,phi, and trackless leg cut vars of all RecoEcalCandidate objects which would be run through the trackless leg
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"ptTracklessHltEle>>tracklessptZero(100,0.,60.)","tracklessptZero","P_{T} of trackless leg hlt objects before all filters","pt (GeV)","c12","","trackless_hlt_object_pt_Zero.png",true, false);
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"etaTracklessHltEle>>tracklessetaZero(100,-3.0,3.0)","tracklessetaZero","#eta of trackless leg hlt objects before all filters","#eta","c13","","trackless_hlt_object_eta_Zero.png",false, false);
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"phiTracklessHltEle>>tracklessphiZero(100,-4.0,4.0)","tracklessphiZero","#phi of trackless leg hlt objects before all filters","#phi","c14","","trackless_hlt_object_phi_Zero.png",false, false);
+	makeAndSaveHistoUsingEntryList(hltTracklessObjectsTree,">>tracklessptZeroList","tracklessptZeroList","ptHltEle>>tracklessptZero(100,0.,60.)","tracklessptZero","P_{T} of trackless leg hlt objects before all filters","pt (GeV)","c12",tracklessEEHltEta,"trackless_hlt_object_pt_Zero.png",true, false);
+	makeAndSaveHistoUsingEntryList(hltTracklessObjectsTree,">>tracklessetaZeroList","tracklessetaZeroList","etaHltEle>>tracklessetaZero(100,-3.0,3.0)","tracklessetaZero","#eta of trackless leg hlt objects before all filters","#eta","c13",tracklessEEHltEta,"trackless_hlt_object_eta_Zero.png",false, false);
+	makeAndSaveHistoUsingEntryList(hltTracklessObjectsTree,">>tracklessphiZeroList","tracklessphiZeroList","phiHltEle>>tracklessphiZero(100,-4.0,4.0)","tracklessphiZero","#phi of trackless leg hlt objects before all filters","#phi","c14",tracklessEEHltEta,"trackless_hlt_object_phi_Zero.png",false, false);
 	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"clusterShapeTracklessHltEle>>tracklessclusterShapeZero(100,0.,0.06)","tracklessclusterShapeZero","#sigma i#eta i#eta of trackless leg hlt objects before all filters","#sigma i#eta i#eta","c15","","trackless_hlt_object_clusterShape_Zero.png",false, false);
+	makeAndSaveHistoUsingEntryList(hltTracklessObjectsTree,">>tracklessclusterShapeZeroList","tracklessclusterShapeZeroList","clusterShapeHltEle>>tracklessclusterShapeZero(100,0.,0.06)","tracklessclusterShapeZero","#sigma i#eta i#eta of trackless leg hlt objects before all filters","#sigma i#eta i#eta","c15",tracklessEEHltEta,"trackless_hlt_object_clusterShape_Zero.png",false, false);
 	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"ecalIsoTracklessHltEle>>tracklessecalIsoZero(100,-0.9,1.8)","tracklessecalIsoZero","EcalIso/pt of trackless leg hlt objects before all filters","EcalIso/pt (1/GeV)","c16","","trackless_hlt_object_ecalIso_Zero.png",false, true);
+	makeAndSaveHistoUsingEntryList(hltTracklessObjectsTree,">>tracklessecalIsoZeroList","tracklessecalIsoZeroList","ecalIsoHltEle>>tracklessecalIsoZero(100,-0.9,1.8)","tracklessecalIsoZero","EcalIso/pt of trackless leg hlt objects before all filters","EcalIso/pt (1/GeV)","c16",tracklessEEHltEta,"trackless_hlt_object_ecalIso_Zero.png",false, true);
 	
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"hadEmTracklessHltEle>>tracklesshadEmZero(100,0.,2)","tracklesshadEmZero","Had/Em/energy of trackless leg hlt objects before all filters","Had/Em/energy","c17","","trackless_hlt_object_hadEm_Zero.png",false, true);
+	makeAndSaveHistoUsingEntryList(hltTracklessObjectsTree,">>tracklesshadEmZeroList","tracklesshadEmZeroList","hadEmHltEle>>tracklesshadEmZero(100,0.,2)","tracklesshadEmZero","Had/Em/energy of trackless leg hlt objects before all filters","Had/Em/energy","c17",tracklessEEHltEta,"trackless_hlt_object_hadEm_Zero.png",false, true);
 
-	makeAndSaveSingleTreeHisto(hltObjectsTree,"hcalIsoTracklessHltEle>>tracklesshcalIsoZero(100,-1.0,5.0)","tracklesshcalIsoZero","HcalIso/pt of trackless leg hlt objects before all filters","HcalIso/pt (1/GeV)","c18","","trackless_hlt_object_hcalIso_Zero.png",false, true);
+	makeAndSaveHistoUsingEntryList(hltTracklessObjectsTree,">>tracklesshcalIsoZeroList","tracklesshcalIsoZeroList","hcalIsoHltEle>>tracklesshcalIsoZero(100,-1.0,5.0)","tracklesshcalIsoZero","HcalIso/pt of trackless leg hlt objects before all filters","HcalIso/pt (1/GeV)","c18",tracklessEEHltEta,"trackless_hlt_object_hcalIso_Zero.png",false, true);
 
 	*/
 
