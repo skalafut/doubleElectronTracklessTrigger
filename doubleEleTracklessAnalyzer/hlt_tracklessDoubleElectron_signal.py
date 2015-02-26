@@ -4825,8 +4825,30 @@ process.HLTBeamSpot = cms.Sequence( process.hltScalersRawToDigi + process.hltOnl
 process.HLTBeginSequence = cms.Sequence( process.hltTriggerType + process.HLTL1UnpackerSequence + process.HLTBeamSpot )
 process.HLTDoFullUnpackingEgammaEcalWithoutPreshowerSequence = cms.Sequence( process.hltEcalDigis + process.hltEcalUncalibRecHit + process.hltEcalDetIdToBeRecovered + process.hltEcalRecHit )
 process.HLTEndSequence = cms.Sequence( process.hltBoolEnd )
-process.HLTDoFullUnpackingEgammaEcalSequence = cms.Sequence( process.hltEcalDigis + process.hltEcalPreshowerDigis + process.hltEcalUncalibRecHit + process.hltEcalDetIdToBeRecovered + process.hltEcalRecHit + process.hltEcalPreshowerRecHit )
-process.HLTPFClusteringForEgamma = cms.Sequence( process.hltRechitInRegionsECAL + process.hltRechitInRegionsES + process.hltParticleFlowRecHitECALL1Seeded + process.hltParticleFlowRecHitPSL1Seeded + process.hltParticleFlowClusterPSL1Seeded + process.hltParticleFlowClusterECALUncorrectedL1Seeded + process.hltParticleFlowClusterECALL1Seeded + process.hltParticleFlowSuperClusterECALL1Seeded )
+
+process.HLTDoFullUnpackingEgammaEcalSequence = cms.Sequence( 
+		process.hltEcalDigis 
+		+ process.hltEcalPreshowerDigis 
+		+ process.hltEcalUncalibRecHit 
+		+ process.hltEcalDetIdToBeRecovered 
+		+ process.hltEcalRecHit 
+		+ process.hltEcalPreshowerRecHit )
+
+#the thresholds which must be passed in hltRechitInRegionsECAL, hltRechitInRegionsES,
+#and the other producers could result in events where no RecoEcalCandidate is produced
+#in particular, the Et > 4.0 GeV requirement in hltParticleFlowSuperClusterECALL1Seeded
+#(see thresh_PFClusterBarrel, thresh_PFClusterEndcap, thresh_SCEt) could result in
+#no RecoEcalCandidates being produced by the tracked leg
+process.HLTPFClusteringForEgamma = cms.Sequence( 
+		process.hltRechitInRegionsECAL 
+		+ process.hltRechitInRegionsES 
+		+ process.hltParticleFlowRecHitECALL1Seeded 
+		+ process.hltParticleFlowRecHitPSL1Seeded 
+		+ process.hltParticleFlowClusterPSL1Seeded 
+		+ process.hltParticleFlowClusterECALUncorrectedL1Seeded 
+		+ process.hltParticleFlowClusterECALL1Seeded 
+		+ process.hltParticleFlowSuperClusterECALL1Seeded )
+
 process.HLTDoLocalHcalWithTowerSequence = cms.Sequence( process.hltHcalDigis + process.hltHbhereco + process.hltHfreco + process.hltHoreco + process.hltTowerMakerForAll )
 process.HLTPFHcalClusteringForEgamma = cms.Sequence( process.hltRegionalTowerForEgamma + process.hltParticleFlowRecHitHCALForEgamma + process.hltParticleFlowClusterHCALForEgamma )
 process.HLTFastJetForEgamma = cms.Sequence( process.hltFixedGridRhoFastjetAllCaloForMuons )
@@ -4912,14 +4934,26 @@ process.HLTEle27WPXXSequenceStudy = cms.Sequence(
 )
 
 
+#similar to HLTPFClusteringForEgamma
+#all of the modules in this sequence are producers, and each has
+#some threshold requirements
+#the Et threshold requirement of 4.0 GeV is used in
+#hltParticleFlowSuperClusterECALUnseeded
+process.HLTPFClusteringForEgammaUnseeded = cms.Sequence( 
+		process.HLTDoFullUnpackingEgammaEcalSequence 
+		+ process.hltParticleFlowRecHitECALUnseeded 
+		+ process.hltParticleFlowRecHitPSUnseeded 
+		+ process.hltParticleFlowClusterPSUnseeded 
+		+ process.hltParticleFlowClusterECALUncorrectedUnseeded 
+		+ process.hltParticleFlowClusterECALUnseeded 
+		+ process.hltParticleFlowSuperClusterECALUnseeded )
 
-process.HLTPFClusteringForEgammaUnseeded = cms.Sequence( process.HLTDoFullUnpackingEgammaEcalSequence + process.hltParticleFlowRecHitECALUnseeded + process.hltParticleFlowRecHitPSUnseeded + process.hltParticleFlowClusterPSUnseeded + process.hltParticleFlowClusterECALUncorrectedUnseeded + process.hltParticleFlowClusterECALUnseeded + process.hltParticleFlowSuperClusterECALUnseeded )
 process.HLTPFHcalClusteringForEgammaUnseeded = cms.Sequence( process.hltParticleFlowRecHitHCALForEgammaUnseeded + process.hltParticleFlowClusterHCALForEgammaUnseeded + process.hltParticleFlowClusterHFEMForEgammaUnseeded + process.hltParticleFlowClusterHFHADForEgammaUnseeded )
 
 process.HLTEle15WPYYtracklessSequenceStudy = cms.Sequence( 
 		process.HLTPFClusteringForEgammaUnseeded 
 		+ process.hltEgammaCandidatesUnseeded 
-		+ process.hltEgammaCandidatesWrapperUnseeded 
+		+ process.hltEgammaCandidatesWrapperUnseeded	#this is an EDFilter, but is not relevant to subsequent producers in the path 
 		#+ process.hltEG15WPYYtracklessEtFilterUnseeded 
 		+ process.hltEgammaClusterShapeUnseeded 
 		#+ process.hltEle15WPYYtracklessClusterShapeFilter 
@@ -5347,7 +5381,7 @@ process.TFileService = cms.Service("TFileService",
 		#fileName = cms.string('genAnalyzerTree.root')
 		#fileName = cms.string('gen_and_reco_signal_analyzer_trees.root')
 		#fileName = cms.string('genCheckup.root')
-		fileName = cms.string('signal_analyzer_trees.root')
+		fileName = cms.string('signal_analyzer_trees_matching_with_zero_point_one_deltaR.root')
 
 )
 
@@ -5416,7 +5450,7 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
 	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects.root"),
 	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects_no_filter_refs.root"),
-	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/makingSignalTuples_50evts_Febr24.root"),
+	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/remakingMatchedSignalTuples_zero_point_one_deltaR_Febr26.root"),
 	
 	fastCloning = cms.untracked.bool( False ),
     dataset = cms.untracked.PSet(
@@ -5438,7 +5472,7 @@ process.FULLOutput = cms.EndPath( process.hltOutputFULL )
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(60)
+    input = cms.untracked.int32(-1)
 )
 
 # enable the TrigReport and TimeReport
