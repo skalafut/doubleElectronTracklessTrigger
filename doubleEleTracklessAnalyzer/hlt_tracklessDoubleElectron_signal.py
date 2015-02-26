@@ -5166,7 +5166,8 @@ process.recoAnalyzerTracked = cms.EDAnalyzer('recoAnalyzerGeneric',
 		recoElectronCollection = cms.InputTag("recoDaughterProducer","trackedDaughters","TEST"),
 		doAnalysisOfTracked = cms.bool(True),
 		genCollection = cms.InputTag("","",""),
-		dRMatch = cms.double(-1)
+		dRMatch = cms.double(-1),
+		recoZedCollection = cms.InputTag("combRecoEle","","TEST")
 	
 		)
 
@@ -5184,7 +5185,8 @@ process.recoAnalyzerTrackless = cms.EDAnalyzer('recoAnalyzerGeneric',
 		recoElectronCollection = cms.InputTag("recoDaughterProducer","tracklessDaughters","TEST"),
 		doAnalysisOfTracked = cms.bool(False),
 		genCollection = cms.InputTag("","",""),
-		dRMatch = cms.double(-1)
+		dRMatch = cms.double(-1),
+		recoZedCollection = cms.InputTag("combRecoEle","","TEST")
 	
 		)
 
@@ -5202,8 +5204,9 @@ process.recoAnalyzerMatchedTracked = cms.EDAnalyzer('recoAnalyzerGeneric',
 		recoElectronCollection = cms.InputTag("recoDaughterProducer","trackedDaughters","TEST"),
 		doAnalysisOfTracked = cms.bool(True),
 		genCollection = cms.InputTag("genEleTrack","","TEST"),
-		dRMatch = cms.double(0.1)
-		
+		dRMatch = cms.double(0.1),
+		recoZedCollection = cms.InputTag("combRecoEle","","TEST")
+	
 		)
 
 
@@ -5220,7 +5223,8 @@ process.recoAnalyzerMatchedTrackless = cms.EDAnalyzer('recoAnalyzerGeneric',
 		recoElectronCollection = cms.InputTag("recoDaughterProducer","tracklessDaughters","TEST"),
 		doAnalysisOfTracked = cms.bool(False),
 		genCollection = cms.InputTag("genUntrack","","TEST"),
-		dRMatch = cms.double(0.1)
+		dRMatch = cms.double(0.1),
+		recoZedCollection = cms.InputTag("combRecoEle","","TEST")
 	
 		)
 
@@ -5381,7 +5385,7 @@ process.TFileService = cms.Service("TFileService",
 		#fileName = cms.string('genAnalyzerTree.root')
 		#fileName = cms.string('gen_and_reco_signal_analyzer_trees.root')
 		#fileName = cms.string('genCheckup.root')
-		fileName = cms.string('signal_analyzer_trees_matching_with_zero_point_one_deltaR.root')
+		fileName = cms.string('signal_analyzer_trees_with_diObjectMass.root')
 
 )
 
@@ -5450,8 +5454,7 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
 	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects.root"),
 	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects_no_filter_refs.root"),
-	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/remakingMatchedSignalTuples_zero_point_one_deltaR_Febr26.root"),
-	
+	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signalTuples_with_diObjectMass_Febr26.root"),
 	fastCloning = cms.untracked.bool( False ),
     dataset = cms.untracked.PSet(
         dataTier = cms.untracked.string( 'RECO' ),
@@ -5472,7 +5475,7 @@ process.FULLOutput = cms.EndPath( process.hltOutputFULL )
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(85)
 )
 
 # enable the TrigReport and TimeReport

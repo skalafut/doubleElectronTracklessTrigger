@@ -41,6 +41,8 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "DataFormats/Candidate/interface/CompositeCandidate.h"
+
 #include "DataFormats/Common/interface/getRef.h"
 
 #include "DataFormats/RecoCandidate/interface/RecoEcalCandidate.h"
@@ -120,6 +122,10 @@ class recoAnalyzerGeneric : public edm::EDAnalyzer {
      
 
 void getTriggerObjectsInfo(const edm::Event& iEvent){
+
+	iEvent.getByLabel(hltZedMomObjectsTag, hltZedMomObjectsHandle);
+	if(!hltZedMomObjectsHandle.isValid() ) return;
+
 	if(analyzingTracked && maxDeltaR < 0){
 		iEvent.getByLabel(SigmaIEIETag,SigmaIEIEHandle);
 		iEvent.getByLabel(HadEmTag,HadEmHandle);
@@ -154,6 +160,22 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 			//std::cout<<"eta = "<< (*refIt)->eta() << std::endl;
 			ptHltEle[j] = (*refIt)->pt();
 			phiHltEle[j] = (*refIt)->phi();
+
+			//now that I have the eta, pt, and phi of a tracked leg RecoEcalCandidate, I should look for the one object
+			//in hltZedMomObjectsHandle which has a tracked leg daughter particle with matching eta, pt, and phi.
+			//Once this daughter is found, I should store the mass of the mother Z object in diObjectMassHltEle
+			for(std::vector<reco::CompositeCandidate>::const_iterator momIt=hltZedMomObjectsHandle->begin(); momIt != hltZedMomObjectsHandle->end();momIt++){
+				if((momIt->daughter("trackedRecoEle"))->hasMasterClone() ){
+					reco::CandidateBaseRef dauRef = (momIt->daughter("trackedRecoEle"))->masterClone();
+					if(dauRef->pt()==ptHltEle[j] && dauRef->eta()==etaHltEle[j] && dauRef->phi()==phiHltEle[j]){
+						diObjectMassHltEle[j] = momIt->mass();
+						break;
+					}//end requirement that pt, eta, and phi are identical 
+
+				}//end filter to select tracked leg RecoEcalCandidate obj daughters
+
+			}//end loop over mother reco Z boson objects
+
 
 			//initialize const_iterators to maps inside for loop using find(edm::Ref)
 			SigmaIEIEIt = (*SigmaIEIEHandle).find(*refIt);
@@ -209,6 +231,22 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 			ptHltEle[j] = (*refIt)->pt();
 			phiHltEle[j] = (*refIt)->phi();
 
+			//now that I have the eta, pt, and phi of a trackless leg RecoEcalCandidate, I should look for the one object
+			//in hltZedMomObjectsHandle which has a trackless leg daughter particle with matching eta, pt, and phi.
+			//Once this daughter is found, I should store the mass of the mother Z object in diObjectMassHltEle
+			for(std::vector<reco::CompositeCandidate>::const_iterator momIt=hltZedMomObjectsHandle->begin(); momIt != hltZedMomObjectsHandle->end();momIt++){
+				if((momIt->daughter("tracklessRecoEle"))->hasMasterClone() ){
+					reco::CandidateBaseRef dauRef = (momIt->daughter("tracklessRecoEle"))->masterClone();
+					if(dauRef->pt()==ptHltEle[j] && dauRef->eta()==etaHltEle[j] && dauRef->phi()==phiHltEle[j]){
+						diObjectMassHltEle[j] = momIt->mass();
+						break;
+					}//end requirement that pt, eta, and phi are identical 
+
+				}//end filter to select trackless leg RecoEcalCandidate obj daughters
+
+			}//end loop over mother reco Z boson objects
+
+
 			//initialize const_iterators to maps inside for loop using find(edm::Ref)
 			SigmaIEIEIt = (*SigmaIEIEHandle).find(*refIt);
 			clusterShapeHltEle[j] = SigmaIEIEIt->val;
@@ -263,6 +301,22 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 				etaHltEle[j] = (*refIt)->eta();
 				ptHltEle[j] = (*refIt)->pt();
 				phiHltEle[j] = (*refIt)->phi();
+
+				//now that I have the eta, pt, and phi of a tracked leg RecoEcalCandidate, I should look for the one object
+				//in hltZedMomObjectsHandle which has a tracked leg daughter particle with matching eta, pt, and phi.
+				//Once this daughter is found, I should store the mass of the mother Z object in diObjectMassHltEle
+				for(std::vector<reco::CompositeCandidate>::const_iterator momIt=hltZedMomObjectsHandle->begin(); momIt != hltZedMomObjectsHandle->end();momIt++){
+					if((momIt->daughter("trackedRecoEle"))->hasMasterClone() ){
+						reco::CandidateBaseRef dauRef = (momIt->daughter("trackedRecoEle"))->masterClone();
+						if(dauRef->pt()==ptHltEle[j] && dauRef->eta()==etaHltEle[j] && dauRef->phi()==phiHltEle[j]){
+							diObjectMassHltEle[j] = momIt->mass();
+							break;
+						}//end requirement that pt, eta, and phi are identical 
+
+					}//end filter to select tracked leg RecoEcalCandidate obj daughters
+
+				}//end loop over mother reco Z boson objects
+
 
 				//initialize const_iterators to maps inside for loop using find(edm::Ref)
 				SigmaIEIEIt = (*SigmaIEIEHandle).find(*refIt);
@@ -329,6 +383,22 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 				etaHltEle[j] = (*refIt)->eta();
 				ptHltEle[j] = (*refIt)->pt();
 				phiHltEle[j] = (*refIt)->phi();
+
+				//now that I have the eta, pt, and phi of a trackless leg RecoEcalCandidate, I should look for the one object
+				//in hltZedMomObjectsHandle which has a trackless leg daughter particle with matching eta, pt, and phi.
+				//Once this daughter is found, I should store the mass of the mother Z object in diObjectMassHltEle
+				for(std::vector<reco::CompositeCandidate>::const_iterator momIt=hltZedMomObjectsHandle->begin(); momIt != hltZedMomObjectsHandle->end();momIt++){
+					if((momIt->daughter("tracklessRecoEle"))->hasMasterClone() ){
+						reco::CandidateBaseRef dauRef = (momIt->daughter("tracklessRecoEle"))->masterClone();
+						if(dauRef->pt()==ptHltEle[j] && dauRef->eta()==etaHltEle[j] && dauRef->phi()==phiHltEle[j]){
+							diObjectMassHltEle[j] = momIt->mass();
+							break;
+						}//end requirement that pt, eta, and phi are identical 
+
+					}//end filter to select trackless leg RecoEcalCandidate obj daughters
+
+				}//end loop over mother reco Z boson objects
+
 
 				//initialize const_iterators to maps inside for loop using find(edm::Ref)
 				SigmaIEIEIt = (*SigmaIEIEHandle).find(*refIt);
@@ -556,6 +626,8 @@ edm::Handle<reco::RecoEcalCandidateRefVector> hltObjectsHandle;
 //original std::vector<edm::Ref<reco::RecoEcalCandidateCollection> > hltRefs;
 //equivalent to original const edm::RefVector<std::vector<reco::RecoEcalCandidate>> hltRefs;
 
+edm::Handle<std::vector<reco::CompositeCandidate>> hltZedMomObjectsHandle;
+
 edm::Handle<edm::OwnVector<reco::Candidate> > genObjectsHandle;
 
 std::string tName;
@@ -565,6 +637,7 @@ edm::InputTag hltObjectsTag;
 bool analyzingTracked;
 edm::InputTag genObjectsTag;
 double maxDeltaR;
+edm::InputTag hltZedMomObjectsTag;
 
 TTree * tree;
 
@@ -580,6 +653,10 @@ Float_t epHltEle[NELE];
 Float_t dEtaHltEle[NELE];
 Float_t dPhiHltEle[NELE];
 Float_t trackIsoHltEle[NELE];
+
+//used to keep track of the mass of the CompositeCandidate objects
+//made by the module named combRecoEle 
+Float_t diObjectMassHltEle[NELE];
 
 //GEN electron eta, pt, phi
 //there will only be one GEN electron relevant to each entry in the tree
@@ -618,12 +695,13 @@ recoAnalyzerGeneric::recoAnalyzerGeneric(const edm::ParameterSet& iConfig):
 	hltObjectsTag(iConfig.getParameter<edm::InputTag>("recoElectronCollection")),
 	analyzingTracked(iConfig.getParameter<bool>("doAnalysisOfTracked")),
 	genObjectsTag(iConfig.getParameter<edm::InputTag>("genCollection")),
-	maxDeltaR(iConfig.getParameter<double>("dRMatch"))
+	maxDeltaR(iConfig.getParameter<double>("dRMatch")),
+	hltZedMomObjectsTag(iConfig.getParameter<edm::InputTag>("recoZedCollection"))
 
 {
    //now do what ever initialization is needed
    edm::Service<TFileService> fs;
-   
+   //hltZedMomObjectsTag
    tree=fs->make<TTree>(tName.c_str(),"RecoEcalCandidate object information before any trigger filters are applied");
   
    //RecoEcalCandidate object branches
@@ -639,7 +717,9 @@ recoAnalyzerGeneric::recoAnalyzerGeneric(const edm::ParameterSet& iConfig):
    tree->Branch("dEtaHltEle",dEtaHltEle,"dEtaHltEle[nHltEle]/F");
    tree->Branch("dPhiHltEle",dPhiHltEle,"dPhiHltEle[nHltEle]/F");
    tree->Branch("trackIsoHltEle",trackIsoHltEle,"trackIsoHltEle[nHltEle]/F");
-  
+   tree->Branch("diObjectMassHltEle",diObjectMassHltEle,"diObjectMassHltEle[nHltEle]/F");
+ 
+
    //GEN electron branches
    tree->Branch("etaGenEle",&etaGenEle,"etaGenEle/F");
    tree->Branch("ptGenEle",&ptGenEle,"ptGenEle/F");
@@ -699,6 +779,7 @@ recoAnalyzerGeneric::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 		dEtaHltEle[r]=1000;
 		dPhiHltEle[r]=1000;
 		trackIsoHltEle[r]=1000;
+		diObjectMassHltEle[r]=-1;
 		
 		etaGenEle=1000;
 		ptGenEle=1000;

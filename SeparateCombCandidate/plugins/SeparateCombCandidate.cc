@@ -200,7 +200,7 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 {
    using namespace edm;
 
-   std::cout<<"entered daughter producer code"<<std::endl;
+   //std::cout<<"entered daughter producer code"<<std::endl;
 
    //read collection of reco::CompositeCandidate objects from iEvent
    Handle<std::vector<reco::CompositeCandidate> > momIn;
@@ -212,18 +212,18 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
    Handle<std::vector<reco::RecoEcalCandidate> > momParentTwoIn;	//for tracked leg RECs
    iEvent.getByToken(momParentTwoToken, momParentTwoIn);
 
-   std::cout<<"made handles to input collections"<<std::endl;
+   //std::cout<<"made handles to input collections"<<std::endl;
 
    //create empty output collections, one for each daughter, and pointers to each collection
    std::auto_ptr<reco::RecoEcalCandidateRefVector> daughterOneRefColl(new reco::RecoEcalCandidateRefVector );	//trackless collection
    std::auto_ptr<reco::RecoEcalCandidateRefVector> daughterTwoRefColl(new reco::RecoEcalCandidateRefVector );	//tracked collection
 
 
-   std::cout<<"made ptrs to output daughter collections"<<std::endl;
+   //std::cout<<"made ptrs to output daughter collections"<<std::endl;
 
    /**/
-   int numDauOne = 0;
-   int numDauTwo = 0;
+   //int numDauOne = 0;
+   //int numDauTwo = 0;
    
    for(std::vector<reco::CompositeCandidate>::const_iterator momIt = momIn->begin(); momIt != momIn->end(); momIt++){
 	   //get a Ref to a daughter via momIt->daughter()->masterClone()
@@ -232,15 +232,15 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	   //getRef(momParent(One or Two)In, index number) 
 	   //std::cout<<"looping over CompositeCandidate objects"<<std::endl;
 	   if((momIt->daughter("tracklessRecoEle"))->hasMasterClone() ){
-		   std::cout<<"found tracklessRecoEle daughter with a master clone"<<std::endl;
+		   //std::cout<<"found tracklessRecoEle daughter with a master clone"<<std::endl;
 		   reco::CandidateBaseRef dauOneRef = (momIt->daughter("tracklessRecoEle"))->masterClone();
-		   std::cout<<"made a reference obj to a trackless daughter"<<std::endl;
+		   //std::cout<<"made a reference obj to a trackless daughter"<<std::endl;
 		   for(unsigned int h=0; h<momParentOneIn->size(); h++){
 			   if(dauOneRef->pt() == (getRef(momParentOneIn, h))->pt() ){
 				   if(dauOneRef->eta() == (getRef(momParentOneIn, h))->eta() ){
 					   if(dauOneRef->phi() == (getRef(momParentOneIn, h))->phi() ){
 						   daughterOneRefColl->push_back( getRef(momParentOneIn, h) );
-						   numDauOne +=1;
+						   //numDauOne +=1;
 					   }//end filter on phi
 
 				   }//end filter on eta
@@ -252,14 +252,14 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	   }//end requirement that a master clone exists
 
 	   if((momIt->daughter("trackedRecoEle"))->hasMasterClone() ){
-		   std::cout<<"found trackedRecoEle daughter with a master clone"<<std::endl;
+		   //std::cout<<"found trackedRecoEle daughter with a master clone"<<std::endl;
 		   reco::CandidateBaseRef dauTwoRef = (momIt->daughter("trackedRecoEle"))->masterClone();
 		   for(unsigned int m=0; m<momParentTwoIn->size(); m++){
 			   if(dauTwoRef->pt() == (getRef(momParentTwoIn, m))->pt() ){
 				   if(dauTwoRef->eta() == (getRef(momParentTwoIn, m))->eta() ){
 					   if(dauTwoRef->phi() == (getRef(momParentTwoIn, m))->phi() ){
 						   daughterTwoRefColl->push_back( getRef(momParentTwoIn, m) );
-						   numDauTwo += 1;
+						   //numDauTwo += 1;
 					   }//end filter on phi
 
 				   }//end filter on eta
@@ -272,13 +272,13 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	
    }//end loop over all CompositeCandidate objects in the event
 
-   std::cout<<" "<<std::endl;
-   std::cout<<"added "<<numDauOne<<" refs to daughterOneRefColl"<<std::endl;
-   std::cout<<"added "<<numDauTwo<<" refs to daughterTwoRefColl"<<std::endl;
-   std::cout<<" "<<std::endl;
+   //std::cout<<" "<<std::endl;
+   //std::cout<<"added "<<numDauOne<<" refs to daughterOneRefColl"<<std::endl;
+   //std::cout<<"added "<<numDauTwo<<" refs to daughterTwoRefColl"<<std::endl;
+   //std::cout<<" "<<std::endl;
    /**/
 
-   std::cout<<"about to put daughter collections into root file"<<std::endl;
+   //std::cout<<"about to put daughter collections into root file"<<std::endl;
    //now put the two collections of Refs to daughter particles into the event
    iEvent.put(daughterOneRefColl, daughterOneCollection);
    iEvent.put(daughterTwoRefColl, daughterTwoCollection);
