@@ -273,20 +273,25 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 
 		iEvent.getByLabel(hltObjectsTag, hltObjectsHandle);
 		iEvent.getByLabel(genObjectsTag, genObjectsHandle);
+		iEvent.getByLabel(genZedMomObjectsTag,genZedMomObjectsHandle);
 
-		std::cout<<"setup handles to tracked leg objects and variables"<<std::endl;
+		//std::cout<<"setup handles to tracked leg objects and variables"<<std::endl;
 		
-		if(!hltObjectsHandle.isValid() || !genObjectsHandle.isValid() || genObjectsHandle->size()==0 ) return;
+		if(!hltObjectsHandle.isValid() || !genObjectsHandle.isValid() || genObjectsHandle->size()==0 || !genZedMomObjectsHandle.isValid() || genZedMomObjectsHandle->size()==0) return;
 
 		if(!SigmaIEIEHandle.isValid() || !HadEmHandle.isValid() || !HcalIsoHandle.isValid() || !EcalIsoHandle.isValid() || !TrackIsoHandle.isValid() || !DphiHandle.isValid() || !DetaHandle.isValid() || !EpHandle.isValid()) return;
 
-		std::cout<<"all tracked leg handles are valid"<<std::endl;
+		//std::cout<<"all tracked leg handles are valid"<<std::endl;
 
 		edm::OwnVector<reco::Candidate>::const_iterator genIt = genObjectsHandle->begin();
 		etaGenEle = genIt->eta();
 		ptGenEle = genIt->pt();
 		phiGenEle = genIt->phi();
-		std::cout<<"obtained eta, pt, phi of tracked gen electron"<<std::endl;
+		
+		//there will never be more than 1 object in genZedMomObjectsHandle for any signal event
+		//see the module process.combEle in hlt_tracklessDoubleElectron_signal.py for more details
+		std::vector<reco::CompositeCandidate>::const_iterator genMomIt=genZedMomObjectsHandle->begin();
+		diObjectMassGenEle = genMomIt->mass();
 		
 		typedef edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>, float> > forMapIt;
 
@@ -354,22 +359,26 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 	
 		iEvent.getByLabel(hltObjectsTag, hltObjectsHandle);
 		iEvent.getByLabel(genObjectsTag, genObjectsHandle);
+		iEvent.getByLabel(genZedMomObjectsTag,genZedMomObjectsHandle);
 
-
-		std::cout<<"setup handles to trackless leg objects and variables"<<std::endl;
+		//std::cout<<"setup handles to trackless leg objects and variables"<<std::endl;
 		
-		if(!hltObjectsHandle.isValid() || !genObjectsHandle.isValid() || genObjectsHandle->size()==0 ) return;
+		if(!hltObjectsHandle.isValid() || !genObjectsHandle.isValid() || genObjectsHandle->size()==0 || !genZedMomObjectsHandle.isValid() || genZedMomObjectsHandle->size()==0) return;
 
 		if(!SigmaIEIEHandle.isValid() || !HadEmHandle.isValid() || !HcalIsoHandle.isValid() || !EcalIsoHandle.isValid() ) return;
 	
-		std::cout<<"all trackless leg handles are valid"<<std::endl;
+		//std::cout<<"all trackless leg handles are valid"<<std::endl;
 
 		edm::OwnVector<reco::Candidate>::const_iterator genIt = genObjectsHandle->begin();
 		etaGenEle = genIt->eta();
 		ptGenEle = genIt->pt();
 		phiGenEle = genIt->phi();
-		std::cout<<"obtained eta, pt, phi of gen trackless electron"<<std::endl;
 		
+		//there will never be more than 1 object in genZedMomObjectsHandle for any signal event
+		//see the module process.combEle in hlt_tracklessDoubleElectron_signal.py for more details
+		std::vector<reco::CompositeCandidate>::const_iterator genMomIt=genZedMomObjectsHandle->begin();
+		diObjectMassGenEle = genMomIt->mass();
+	
 		typedef edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>, float> > forMapIt;
 
 		//declare const_iterators to maps outside for loop
@@ -420,164 +429,6 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 
 }//end getTriggerObjectsInfo()
 
-/*
-void GetTrackedTriggerObjects(const edm::Event& iEvent, const Float_t genTrackedEta, const Float_t genTrackedPhi, const Float_t maxDrForMatch){
-
-	//fill handles to edm::AssociationMap objects which store additional information about
-	//RecoEcalCandidate objects made by the tracked leg
-	iEvent.getByLabel(trackedSigmaIEIETag,trackedSigmaIEIEHandle);
-	iEvent.getByLabel(trackedHadEmTag,trackedHadEmHandle);
-	iEvent.getByLabel(trackedHcalIsoTag,trackedHcalIsoHandle);
-	iEvent.getByLabel(trackedEcalIsoTag,trackedEcalIsoHandle);
-	iEvent.getByLabel(trackedTrackIsoTag,trackedTrackIsoHandle);
-	iEvent.getByLabel(trackedDphiTag,trackedDphiHandle);
-	iEvent.getByLabel(trackedDetaTag,trackedDetaHandle);
-	iEvent.getByLabel(trackedEpTag,trackedEpHandle);
-
-
-	//fill handle to RecoEcalCandidate object collection made by tracked leg
-	iEvent.getByLabel(hltTrackedLegTag, trackedLegHltObjectsHandle);
-	
-	if(!trackedLegHltObjectsHandle.isValid()) return;
-
-	if(!trackedSigmaIEIEHandle.isValid() || !trackedHadEmHandle.isValid() || !trackedHcalIsoHandle.isValid() || !trackedEcalIsoHandle.isValid() || !trackedTrackIsoHandle.isValid() || !trackedDphiHandle.isValid() || !trackedDetaHandle.isValid() || !trackedEpHandle.isValid()) return;
-
-	for(unsigned int h=0; h<trackedLegHltObjectsHandle->size(); h++){
-		if( std::fabs( (getRef(trackedLegHltObjectsHandle, h))->eta()) < 2.5){
-			trackedLegHltRefs.push_back( getRef(trackedLegHltObjectsHandle, h) );
-		}
-	}
-
-	if(trackedLegHltRefs.size() == 0) return; //there is a chance there may not be any REC which passes the |eta|<2.5 requirement in one evt
-
-	for(unsigned int i=0; i<trackedLegHltRefs.size(); i++){
-		if(std::fabs(trackedLegHltRefs[i]->eta()) < 1.4791) nTrackedBarrelHltEle += 1;
-		if(std::fabs(trackedLegHltRefs[i]->eta()) > 1.4791 && std::fabs(trackedLegHltRefs[i]->eta()) < 2.5) nTrackedEndcapHltEle += 1;
-	}
-
-
-	typedef edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>, float> > forMapIt;
-	
-	//declare const_iterators to maps outside for loop
-	forMapIt::const_iterator trackedSigmaIEIEIt, trackedHadEmIt, trackedHcalIsoIt, trackedEcalIsoIt, trackedTrackIsoIt, trackedDphiIt, trackedDetaIt, trackedEpIt;
-	Int_t indexBarrel = -1;
-	Int_t indexEndcap = -1;
-	for(unsigned int j=0; j<trackedLegHltRefs.size(); j++){
-		if(std::fabs(trackedLegHltRefs[j]->eta()) < 1.4791){
-			indexBarrel += 1;
-			etaTrackedBarrelHltEle[indexBarrel] = trackedLegHltRefs[j]->eta();
-			ptTrackedBarrelHltEle[indexBarrel] = trackedLegHltRefs[j]->pt();
-			phiTrackedBarrelHltEle[indexBarrel] = trackedLegHltRefs[j]->phi();
-
-			//initialize const_iterators to maps inside for loop using find(edm::Ref)
-			trackedSigmaIEIEIt = (*trackedSigmaIEIEHandle).find(trackedLegHltRefs[j]);
-			clusterShapeTrackedBarrelHltEle[indexBarrel] = trackedSigmaIEIEIt->val;
-			trackedHadEmIt = (*trackedHadEmHandle).find(trackedLegHltRefs[j]);
-			hadEmTrackedBarrelHltEle[indexBarrel] = (trackedHadEmIt->val)/(ptTrackedBarrelHltEle[indexBarrel]*(TMath::CosH(etaTrackedBarrelHltEle[indexBarrel]) ));
-			trackedHcalIsoIt = (*trackedHcalIsoHandle).find(trackedLegHltRefs[j]);
-			hcalIsoTrackedBarrelHltEle[indexBarrel] = (trackedHcalIsoIt->val)/ptTrackedBarrelHltEle[indexBarrel];
-			trackedEcalIsoIt = (*trackedEcalIsoHandle).find(trackedLegHltRefs[j]);
-			ecalIsoTrackedBarrelHltEle[indexBarrel] = (trackedEcalIsoIt->val)/ptTrackedBarrelHltEle[indexBarrel];
-
-			trackedTrackIsoIt = (*trackedTrackIsoHandle).find(trackedLegHltRefs[j]);
-			trackIsoTrackedBarrelHltEle[indexBarrel] = (trackedTrackIsoIt->val)/ptTrackedBarrelHltEle[indexBarrel];
-			trackedDphiIt = (*trackedDphiHandle).find(trackedLegHltRefs[j]);
-			dPhiTrackedBarrelHltEle[indexBarrel] = trackedDphiIt->val;
-			trackedDetaIt = (*trackedDetaHandle).find(trackedLegHltRefs[j]);
-			dEtaTrackedBarrelHltEle[indexBarrel] = trackedDetaIt->val;
-			trackedEpIt = (*trackedEpHandle).find(trackedLegHltRefs[j]);
-			epTrackedBarrelHltEle[indexBarrel] = trackedEpIt->val;
-		}//end barrel eta filter
-		
-		if(std::fabs(trackedLegHltRefs[j]->eta()) > 1.4791 && std::fabs(trackedLegHltRefs[j]->eta()) < 2.5){
-			indexEndcap += 1;
-			etaTrackedEndcapHltEle[indexEndcap] = trackedLegHltRefs[j]->eta();
-			ptTrackedEndcapHltEle[indexEndcap] = trackedLegHltRefs[j]->pt();
-			phiTrackedEndcapHltEle[indexEndcap] = trackedLegHltRefs[j]->phi();
-
-			//initialize const_iterators to maps inside for loop using find(edm::Ref)
-			trackedSigmaIEIEIt = (*trackedSigmaIEIEHandle).find(trackedLegHltRefs[j]);
-			clusterShapeTrackedEndcapHltEle[indexEndcap] = trackedSigmaIEIEIt->val;
-			trackedHadEmIt = (*trackedHadEmHandle).find(trackedLegHltRefs[j]);
-			hadEmTrackedEndcapHltEle[indexEndcap] = (trackedHadEmIt->val)/(ptTrackedEndcapHltEle[indexEndcap]*(TMath::CosH(etaTrackedEndcapHltEle[indexEndcap]) ));
-			trackedHcalIsoIt = (*trackedHcalIsoHandle).find(trackedLegHltRefs[j]);
-			hcalIsoTrackedEndcapHltEle[indexEndcap] = (trackedHcalIsoIt->val)/ptTrackedEndcapHltEle[indexEndcap];
-			trackedEcalIsoIt = (*trackedEcalIsoHandle).find(trackedLegHltRefs[j]);
-			ecalIsoTrackedEndcapHltEle[indexEndcap] = (trackedEcalIsoIt->val)/ptTrackedEndcapHltEle[indexEndcap];
-
-			trackedTrackIsoIt = (*trackedTrackIsoHandle).find(trackedLegHltRefs[j]);
-			trackIsoTrackedEndcapHltEle[indexEndcap] = (trackedTrackIsoIt->val)/ptTrackedEndcapHltEle[indexEndcap];
-			trackedDphiIt = (*trackedDphiHandle).find(trackedLegHltRefs[j]);
-			dPhiTrackedEndcapHltEle[indexEndcap] = trackedDphiIt->val;
-			trackedDetaIt = (*trackedDetaHandle).find(trackedLegHltRefs[j]);
-			dEtaTrackedEndcapHltEle[indexEndcap] = trackedDetaIt->val;
-			trackedEpIt = (*trackedEpHandle).find(trackedLegHltRefs[j]);
-			epTrackedEndcapHltEle[indexEndcap] = trackedEpIt->val;
-		}//end endcap eta requirement
-
-	}//end loop over all entries in trackedLegHltRefs
-
-}//end GetTrackedTriggerObjects()
-
-
-void GetMatchedTriggerObjects(
-		const edm::Event& iEvent,
-		const Float_t eta, const Float_t phi, const Float_t dRForMatch){
-
-	//fill handles to edm::AssociationMap objects which store additional information about
-	//RecoEcalCandidate objects made by the trackless leg
-	iEvent.getByLabel(tracklessEcalIsoTag,tracklessEcalIsoHandle);
-	iEvent.getByLabel(tracklessHcalIsoTag,tracklessHcalIsoHandle);
-	iEvent.getByLabel(tracklessHadEmTag,tracklessHadEmHandle);
-	iEvent.getByLabel(tracklessClusterShapeTag,tracklessClusterShapeHandle);
-	//iEvent.getByLabel(hltTracklessLegTag, tracklessHcalIsoFilterHandle);
-
-	if(!tracklessEcalIsoHandle.isValid() || !tracklessHcalIsoHandle.isValid() || !tracklessHadEmHandle.isValid() || !tracklessClusterShapeHandle.isValid() ) return;
-
-	//fill handle to RecoEcalCandidate object collection made by the trackless leg
-	iEvent.getByLabel(hltTracklessLegTag, tracklessLegHltObjectsHandle);
-	if(!tracklessLegHltObjectsHandle.isValid()) return;
-
-
-	for(unsigned int h=0; h<tracklessLegHltObjectsHandle->size(); h++){
-		if(std::fabs( (getRef(tracklessLegHltObjectsHandle, h))->eta() ) > 2.4 && std::fabs( (getRef(tracklessLegHltObjectsHandle, h))->eta() ) < 3.0){
-			tracklessLegHltRefs.push_back( getRef(tracklessLegHltObjectsHandle, h) );
-		}
-	}
-
-	if(tracklessLegHltRefs.size() == 0) return;
-
-	for(unsigned int i=0; i<tracklessLegHltRefs.size(); i++){
-		if(std::fabs(tracklessLegHltRefs[i]->eta()) > 2.4 && std::fabs(tracklessLegHltRefs[i]->eta()) < 3.0 ) nTracklessHltEle += 1;
-	}
-
-	typedef edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>, float> > forMapIt;
-	
-	//declare const_iterators to maps outside for loop
-	forMapIt::const_iterator tracklessClusterShapeIt, tracklessHadEmIt, tracklessHcalIsoIt, tracklessEcalIsoIt;
-	Int_t index = -1;
-	for(unsigned int j=0; j<tracklessLegHltRefs.size(); j++){
-		if(std::fabs(tracklessLegHltRefs[j]->eta()) > 2.4 && std::fabs(tracklessLegHltRefs[j]->eta()) < 3.0 ){
-			index += 1;
-			etaTracklessHltEle[index] = tracklessLegHltRefs[j]->eta();
-			ptTracklessHltEle[index] = tracklessLegHltRefs[j]->pt();
-			phiTracklessHltEle[index] = tracklessLegHltRefs[j]->phi();
-
-			//initialize map iterators inside for loop with find(edm::Ref)
-			tracklessClusterShapeIt = (*tracklessClusterShapeHandle).find(tracklessLegHltRefs[j]);
-			clusterShapeTracklessHltEle[index] = tracklessClusterShapeIt->val;
-			tracklessHadEmIt = (*tracklessHadEmHandle).find(tracklessLegHltRefs[j]);
-			hadEmTracklessHltEle[index] = (tracklessHadEmIt->val)/(ptTracklessHltEle[index]*(TMath::CosH(etaTracklessHltEle[index])) );
-			tracklessHcalIsoIt = (*tracklessHcalIsoHandle).find(tracklessLegHltRefs[j]);
-			hcalIsoTracklessHltEle[index] = (tracklessHcalIsoIt->val)/ptTracklessHltEle[index];
-			tracklessEcalIsoIt = (*tracklessEcalIsoHandle).find(tracklessLegHltRefs[j]);
-			ecalIsoTracklessHltEle[index] = (tracklessEcalIsoIt->val)/ptTracklessHltEle[index];
-		}//trackless eta filter	
-		
-	}//end loop over all entries in tracklessLegHltRefs
-
-}//end GetMatchedTriggerObjects()
-*/
 
 private:
 virtual void beginJob() override;
@@ -629,6 +480,7 @@ edm::Handle<reco::RecoEcalCandidateRefVector> hltObjectsHandle;
 edm::Handle<std::vector<reco::CompositeCandidate>> hltZedMomObjectsHandle;
 
 edm::Handle<edm::OwnVector<reco::Candidate> > genObjectsHandle;
+edm::Handle<std::vector<reco::CompositeCandidate>> genZedMomObjectsHandle;
 
 std::string tName;
 
@@ -638,6 +490,7 @@ bool analyzingTracked;
 edm::InputTag genObjectsTag;
 double maxDeltaR;
 edm::InputTag hltZedMomObjectsTag;
+edm::InputTag genZedMomObjectsTag;
 
 TTree * tree;
 
@@ -663,6 +516,10 @@ Float_t diObjectMassHltEle[NELE];
 Float_t etaGenEle;
 Float_t ptGenEle;
 Float_t phiGenEle;
+
+//invariant mass of the parent GEN particle whose daughter GEN electron
+//is matched to a RecoEcalCandidate produced by the trigger
+Float_t diObjectMassGenEle;
 
 Int_t runNumber;
 Long64_t evtNumber;
@@ -696,7 +553,8 @@ recoAnalyzerGeneric::recoAnalyzerGeneric(const edm::ParameterSet& iConfig):
 	analyzingTracked(iConfig.getParameter<bool>("doAnalysisOfTracked")),
 	genObjectsTag(iConfig.getParameter<edm::InputTag>("genCollection")),
 	maxDeltaR(iConfig.getParameter<double>("dRMatch")),
-	hltZedMomObjectsTag(iConfig.getParameter<edm::InputTag>("recoZedCollection"))
+	hltZedMomObjectsTag(iConfig.getParameter<edm::InputTag>("recoZedCollection")),
+	genZedMomObjectsTag(iConfig.getParameter<edm::InputTag>("genZedCollection"))
 
 {
    //now do what ever initialization is needed
@@ -724,6 +582,8 @@ recoAnalyzerGeneric::recoAnalyzerGeneric(const edm::ParameterSet& iConfig):
    tree->Branch("etaGenEle",&etaGenEle,"etaGenEle/F");
    tree->Branch("ptGenEle",&ptGenEle,"ptGenEle/F");
    tree->Branch("phiGenEle",&phiGenEle,"phiGenEle/F");
+   tree->Branch("diObjectMassGenEle",&diObjectMassGenEle,"diObjectMassGenEle/F");
+
 
    //branches unrelated to REC objects
    tree->Branch("evtNumber",&evtNumber,"evtNumber/l");
@@ -784,6 +644,7 @@ recoAnalyzerGeneric::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 		etaGenEle=1000;
 		ptGenEle=1000;
 		phiGenEle=1000;
+		diObjectMassGenEle=-1;
 	}
 
 	getTriggerObjectsInfo(iEvent);

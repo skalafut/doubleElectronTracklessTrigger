@@ -5036,10 +5036,17 @@ process.genUntrack = cms.EDFilter("CandSelector",
 		cut = cms.string("pt> 15 && ( (eta < 3.0 && eta > 2.5 ) || (eta < -2.5 && eta > -3.0) )"),
 		)
 
+#the objects produced by process.genEleTrack and process.genUntrack
+#are derived from the reco::GenParticle collection.  For any event, it
+#is impossible for (genEleTrack->size())+(genUntrack->size()) to be
+#greater than 2.  As a result, if (genUntrack->size())==1 then
+#(genEleTrack->size()) must also equal 1. Thus, any event where
+#the module process.combEle produces something, there can only be
+#one object (reco::CompositeCandidate) that is produced by combEle.
 process.combEle = cms.EDProducer("CandViewShallowCloneCombiner",
 		decay = cms.string("genEleTrack genUntrack"),
 		checkCharge = cms.bool(False),
-		cut = cms.string("mass > 60 && mass < 120"),
+		cut = cms.string("mass > 30 && mass < 150"),
 		)
 
 ##gen count filters
@@ -5167,7 +5174,8 @@ process.recoAnalyzerTracked = cms.EDAnalyzer('recoAnalyzerGeneric',
 		doAnalysisOfTracked = cms.bool(True),
 		genCollection = cms.InputTag("","",""),
 		dRMatch = cms.double(-1),
-		recoZedCollection = cms.InputTag("combRecoEle","","TEST")
+		recoZedCollection = cms.InputTag("combRecoEle","","TEST"),
+		genZedCollection = cms.InputTag("","","")
 	
 		)
 
@@ -5186,7 +5194,8 @@ process.recoAnalyzerTrackless = cms.EDAnalyzer('recoAnalyzerGeneric',
 		doAnalysisOfTracked = cms.bool(False),
 		genCollection = cms.InputTag("","",""),
 		dRMatch = cms.double(-1),
-		recoZedCollection = cms.InputTag("combRecoEle","","TEST")
+		recoZedCollection = cms.InputTag("combRecoEle","","TEST"),
+		genZedCollection = cms.InputTag("","","")
 	
 		)
 
@@ -5205,7 +5214,8 @@ process.recoAnalyzerMatchedTracked = cms.EDAnalyzer('recoAnalyzerGeneric',
 		doAnalysisOfTracked = cms.bool(True),
 		genCollection = cms.InputTag("genEleTrack","","TEST"),
 		dRMatch = cms.double(0.1),
-		recoZedCollection = cms.InputTag("combRecoEle","","TEST")
+		recoZedCollection = cms.InputTag("combRecoEle","","TEST"),
+		genZedCollection = cms.InputTag("combEle","","TEST")
 	
 		)
 
@@ -5224,7 +5234,8 @@ process.recoAnalyzerMatchedTrackless = cms.EDAnalyzer('recoAnalyzerGeneric',
 		doAnalysisOfTracked = cms.bool(False),
 		genCollection = cms.InputTag("genUntrack","","TEST"),
 		dRMatch = cms.double(0.1),
-		recoZedCollection = cms.InputTag("combRecoEle","","TEST")
+		recoZedCollection = cms.InputTag("combRecoEle","","TEST"),
+		genZedCollection = cms.InputTag("combEle","","TEST")
 	
 		)
 
@@ -5385,7 +5396,7 @@ process.TFileService = cms.Service("TFileService",
 		#fileName = cms.string('genAnalyzerTree.root')
 		#fileName = cms.string('gen_and_reco_signal_analyzer_trees.root')
 		#fileName = cms.string('genCheckup.root')
-		fileName = cms.string('signal_analyzer_trees_with_diObjectMass.root')
+		fileName = cms.string('signal_analyzer_trees_with_gen_and_reco_diObjectMass.root')
 
 )
 
@@ -5454,7 +5465,7 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
 	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects.root"),
 	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects_no_filter_refs.root"),
-	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signalTuples_with_diObjectMass_Febr26.root"),
+	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signalTuples_with_gen_and_reco_diObjectMass_Febr27.root"),
 	fastCloning = cms.untracked.bool( False ),
     dataset = cms.untracked.PSet(
         dataTier = cms.untracked.string( 'RECO' ),

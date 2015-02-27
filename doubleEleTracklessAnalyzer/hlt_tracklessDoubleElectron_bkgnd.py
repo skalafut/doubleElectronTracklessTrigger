@@ -5000,7 +5000,8 @@ process.recoAnalyzerTracked = cms.EDAnalyzer('recoAnalyzerGeneric',
 		doAnalysisOfTracked = cms.bool(True),
 		genCollection = cms.InputTag("","",""),
 		dRMatch = cms.double(-1),
-		recoZedCollection = cms.InputTag("combRecoEle","","TEST")
+		recoZedCollection = cms.InputTag("combRecoEle","","TEST"),
+		genZedCollection = cms.InputTag("","","")
 	
 		)
 
@@ -5019,7 +5020,8 @@ process.recoAnalyzerTrackless = cms.EDAnalyzer('recoAnalyzerGeneric',
 		doAnalysisOfTracked = cms.bool(False),
 		genCollection = cms.InputTag("","",""),
 		dRMatch = cms.double(-1),
-		recoZedCollection = cms.InputTag("combRecoEle","","TEST")
+		recoZedCollection = cms.InputTag("combRecoEle","","TEST"),
+		genZedCollection = cms.InputTag("","","")
 	
 		)
 

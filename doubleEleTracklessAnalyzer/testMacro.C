@@ -17,18 +17,6 @@
 //#include <array>
 #include <vector>
 
-/*
-//use this fxn to compare distributions of pt, ecal iso, H/E, etc from
-//matched reco signal objects and reco bkgnd objects 
-void makeAndSaveOverlayHistoUsingEntryLists(){
-	//this function is essentially two copies of makeAndSaveHistoUsingEntryList()
-	//two TChains, two listFillArgs, two list names, one histPlotArg, two histNames, one histTitle
-	//one xAxisTitle, one canvName, on TCut object, one outputFile, and two Bool_t args are given
-	//to this fxn as inputs
-
-}//end makeAndSaveOverlayHistoUsingEntryLists()
-*/
-
 //use this fxn to compare pt, eta, phi distributions of reco signal objects which have been matched
 //to GEN signal objects. The GEN signal objects have passed all GEN selection requirements.
 //the GEN and matched reco object kinematic info is stored in the same TTree
@@ -152,6 +140,84 @@ void matchedRecoToGenOverlayHistos(TChain * trackedChain,TChain * tracklessChain
 	
 }//end matchedRecoToGenOverlayHisto()
 
+
+//use this fxn to compare distributions of pt, ecal iso, H/E, etc from
+//matched reco signal objects and reco bkgnd objects 
+//this function is essentially two copies of makeAndSaveHistoUsingEntryList()
+//two TChains, two listFillArgs, two list names, two histPlotArgs, two histNames, one histTitle,
+//one xAxisTitle, one canvName, on TCut object, one outputFile, and two Bool_t args are given
+//to this fxn as inputs
+void makeAndSaveOverlayHistoUsingEntryLists(TChain * sigChain,TChain * bkgndChain,TString sigListFillArgs,TString sigListName,TString bkgndListFillArgs,TString bkgndListName,TString sigHistPlotArg,TString bkgndHistPlotArg,TString sigHistName,TString bkgndHistName,TString histTitle,TString xAxisTitle,TString canvName,TCut filters,TString outputFile,Bool_t isPlottingEnergy,Bool_t isPlottingInverseEnergy){
+	sigChain->Draw(sigListFillArgs,filters,"entrylistarray");
+	sigChain->SetEntryList((TEntryListArray*) gROOT->FindObject(sigListName) );
+	bkgndChain->Draw(bkgndListFillArgs,filters,"entrylistarray");
+	bkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject(bkgndListName) );
+
+	TCanvas * canv = new TCanvas(canvName,canvName,700,700);
+	canv->cd();
+	sigChain->Draw(sigHistPlotArg);
+	TH1F * sigHist = (TH1F*) gROOT->FindObject(sigHistName);
+	bkgndChain->Draw(bkgndHistPlotArg);
+	TH1F * bkgndHist = (TH1F*) gROOT->FindObject(bkgndHistName);
+
+	//now normalize the two histos based on their integrals using Scale(1/(integral of original histo))
+	Double_t sigIntegral = sigHist->Integral();
+	sigHist->Scale(1/sigIntegral);
+	Double_t bkgndIntegral = bkgndHist->Integral();
+	bkgndHist->Scale(1/bkgndIntegral);
+	sigHist->SetLineColor(1);	//black
+	bkgndHist->SetLineColor(2);	//red
+
+	//sigHist will be drawn first, bkgndHist overlaid on top.  If the largest bin in bkgndHist > the largest bin in sigHist,
+	//then increase the y axis max on sigHist to accommodate the peak in bkgndHist
+	if(sigHist->GetBinContent(sigHist->GetMaximumBin()) < bkgndHist->GetBinContent(bkgndHist->GetMaximumBin()) ){
+		sigHist->SetMaximum((1.1)*( bkgndHist->GetBinContent(bkgndHist->GetMaximumBin()) ) );
+	}
+	TString titleAddendum = "  black=signal  red=bkgnd  areas normalized to 1";
+	TString completeTitle = histTitle + titleAddendum;
+	sigHist->SetTitle(completeTitle);
+	//if isPlottingEnergy or isPlottingInverseEnergy is true, then append units to the x axis label
+	TString enrg = " (GeV)";
+	TString invEnrg = " (1/GeV)";
+	TString completeXaxisTitle;
+	if(isPlottingEnergy) completeXaxisTitle = xAxisTitle+enrg;
+	if(isPlottingInverseEnergy) completeXaxisTitle = xAxisTitle+invEnrg;
+	if(!isPlottingEnergy && !isPlottingInverseEnergy) completeXaxisTitle = xAxisTitle;
+	sigHist->GetXaxis()->SetTitle(completeXaxisTitle);
+	if(histTitle.Contains("Iso") ){
+		canv->SetLogy(1);
+		sigHist->SetMinimum(1);
+	}
+	char temp[130];
+	if(isPlottingInverseEnergy && sigHist->GetXaxis()->GetBinWidth(1) > 0.01){
+		sprintf(temp,"Events / %.2f / GeV", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if(isPlottingEnergy && sigHist->GetXaxis()->GetBinWidth(1) > 0.01){
+		sprintf(temp,"Events / %.2f GeV", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( isPlottingEnergy && sigHist->GetXaxis()->GetBinWidth(1) <= 0.01){
+		sprintf(temp,"Events / %.3f GeV", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( isPlottingInverseEnergy && sigHist->GetXaxis()->GetBinWidth(1) <= 0.01){
+		sprintf(temp,"Events / %.3f / GeV", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( isPlottingInverseEnergy && sigHist->GetXaxis()->GetBinWidth(1) <= 0.001){
+		sprintf(temp,"Events / %.4f / GeV", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( !isPlottingInverseEnergy && !isPlottingEnergy && sigHist->GetXaxis()->GetBinWidth(1) <= 0.01){
+		sprintf(temp,"Events / %.3f ", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( !isPlottingInverseEnergy && !isPlottingEnergy && sigHist->GetXaxis()->GetBinWidth(1) > 0.01){
+		sprintf(temp,"Events / %.2f ", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	sigHist->GetYaxis()->SetTitle(temp);
+	sigHist->Draw();
+	bkgndHist->Draw("same");
+	canv->SaveAs(outputFile,"recreate");
+	
+}//end makeAndSaveOverlayHistoUsingEntryLists()
+
+
 void makeAndSaveHistoUsingEntryList(TChain * chain,TString listFillArgs,TString listName,TString histPlotArgs,TString histName,TString histTitle,TString xAxisTitle,TString canvName,TCut filters,TString outputFile, Bool_t isPlottingEnergy, Bool_t isPlottingInverseEnergy){
 	//fill the TEntryList named listName, and apply the filters when the list is made
 	chain->Draw(listFillArgs,filters,"entrylistarray");
@@ -271,9 +337,9 @@ void makeAndSaveSingleTreeHisto(TTree * tree,TString plotArgs,TString histName,T
 
 void testMacro(){
 
-	//TChain * trackedBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
-	//trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr25/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
-	//trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr25/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
+	TChain * trackedBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
+	trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr25/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
+	trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr25/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
 	
 	//TChain * tracklessBkgndChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
 	//tracklessBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr25/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
@@ -289,8 +355,8 @@ void testMacro(){
 	TChain * matchedTrackedSignalChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
 	matchedTrackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr25/signal/*");
 	
-	TChain * matchedTracklessSignalChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
-	matchedTracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr25/signal/*");
+	//TChain * matchedTracklessSignalChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
+	//matchedTracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr25/signal/*");
 	
 
 	//NO NEED for these after Friday, Febr 27.  These were used to do a quick check that a cut on reco M_ll works properly.
@@ -331,12 +397,55 @@ void testMacro(){
 	TCut negativeEcalIso = "ecalIsoHltEle<-0.1";
 	TCut negativeCaloIso = (negativeHcalIso || negativeEcalIso);
 	
-	gStyle->SetOptStat(1111111);
+	gStyle->SetOptStat(1111);
 
-	matchedRecoToGenOverlayHistos(matchedTrackedSignalChain, matchedTracklessSignalChain);
+	//matchedRecoToGenOverlayHistos(matchedTrackedSignalChain, matchedTracklessSignalChain);
 	
 	//use this to quickly change the ending of the title for all plots
-	TString plotTitleModifier = " whose mother has 60 < mass < 120 GeV";
+	TString plotTitleModifier = "";
+
+
+	//plots of matched signal distributions overlaid with bkgnd distributions.  Same TCuts applied to both.
+	/*
+	//tracked barrel distributions
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigptBarrelList","trackedSigptBarrelList",">>trackedBkgndptBarrelList","trackedBkgndptBarrelList","ptHltEle>>trackedSigptBarrel(100,0.,100.)","ptHltEle>>trackedBkgndptBarrel(100,0.,100.)","trackedSigptBarrel","trackedBkgndptBarrel","pt of tracked leg hlt objects in barrel"+plotTitleModifier,"pt","c1000",trackedEBHltEta,"pt_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",true,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigetaBarrelList","trackedSigetaBarrelList",">>trackedBkgndetaBarrelList","trackedBkgndetaBarrelList","etaHltEle>>trackedSigetaBarrel(100,-2.0,2.0)","etaHltEle>>trackedBkgndetaBarrel(100,-2.0,2.0)","trackedSigetaBarrel","trackedBkgndetaBarrel","eta of tracked leg hlt objects in barrel"+plotTitleModifier,"eta","c1001",trackedEBHltEta,"eta_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigphiBarrelList","trackedSigphiBarrelList",">>trackedBkgndphiBarrelList","trackedBkgndphiBarrelList","phiHltEle>>trackedSigphiBarrel(100,-3.5,3.5)","phiHltEle>>trackedBkgndphiBarrel(100,-3.5,3.5)","trackedSigphiBarrel","trackedBkgndphiBarrel","phi of tracked leg hlt objects in barrel"+plotTitleModifier,"phi","c1002",trackedEBHltEta,"phi_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigclusterShapeBarrelList","trackedSigclusterShapeBarrelList",">>trackedBkgndclusterShapeBarrelList","trackedBkgndclusterShapeBarrelList","clusterShapeHltEle>>trackedSigclusterShapeBarrel(100,0.,0.04)","clusterShapeHltEle>>trackedBkgndclusterShapeBarrel(100,0.,0.04)","trackedSigclusterShapeBarrel","trackedBkgndclusterShapeBarrel","#sigma_{i#etai#eta} of tracked leg hlt objects in barrel"+plotTitleModifier,"#sigma_{i#etai#eta}","c1003",trackedEBHltEta,"clusterShape_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighadEmBarrelList","trackedSighadEmBarrelList",">>trackedBkgndhadEmBarrelList","trackedBkgndhadEmBarrelList","hadEmHltEle>>trackedSighadEmBarrel(100,0.,0.3)","hadEmHltEle>>trackedBkgndhadEmBarrel(100,0.,0.3)","trackedSighadEmBarrel","trackedBkgndhadEmBarrel","relative had/Em of tracked leg hlt objects in barrel"+plotTitleModifier,"had/Em/Energy","c1004",trackedEBHltEta,"hadEm_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigecalIsoBarrelList","trackedSigecalIsoBarrelList",">>trackedBkgndecalIsoBarrelList","trackedBkgndecalIsoBarrelList","ecalIsoHltEle>>trackedSigecalIsoBarrel(100,-0.1,1.5)","ecalIsoHltEle>>trackedBkgndecalIsoBarrel(100,-0.1,1.5)","trackedSigecalIsoBarrel","trackedBkgndecalIsoBarrel","relative ecalIso of tracked leg hlt objects in barrel"+plotTitleModifier,"ecalIso/pt","c1005",trackedEBHltEta,"ecalIso_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighcalIsoBarrelList","trackedSighcalIsoBarrelList",">>trackedBkgndhcalIsoBarrelList","trackedBkgndhcalIsoBarrelList","hcalIsoHltEle>>trackedSighcalIsoBarrel(100,0.,1.)","hcalIsoHltEle>>trackedBkgndhcalIsoBarrel(100,0.,1.)","trackedSighcalIsoBarrel","trackedBkgndhcalIsoBarrel","relative hcalIso of tracked leg hlt objects in barrel"+plotTitleModifier,"hcalIso/pt","c1006",trackedEBHltEta,"hcalIso_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigepBarrelList","trackedSigepBarrelList",">>trackedBkgndepBarrelList","trackedBkgndepBarrelList","epHltEle>>trackedSigepBarrel(100,0.,0.27)","epHltEle>>trackedBkgndepBarrel(100,0.,0.27)","trackedSigepBarrel","trackedBkgndepBarrel","(1/E)-(1/P) of tracked leg hlt objects in barrel"+plotTitleModifier,"ep","c1010",trackedEBHltEta,"ep_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigdEtaBarrelList","trackedSigdEtaBarrelList",">>trackedBkgnddEtaBarrelList","trackedBkgnddEtaBarrelList","dEtaHltEle>>trackedSigdEtaBarrel(100,0.,0.027)","dEtaHltEle>>trackedBkgnddEtaBarrel(100,0.,0.027)","trackedSigdEtaBarrel","trackedBkgnddEtaBarrel","#Delta #eta of tracked leg hlt objects in barrel"+plotTitleModifier,"#Delta #eta","c1007",trackedEBHltEta,"dEta_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigdPhiBarrelList","trackedSigdPhiBarrelList",">>trackedBkgnddPhiBarrelList","trackedBkgnddPhiBarrelList","dPhiHltEle>>trackedSigdPhiBarrel(100,0.,0.17)","dPhiHltEle>>trackedBkgnddPhiBarrel(100,0.,0.17)","trackedSigdPhiBarrel","trackedBkgnddPhiBarrel","#Delta #phi of tracked leg hlt objects in barrel"+plotTitleModifier,"#Delta #phi","c1008",trackedEBHltEta,"dPhi_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigtrackIsoBarrelList","trackedSigtrackIsoBarrelList",">>trackedBkgndtrackIsoBarrelList","trackedBkgndtrackIsoBarrelList","trackIsoHltEle>>trackedSigtrackIsoBarrel(100,0.,0.5)","trackIsoHltEle>>trackedBkgndtrackIsoBarrel(100,0.,0.5)","trackedSigtrackIsoBarrel","trackedBkgndtrackIsoBarrel","relative trackIso of tracked leg hlt objects in barrel"+plotTitleModifier,"trackIso/pt","c1009",trackedEBHltEta,"trackIso_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,true);
+	*/	
+
+	/**/
+	//tracked endcap distributions
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigptEndcapList","trackedSigptEndcapList",">>trackedBkgndptEndcapList","trackedBkgndptEndcapList","ptHltEle>>trackedSigptEndcap(100,0.,100.)","ptHltEle>>trackedBkgndptEndcap(100,0.,100.)","trackedSigptEndcap","trackedBkgndptEndcap","pt of tracked leg hlt objects in endcap"+plotTitleModifier,"pt","c2000",trackedEEHltEta,"pt_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",true,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigetaEndcapList","trackedSigetaEndcapList",">>trackedBkgndetaEndcapList","trackedBkgndetaEndcapList","etaHltEle>>trackedSigetaEndcap(100,-2.5,2.5)","etaHltEle>>trackedBkgndetaEndcap(100,-2.5,2.5)","trackedSigetaEndcap","trackedBkgndetaEndcap","eta of tracked leg hlt objects in endcap"+plotTitleModifier,"eta","c2001",trackedEEHltEta,"eta_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigphiEndcapList","trackedSigphiEndcapList",">>trackedBkgndphiEndcapList","trackedBkgndphiEndcapList","phiHltEle>>trackedSigphiEndcap(100,-3.5,3.5)","phiHltEle>>trackedBkgndphiEndcap(100,-3.5,3.5)","trackedSigphiEndcap","trackedBkgndphiEndcap","phi of tracked leg hlt objects in endcap"+plotTitleModifier,"phi","c2002",trackedEEHltEta,"phi_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigclusterShapeEndcapList","trackedSigclusterShapeEndcapList",">>trackedBkgndclusterShapeEndcapList","trackedBkgndclusterShapeEndcapList","clusterShapeHltEle>>trackedSigclusterShapeEndcap(100,0.,0.08)","clusterShapeHltEle>>trackedBkgndclusterShapeEndcap(100,0.,0.08)","trackedSigclusterShapeEndcap","trackedBkgndclusterShapeEndcap","#sigma_{i#etai#eta} of tracked leg hlt objects in endcap"+plotTitleModifier,"#sigma_{i#etai#eta}","c2003",trackedEEHltEta,"clusterShape_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighadEmEndcapList","trackedSighadEmEndcapList",">>trackedBkgndhadEmEndcapList","trackedBkgndhadEmEndcapList","hadEmHltEle>>trackedSighadEmEndcap(100,0.,0.7)","hadEmHltEle>>trackedBkgndhadEmEndcap(100,0.,0.7)","trackedSighadEmEndcap","trackedBkgndhadEmEndcap","relative had/Em of tracked leg hlt objects in endcap"+plotTitleModifier,"had/Em/Energy","c2004",trackedEEHltEta,"hadEm_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigecalIsoEndcapList","trackedSigecalIsoEndcapList",">>trackedBkgndecalIsoEndcapList","trackedBkgndecalIsoEndcapList","ecalIsoHltEle>>trackedSigecalIsoEndcap(100,-0.2,3.)","ecalIsoHltEle>>trackedBkgndecalIsoEndcap(100,-0.2,3.)","trackedSigecalIsoEndcap","trackedBkgndecalIsoEndcap","relative ecalIso of tracked leg hlt objects in endcap"+plotTitleModifier,"ecalIso/pt","c2005",trackedEEHltEta,"ecalIso_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighcalIsoEndcapList","trackedSighcalIsoEndcapList",">>trackedBkgndhcalIsoEndcapList","trackedBkgndhcalIsoEndcapList","hcalIsoHltEle>>trackedSighcalIsoEndcap(100,-0.2,2.5)","hcalIsoHltEle>>trackedBkgndhcalIsoEndcap(100,-0.2,2.5)","trackedSighcalIsoEndcap","trackedBkgndhcalIsoEndcap","relative hcalIso of tracked leg hlt objects in endcap"+plotTitleModifier,"hcalIso/pt","c2006",trackedEEHltEta,"hcalIso_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigepEndcapList","trackedSigepEndcapList",">>trackedBkgndepEndcapList","trackedBkgndepEndcapList","epHltEle>>trackedSigepEndcap(100,0.,0.27)","epHltEle>>trackedBkgndepEndcap(100,0.,0.27)","trackedSigepEndcap","trackedBkgndepEndcap","(1/E)-(1/P) of tracked leg hlt objects in endcap"+plotTitleModifier,"ep","c2010",trackedEEHltEta,"ep_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigdEtaEndcapList","trackedSigdEtaEndcapList",">>trackedBkgnddEtaEndcapList","trackedBkgnddEtaEndcapList","dEtaHltEle>>trackedSigdEtaEndcap(100,0.,0.027)","dEtaHltEle>>trackedBkgnddEtaEndcap(100,0.,0.027)","trackedSigdEtaEndcap","trackedBkgnddEtaEndcap","#Delta #eta of tracked leg hlt objects in endcap"+plotTitleModifier,"#Delta #eta","c2007",trackedEEHltEta,"dEta_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigdPhiEndcapList","trackedSigdPhiEndcapList",">>trackedBkgnddPhiEndcapList","trackedBkgnddPhiEndcapList","dPhiHltEle>>trackedSigdPhiEndcap(100,0.,0.17)","dPhiHltEle>>trackedBkgnddPhiEndcap(100,0.,0.17)","trackedSigdPhiEndcap","trackedBkgnddPhiEndcap","#Delta #phi of tracked leg hlt objects in endcap"+plotTitleModifier,"#Delta #phi","c2008",trackedEEHltEta,"dPhi_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigtrackIsoEndcapList","trackedSigtrackIsoEndcapList",">>trackedBkgndtrackIsoEndcapList","trackedBkgndtrackIsoEndcapList","trackIsoHltEle>>trackedSigtrackIsoEndcap(100,0.,0.5)","trackIsoHltEle>>trackedBkgndtrackIsoEndcap(100,0.,0.5)","trackedSigtrackIsoEndcap","trackedBkgndtrackIsoEndcap","relative trackIso of tracked leg hlt objects in endcap"+plotTitleModifier,"trackIso/pt","c2009",trackedEEHltEta,"trackIso_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
+	/**/
+
+	/*
+	//trackless endcap distributions
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigptEndcapList","tracklessSigptEndcapList",">>tracklessBkgndptEndcapList","tracklessBkgndptEndcapList","ptHltEle>>tracklessSigptEndcap(100,0.,100.)","ptHltEle>>tracklessBkgndptEndcap(100,0.,100.)","tracklessSigptEndcap","tracklessBkgndptEndcap","pt of trackless leg hlt objects in endcap"+plotTitleModifier,"pt","c3000",tracklessEEHltEta,"pt_for_trackless_endcap_hlt_objs_signal_and_bkgnd.png",true,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigetaEndcapList","tracklessSigetaEndcapList",">>tracklessBkgndetaEndcapList","tracklessBkgndetaEndcapList","etaHltEle>>tracklessSigetaEndcap(100,-3.1,3.1)","etaHltEle>>tracklessBkgndetaEndcap(100,-3.1,3.1)","tracklessSigetaEndcap","tracklessBkgndetaEndcap","eta of trackless leg hlt objects in endcap"+plotTitleModifier,"eta","c3001",tracklessEEHltEta,"eta_for_trackless_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigphiEndcapList","tracklessSigphiEndcapList",">>tracklessBkgndphiEndcapList","tracklessBkgndphiEndcapList","phiHltEle>>tracklessSigphiEndcap(100,-3.5,3.5)","phiHltEle>>tracklessBkgndphiEndcap(100,-3.5,3.5)","tracklessSigphiEndcap","tracklessBkgndphiEndcap","phi of trackless leg hlt objects in endcap"+plotTitleModifier,"phi","c3002",tracklessEEHltEta,"phi_for_trackless_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigclusterShapeEndcapList","tracklessSigclusterShapeEndcapList",">>tracklessBkgndclusterShapeEndcapList","tracklessBkgndclusterShapeEndcapList","clusterShapeHltEle>>tracklessSigclusterShapeEndcap(100,0.,0.08)","clusterShapeHltEle>>tracklessBkgndclusterShapeEndcap(100,0.,0.08)","tracklessSigclusterShapeEndcap","tracklessBkgndclusterShapeEndcap","#sigma_{i#etai#eta} of trackless leg hlt objects in endcap"+plotTitleModifier,"#sigma_{i#etai#eta}","c3003",tracklessEEHltEta,"clusterShape_for_trackless_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSighadEmEndcapList","tracklessSighadEmEndcapList",">>tracklessBkgndhadEmEndcapList","tracklessBkgndhadEmEndcapList","hadEmHltEle>>tracklessSighadEmEndcap(100,0.,2.)","hadEmHltEle>>tracklessBkgndhadEmEndcap(100,0.,2.)","tracklessSighadEmEndcap","tracklessBkgndhadEmEndcap","relative had/Em of trackless leg hlt objects in endcap"+plotTitleModifier,"had/Em/Energy","c3004",tracklessEEHltEta,"hadEm_for_trackless_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigecalIsoEndcapList","tracklessSigecalIsoEndcapList",">>tracklessBkgndecalIsoEndcapList","tracklessBkgndecalIsoEndcapList","ecalIsoHltEle>>tracklessSigecalIsoEndcap(100,-0.5,2.5)","ecalIsoHltEle>>tracklessBkgndecalIsoEndcap(100,-0.5,2.5)","tracklessSigecalIsoEndcap","tracklessBkgndecalIsoEndcap","relative ecalIso of trackless leg hlt objects in endcap"+plotTitleModifier,"ecalIso/pt","c3005",tracklessEEHltEta,"ecalIso_for_trackless_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSighcalIsoEndcapList","tracklessSighcalIsoEndcapList",">>tracklessBkgndhcalIsoEndcapList","tracklessBkgndhcalIsoEndcapList","hcalIsoHltEle>>tracklessSighcalIsoEndcap(100,-0.8,4.)","hcalIsoHltEle>>tracklessBkgndhcalIsoEndcap(100,-0.8,4.)","tracklessSighcalIsoEndcap","tracklessBkgndhcalIsoEndcap","relative hcalIso of trackless leg hlt objects in endcap"+plotTitleModifier,"hcalIso/pt","c3006",tracklessEEHltEta,"hcalIso_for_trackless_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
+	*/
 
 	////plot pt,eta,phi,and tracked leg cut variables of all RecoEcalCandidate objects which would normally be run through the tracked leg
 	//makeAndSaveHistoUsingEntryList(hltObjectsTree,"evtNumber>>numEvtsBothRecoMatchingThree","numEvtsBothRecoMatchingThree","Evt numbers where tracked and trackless reco objects are matched to GEN","evt nums","c55",hasTracklessHlt+hasTrackedHlt,"num_evts_both_reco_objs_matching_three.png",false, false);
