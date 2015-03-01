@@ -306,6 +306,7 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 				etaHltEle[j] = (*refIt)->eta();
 				ptHltEle[j] = (*refIt)->pt();
 				phiHltEle[j] = (*refIt)->phi();
+				deltaRHltEle[j] = deltaR(etaHltEle[j], phiHltEle[j], etaGenEle, phiGenEle);
 
 				//now that I have the eta, pt, and phi of a tracked leg RecoEcalCandidate, I should look for the one object
 				//in hltZedMomObjectsHandle which has a tracked leg daughter particle with matching eta, pt, and phi.
@@ -345,7 +346,6 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 				nHltEle += 1;
 
 			}//end deltaR filter
-			if(j==1) break;//leave loop over hltObjectsHandle once a match has been found
 		
 		}//end loop over all entries in hltObjectsHandle
 
@@ -392,6 +392,7 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 				etaHltEle[j] = (*refIt)->eta();
 				ptHltEle[j] = (*refIt)->pt();
 				phiHltEle[j] = (*refIt)->phi();
+				deltaRHltEle[j] = deltaR(etaHltEle[j], phiHltEle[j], etaGenEle, phiGenEle);
 
 				//now that I have the eta, pt, and phi of a trackless leg RecoEcalCandidate, I should look for the one object
 				//in hltZedMomObjectsHandle which has a trackless leg daughter particle with matching eta, pt, and phi.
@@ -421,7 +422,6 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 				j += 1;
 				nHltEle += 1;
 			}//end deltaR filter
-			if(j==1) break;
 
 		}//end loop over all entries in hltObjectsHandle
 
@@ -511,6 +511,9 @@ Float_t trackIsoHltEle[NELE];
 //made by the module named combRecoEle 
 Float_t diObjectMassHltEle[NELE];
 
+//contains the deltaR value between one REC and a GEN electron in a signal evt
+Float_t deltaRHltEle[NELE];
+
 //GEN electron eta, pt, phi
 //there will only be one GEN electron relevant to each entry in the tree
 Float_t etaGenEle;
@@ -576,6 +579,7 @@ recoAnalyzerGeneric::recoAnalyzerGeneric(const edm::ParameterSet& iConfig):
    tree->Branch("dPhiHltEle",dPhiHltEle,"dPhiHltEle[nHltEle]/F");
    tree->Branch("trackIsoHltEle",trackIsoHltEle,"trackIsoHltEle[nHltEle]/F");
    tree->Branch("diObjectMassHltEle",diObjectMassHltEle,"diObjectMassHltEle[nHltEle]/F");
+   tree->Branch("deltaRHltEle",deltaRHltEle,"deltaRHltEle[nHltEle]/F");
  
 
    //GEN electron branches
@@ -640,6 +644,7 @@ recoAnalyzerGeneric::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 		dPhiHltEle[r]=1000;
 		trackIsoHltEle[r]=1000;
 		diObjectMassHltEle[r]=-1;
+		deltaRHltEle[r]=1000;
 		
 		etaGenEle=1000;
 		ptGenEle=1000;
