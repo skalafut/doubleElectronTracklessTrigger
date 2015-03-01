@@ -17,6 +17,145 @@
 //#include <array>
 #include <vector>
 
+//use this fxn to make a histogram of a kinematic or isolation variable for matched signal objects,
+//and objects from bkgnd files.  The matched signal objects will be subject to a slightly different
+//set of cuts than the objects from bkgnd events, but only because some deltaR filtering will be done
+//to the signal objects acceptance and pt cuts are applied.  The acceptance and pt cuts applied to
+//bkgnd objects will also be applied to matched signal objects.  Once the two histos are made this fxn
+//will maximize:
+// (integral of signal histo from lwr bound to cutVal) - (integral of bkgnd histo from lwr bound to cutVal)
+//and return the value of the kinematic or isolation variable at which this minimization is achieved.
+//This fxn finds the optimal cut value for one trigger filter variable without considering correlations btwn
+//this trigger filter var and others.  Before returning the optimal cut value a histogram will be drawn
+//showing the matched signal and bkgnd distributions after the cut is applied.  This histo will be saved to file.
+std::vector<Double_t> findOptimalCutMaxSigMinBkgnd(TChain * sigChain,TChain * bkgndChain,TString sigListFillArgs,TString sigListName,TString bkgndListFillArgs,TString bkgndListName,TString sigHistPlotArg,TString bkgndHistPlotArg,TString sigHistName,TString bkgndHistName,Double_t histCritVal,TString histTitle,TString xAxisTitle,TString canvName,TCut sigFilters,TCut bkgndFilters,TString outputFile,Bool_t isPlottingEnergy,Bool_t isPlottingInverseEnergy,Bool_t isLowerBound){
+	sigChain->Draw(sigListFillArgs,sigFilters,"entrylistarray");
+	sigChain->SetEntryList((TEntryListArray*) gROOT->FindObject(sigListName) );
+	bkgndChain->Draw(bkgndListFillArgs,bkgndFilters,"entrylistarray");
+	bkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject(bkgndListName) );
+
+	TCanvas * canv = new TCanvas(canvName,canvName,700,700);
+	canv->cd();
+	sigChain->Draw(sigHistPlotArg);
+	TH1F * sigHist = (TH1F*) gROOT->FindObject(sigHistName);
+	bkgndChain->Draw(bkgndHistPlotArg);
+	TH1F * bkgndHist = (TH1F*) gROOT->FindObject(bkgndHistName);
+
+	//now find cutVal which maximizes
+	// ( ( sigHist->Integral(critVal, cutVal)/sigHist->Integral()) - (bkgndHist->Integral(critVal,cutVal)/bkgndHist->Integral())  )
+	//if the cut variable will be used as an upper bound
+	//OR
+	// ( ( sigHist->Integral(cutVal, critVal)/sigHist->Integral()) - (bkgndHist->Integral(cutVal, critVal)/bkgndHist->Integral())  )
+	//if the cut var will be used as a lower bound
+	
+	//the last element in cutVals is the value of the variable being plotted which maximizes
+	//the integral difference shown immediately above
+	std::vector<Double_t> bkgndSuppressionFrxn;
+	std::vector<Double_t> sigEfficiencyFrxn;
+	std::vector<Double_t> cutVals;
+	std::vector<Int_t> maxBinVals;
+	Double_t largestIntegralDiff=0;	//placeholder variable, updated many times in subsequent loop
+	for(Int_t i=2;i<sigHist->GetNbinsX();i++){
+		//start at i=1 to avoid underflow bin
+		if(!isLowerBound){
+			Double_t integralDiff = ((sigHist->Integral(1,i)/sigHist->Integral()) - (bkgndHist->Integral(1,i)/bkgndHist->Integral()) );
+			if(sigHist->GetXaxis()->GetBinCenter(i) > 0. && integralDiff > largestIntegralDiff){
+				//negative cut values should not be considered
+				largestIntegralDiff = 0;
+				largestIntegralDiff += integralDiff;
+				maxBinVals.push_back(i);
+				cutVals.push_back(sigHist->GetXaxis()->GetBinCenter(i));
+				bkgndSuppressionFrxn.push_back( (bkgndHist->Integral(1,i)/bkgndHist->Integral()) );
+				sigEfficiencyFrxn.push_back( (sigHist->Integral(1,i)/sigHist->Integral()) );
+			}
+		}//end if(!isLowerBound)
+
+		if(isLowerBound){
+			Int_t lastBin = (sigHist->GetNbinsX()-1);
+			Double_t integralDiff = ((sigHist->Integral(i,lastBin)/sigHist->Integral()) - (bkgndHist->Integral(i,lastBin)/bkgndHist->Integral()) );
+			if(sigHist->GetXaxis()->GetBinCenter(i) > 0. && integralDiff > largestIntegralDiff){
+				//negative cut values should not be considered
+				largestIntegralDiff = 0;
+				largestIntegralDiff += integralDiff;
+				maxBinVals.push_back(i);
+				cutVals.push_back(sigHist->GetXaxis()->GetBinCenter(i));
+				bkgndSuppressionFrxn.push_back( (bkgndHist->Integral(i,lastBin)/bkgndHist->Integral()) );
+				sigEfficiencyFrxn.push_back( (sigHist->Integral(i,lastBin)/sigHist->Integral()) );
+			}
+		}//end if(isLowerBound)
+
+	}//end loop over bins of signal and bkgnd histos (both have the same number of bins, min val, and max val)
+	
+	if(!isLowerBound) sigHist->SetAxisRange( histCritVal , cutVals[ (cutVals.size()-1) ] ,"X");
+	if(!isLowerBound) bkgndHist->SetAxisRange( histCritVal , cutVals[ (cutVals.size()-1) ] ,"X");
+	if(isLowerBound) sigHist->SetAxisRange( cutVals[ (cutVals.size()-1) ] , histCritVal,"X");
+	if(isLowerBound) bkgndHist->SetAxisRange( cutVals[ (cutVals.size()-1) ] , histCritVal,"X");
+	sigHist->SetLineColor(1);	//black
+	bkgndHist->SetLineColor(2);	//red
+
+	//now normalize the two histos based on their integrals using Scale(1/(integral of original histo))
+	Double_t sigIntegral = sigHist->Integral();
+	sigHist->Scale(1/sigIntegral);
+	Double_t bkgndIntegral = bkgndHist->Integral();
+	bkgndHist->Scale(1/bkgndIntegral);
+
+
+	//sigHist will be drawn first, bkgndHist overlaid on top.  If the largest bin in bkgndHist > the largest bin in sigHist,
+	//then increase the y axis max on sigHist to accommodate the peak in bkgndHist
+	if(sigHist->GetBinContent(sigHist->GetMaximumBin()) < bkgndHist->GetBinContent(bkgndHist->GetMaximumBin()) ){
+		sigHist->SetMaximum((1.1)*( bkgndHist->GetBinContent(bkgndHist->GetMaximumBin()) ) );
+	}
+	TString titleAddendum = "  black=signal  red=bkgnd";
+	TString completeTitle = histTitle + titleAddendum;
+	sigHist->SetTitle(completeTitle);
+	//if isPlottingEnergy or isPlottingInverseEnergy is true, then append units to the x axis label
+	TString enrg = " (GeV)";
+	TString invEnrg = " (1/GeV)";
+	TString completeXaxisTitle;
+	if(isPlottingEnergy) completeXaxisTitle = xAxisTitle+enrg;
+	if(isPlottingInverseEnergy) completeXaxisTitle = xAxisTitle+invEnrg;
+	if(!isPlottingEnergy && !isPlottingInverseEnergy) completeXaxisTitle = xAxisTitle;
+	sigHist->GetXaxis()->SetTitle(completeXaxisTitle);
+	if(histTitle.Contains("Iso") ){
+		canv->SetLogy(1);
+		sigHist->SetMinimum(1);
+	}
+	char temp[130];
+	if(isPlottingInverseEnergy && sigHist->GetXaxis()->GetBinWidth(1) > 0.01){
+		sprintf(temp,"Events / %.2f / GeV", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if(isPlottingEnergy && sigHist->GetXaxis()->GetBinWidth(1) > 0.01){
+		sprintf(temp,"Events / %.2f GeV", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( isPlottingEnergy && sigHist->GetXaxis()->GetBinWidth(1) <= 0.01){
+		sprintf(temp,"Events / %.3f GeV", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( isPlottingInverseEnergy && sigHist->GetXaxis()->GetBinWidth(1) <= 0.01){
+		sprintf(temp,"Events / %.3f / GeV", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( isPlottingInverseEnergy && sigHist->GetXaxis()->GetBinWidth(1) <= 0.001){
+		sprintf(temp,"Events / %.4f / GeV", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( !isPlottingInverseEnergy && !isPlottingEnergy && sigHist->GetXaxis()->GetBinWidth(1) <= 0.01){
+		sprintf(temp,"Events / %.3f ", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( !isPlottingInverseEnergy && !isPlottingEnergy && sigHist->GetXaxis()->GetBinWidth(1) > 0.01){
+		sprintf(temp,"Events / %.2f ", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	//std::cout<<"sigHist has "<< sigHist->GetEntries() <<" entries"<<std::endl;
+	//std::cout<<"bkgndHist has "<< bkgndHist->GetEntries() <<" entries"<<std::endl;
+	sigHist->GetYaxis()->SetTitle(temp);
+	sigHist->Draw();
+	bkgndHist->Draw("same");
+	canv->SaveAs(outputFile,"recreate");
+	std::vector<Double_t> usefulCutInfo;
+	usefulCutInfo.push_back( cutVals[ (cutVals.size()-1) ] );
+	usefulCutInfo.push_back( sigEfficiencyFrxn[sigEfficiencyFrxn.size()-1] );
+	usefulCutInfo.push_back( bkgndSuppressionFrxn[bkgndSuppressionFrxn.size()-1] );
+	return usefulCutInfo;
+		
+}//end findOptimalCutMaxSigMinBkgnd()
+
 //use this fxn to compare pt, eta, phi distributions of reco signal objects which have been matched
 //to GEN signal objects. The GEN signal objects have passed all GEN selection requirements.
 //the GEN and matched reco object kinematic info is stored in the same TTree
@@ -457,11 +596,11 @@ void makeAndSaveSingleTreeHisto(TTree * tree,TString plotArgs,TString histName,T
 
 void testMacro(){
 
-	//TChain * trackedBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
-	//trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
-	//trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
-	//trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
-	//trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
+	TChain * trackedBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
+	trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
+	trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
+	trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
+	trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
 	
 	//TChain * tracklessBkgndChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
 	//tracklessBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
@@ -474,14 +613,14 @@ void testMacro(){
 	//TChain * trackedSignalChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedSignal","");
 	//trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/signal/*");
 	//
-	TChain * tracklessSignalChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessSignal","");
-	tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/signal/*");
+	//TChain * tracklessSignalChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessSignal","");
+	//tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/signal/*");
 	
-	//TChain * matchedTrackedSignalChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
-	//matchedTrackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/signal/*");
+	TChain * matchedTrackedSignalChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
+	matchedTrackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/signal/*");
 	
-	TChain * matchedTracklessSignalChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
-	matchedTracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/signal/*");
+	//TChain * matchedTracklessSignalChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
+	//matchedTracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/signal/*");
 
 	//TChain * genSignalChain = new TChain("genAnalyzerOne/genElectronsFromZ");
 	//genSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/signal/*");
@@ -545,7 +684,7 @@ void testMacro(){
 	TCut hltMllHigh = "diObjectMassHltEle<120";
 	TCut hltMllRange = hltMllLow+hltMllHigh;
 	TCut hltMllLowerBound = "diObjectMassHltEle>40";
-	TCut hltMllAbsoluteLowerBound = "diObjectMassHltEle>1.";
+	TCut hltMllAbsoluteLowerBound = "diObjectMassHltEle>2.";
 	TCut hltMllTinyUpperBound = "diObjectMassHltEle<10";
 	
 	gStyle->SetOptStat(1111);
@@ -707,8 +846,31 @@ void testMacro(){
 	
 	//use the matchedTracked or matchedTracklessSignalChain to access the pt, eta, phi, and diobject parent mass of the GEN electrons
 	//which are used for matching
-	makeAndSaveOverlayHistoUsingEntryListsDiffCuts(tracklessSignalChain,matchedTracklessSignalChain,">>tracklessdiObjectMassZeroSignalList","tracklessdiObjectMassZeroSignalList",">>tracklessdiObjectMassZeroGenList","tracklessdiObjectMassZeroGenList","diObjectMassHltEle>>tracklessdiObjectMassZeroSignal(150,-2.,140.)","diObjectMassGenEle>>tracklessdiObjectMassZeroGen(150,-2.,140.)","tracklessdiObjectMassZeroSignal","tracklessdiObjectMassZeroGen","Mass of parent particle for GEN and reco signal electrons","diObjectMass","c110",tracklessEEHltEta+hltMllAbsoluteLowerBound,"","parent_mass_gen_and_unmatched_reco_signal_eles.png",true,false,false);
+	//makeAndSaveOverlayHistoUsingEntryListsDiffCuts(tracklessSignalChain,matchedTracklessSignalChain,">>tracklessdiObjectMassZeroSignalList","tracklessdiObjectMassZeroSignalList",">>tracklessdiObjectMassZeroGenList","tracklessdiObjectMassZeroGenList","diObjectMassHltEle>>tracklessdiObjectMassZeroSignal(150,-2.,140.)","diObjectMassGenEle>>tracklessdiObjectMassZeroGen(150,-2.,140.)","tracklessdiObjectMassZeroSignal","tracklessdiObjectMassZeroGen","Mass of parent particle for GEN and reco signal electrons","diObjectMass","c110",tracklessEEHltEta+hltMllAbsoluteLowerBound,"","parent_mass_gen_and_unmatched_reco_signal_eles.png",true,false,false);
 
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//find optimal cut values for diObjectMass cut, and tracked leg cut variables (for barrel and tracked endcap regions)
+
+	//Double_t findOptimalCutMaxSigMinBkgnd(TChain * sigChain,TChain * bkgndChain,TString sigListFillArgs,TString sigListName,TString bkgndListFillArgs,TString bkgndListName,TString sigHistPlotArg,TString bkgndHistPlotArg,TString sigHistName,TString bkgndHistName,Double_t histCritVal,TString histTitle,TString xAxisTitle,TString canvName,TCut sigFilters,TCut bkgndFilters,TString outputFile,Bool_t isPlottingEnergy,Bool_t isPlottingInverseEnergy)
+
+	std::vector<TString> cutVarNames;
+	cutVarNames.push_back("dilepton mass cut");
+	cutVarNames.push_back("hcalIso cut for tracked endcap");
+	std::vector<std::vector<Double_t>> cutInfo;
+	cutVals.push_back(findOptimalCutMaxSigMinBkgnd(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigdiObjectMassEndcapList","trackedSigdiObjectMassEndcapList",">>trackedBkgnddiObjectMassEndcapList","trackedBkgnddiObjectMassEndcapList","diObjectMassHltEle>>trackedSigdiObjectMassEndcap(150,0.,140.)","diObjectMassHltEle>>trackedBkgnddiObjectMassEndcap(150,0.,140.)","trackedSigdiObjectMassEndcap","trackedBkgnddiObjectMassEndcap",140.,"optimal diObjectMass cut value for evts where the tracked leg object is in the endcap"+plotTitleModifier,"diObjectMass","c4000",trackedEEHltEta+hltMllAbsoluteLowerBound+genMllRange,trackedEEHltEta+hltMllAbsoluteLowerBound,"optimal_diObjectMass_cut_val_tracked_endcap.png",true,false,true));
+
+	cutVals.push_back(findOptimalCutMaxSigMinBkgnd(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighcalIsoEndcapList","trackedSighcalIsoEndcapList",">>trackedBkgndhcalIsoEndcapList","trackedBkgndhcalIsoEndcapList","hcalIsoHltEle>>trackedSighcalIsoEndcap(100,-0.2,2.5)","hcalIsoHltEle>>trackedBkgndhcalIsoEndcap(100,-0.2,2.5)","trackedSighcalIsoEndcap","trackedBkgndhcalIsoEndcap",-0.2,"optimal hcalIso cut value for tracked leg endcap"+plotTitleModifier,"hcalIso/pt","c4001",trackedEEHltEta+hltMllAbsoluteLowerBound+genMllRange,trackedEEHltEta+hltMllAbsoluteLowerBound,"optimal_hcalIso_cut_val_tracked_endcap.png",false,true,false));
+
+	for(unsigned int j=0; j<cutVals.size(); j++){
+		std::cout<<" "<<std::endl;
+		std::cout<< cutVarNames[j] <<" = "<< cutVals[j] <<std::endl;
+	}//end loop which prints all cut values which were determined using the simple algorithm (no correlations taken into account)
 
 
 }//end testMacro()
