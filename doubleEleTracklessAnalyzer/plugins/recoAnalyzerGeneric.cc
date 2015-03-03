@@ -161,20 +161,21 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 			ptHltEle[j] = (*refIt)->pt();
 			phiHltEle[j] = (*refIt)->phi();
 
-			//now that I have the eta, pt, and phi of a tracked leg RecoEcalCandidate, I should look for the one object
-			//in hltZedMomObjectsHandle which has a tracked leg daughter particle with matching eta, pt, and phi.
-			//Once this daughter is found, I should store the mass of the mother Z object in diObjectMassHltEle
+			//now that I have the eta, pt, and phi of a tracked leg RecoEcalCandidate, I should look for the OBJECTSSS 
+			//in hltZedMomObjectsHandle which have a tracked leg daughter particle with matching eta, pt, and phi.
+			//of all of the mothers that are found I should save the mass of the highest mass mother in diObjectMassHltEle[j]
+			Float_t maxMass = -1;
 			for(std::vector<reco::CompositeCandidate>::const_iterator momIt=hltZedMomObjectsHandle->begin(); momIt != hltZedMomObjectsHandle->end();momIt++){
 				if((momIt->daughter("trackedRecoEle"))->hasMasterClone() ){
 					reco::CandidateBaseRef dauRef = (momIt->daughter("trackedRecoEle"))->masterClone();
 					if(dauRef->pt()==ptHltEle[j] && dauRef->eta()==etaHltEle[j] && dauRef->phi()==phiHltEle[j]){
-						diObjectMassHltEle[j] = momIt->mass();
-						break;
+						if(momIt->mass() > maxMass) maxMass = momIt->mass();
 					}//end requirement that pt, eta, and phi are identical 
 
 				}//end filter to select tracked leg RecoEcalCandidate obj daughters
 
 			}//end loop over mother reco Z boson objects
+			diObjectMassHltEle[j] = maxMass;
 
 
 			//initialize const_iterators to maps inside for loop using find(edm::Ref)
@@ -231,21 +232,22 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 			ptHltEle[j] = (*refIt)->pt();
 			phiHltEle[j] = (*refIt)->phi();
 
-			//now that I have the eta, pt, and phi of a trackless leg RecoEcalCandidate, I should look for the one object
-			//in hltZedMomObjectsHandle which has a trackless leg daughter particle with matching eta, pt, and phi.
-			//Once this daughter is found, I should store the mass of the mother Z object in diObjectMassHltEle
+			//now that I have the eta, pt, and phi of a trackless leg RecoEcalCandidate, I should look for the OBJECTSS
+			//in hltZedMomObjectsHandle which have a trackless leg daughter particle with matching eta, pt, and phi.
+			//out of all of these mothers, I should store the mass of the highest mass mother in diObjectMassHltEle
+			Float_t maxMass = -1;
 			for(std::vector<reco::CompositeCandidate>::const_iterator momIt=hltZedMomObjectsHandle->begin(); momIt != hltZedMomObjectsHandle->end();momIt++){
 				if((momIt->daughter("tracklessRecoEle"))->hasMasterClone() ){
 					reco::CandidateBaseRef dauRef = (momIt->daughter("tracklessRecoEle"))->masterClone();
 					if(dauRef->pt()==ptHltEle[j] && dauRef->eta()==etaHltEle[j] && dauRef->phi()==phiHltEle[j]){
-						diObjectMassHltEle[j] = momIt->mass();
-						break;
+						if(momIt->mass() > maxMass) maxMass = momIt->mass();
 					}//end requirement that pt, eta, and phi are identical 
 
 				}//end filter to select trackless leg RecoEcalCandidate obj daughters
 
 			}//end loop over mother reco Z boson objects
-
+			diObjectMassHltEle[j] = maxMass;
+	
 
 			//initialize const_iterators to maps inside for loop using find(edm::Ref)
 			SigmaIEIEIt = (*SigmaIEIEHandle).find(*refIt);
@@ -308,20 +310,21 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 				phiHltEle[j] = (*refIt)->phi();
 				deltaRHltEle[j] = deltaR(etaHltEle[j], phiHltEle[j], etaGenEle, phiGenEle);
 
-				//now that I have the eta, pt, and phi of a tracked leg RecoEcalCandidate, I should look for the one object
-				//in hltZedMomObjectsHandle which has a tracked leg daughter particle with matching eta, pt, and phi.
-				//Once this daughter is found, I should store the mass of the mother Z object in diObjectMassHltEle
+				//now that I have the eta, pt, and phi of a tracked leg RecoEcalCandidate, I should look for the OBJECTSS 
+				//in hltZedMomObjectsHandle which have a tracked leg daughter particle with matching eta, pt, and phi.
+				//Out of all of these mothers, I should store the mass of the highest mass mother object in diObjectMassHltEle
+				Float_t maxMass = -1;
 				for(std::vector<reco::CompositeCandidate>::const_iterator momIt=hltZedMomObjectsHandle->begin(); momIt != hltZedMomObjectsHandle->end();momIt++){
 					if((momIt->daughter("trackedRecoEle"))->hasMasterClone() ){
 						reco::CandidateBaseRef dauRef = (momIt->daughter("trackedRecoEle"))->masterClone();
 						if(dauRef->pt()==ptHltEle[j] && dauRef->eta()==etaHltEle[j] && dauRef->phi()==phiHltEle[j]){
-							diObjectMassHltEle[j] = momIt->mass();
-							break;
+							if(momIt->mass() > maxMass) maxMass = momIt->mass();
 						}//end requirement that pt, eta, and phi are identical 
 
 					}//end filter to select tracked leg RecoEcalCandidate obj daughters
 
 				}//end loop over mother reco Z boson objects
+				diObjectMassHltEle[j] = maxMass;
 
 
 				//initialize const_iterators to maps inside for loop using find(edm::Ref)
@@ -394,21 +397,21 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 				phiHltEle[j] = (*refIt)->phi();
 				deltaRHltEle[j] = deltaR(etaHltEle[j], phiHltEle[j], etaGenEle, phiGenEle);
 
-				//now that I have the eta, pt, and phi of a trackless leg RecoEcalCandidate, I should look for the one object
-				//in hltZedMomObjectsHandle which has a trackless leg daughter particle with matching eta, pt, and phi.
-				//Once this daughter is found, I should store the mass of the mother Z object in diObjectMassHltEle
+				//now that I have the eta, pt, and phi of a trackless leg RecoEcalCandidate, I should look for the OBJECTSSS 
+				//in hltZedMomObjectsHandle which have a trackless leg daughter particle with matching eta, pt, and phi.
+				//Out of all of these mothers, I should store the mass of the heaviest mother Z object in diObjectMassHltEle
+				Float_t maxMass = -1;
 				for(std::vector<reco::CompositeCandidate>::const_iterator momIt=hltZedMomObjectsHandle->begin(); momIt != hltZedMomObjectsHandle->end();momIt++){
 					if((momIt->daughter("tracklessRecoEle"))->hasMasterClone() ){
 						reco::CandidateBaseRef dauRef = (momIt->daughter("tracklessRecoEle"))->masterClone();
 						if(dauRef->pt()==ptHltEle[j] && dauRef->eta()==etaHltEle[j] && dauRef->phi()==phiHltEle[j]){
-							diObjectMassHltEle[j] = momIt->mass();
-							break;
+							if(momIt->mass() > maxMass) maxMass = momIt->mass();
 						}//end requirement that pt, eta, and phi are identical 
 
 					}//end filter to select trackless leg RecoEcalCandidate obj daughters
 
 				}//end loop over mother reco Z boson objects
-
+				diObjectMassHltEle[j] = maxMass;
 
 				//initialize const_iterators to maps inside for loop using find(edm::Ref)
 				SigmaIEIEIt = (*SigmaIEIEHandle).find(*refIt);

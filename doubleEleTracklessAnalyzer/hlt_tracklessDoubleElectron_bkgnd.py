@@ -5152,8 +5152,8 @@ process.source = cms.Source( "PoolSource",
     fileNames = cms.untracked.vstring(
         #'file:RelVal_Raw_GRun_MC.root',
 		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_QCD_pt_30_to_80_EM_enriched_13TeV_40PU_25ns_bx_GEN_SIM_RAW_dataset_0.root',
-		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_QCD_pt_30_to_80_EM_enriched_13TeV_40PU_25ns_bx_GEN_SIM_RAW_dataset_1.root',
-		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_QCD_pt_30_to_80_EM_enriched_13TeV_40PU_25ns_bx_GEN_SIM_RAW_dataset_2.root',
+		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_QCD_pt_30_to_80_EM_enriched_13TeV_40PU_25ns_bx_GEN_SIM_RAW_dataset_1.root',
+		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_QCD_pt_30_to_80_EM_enriched_13TeV_40PU_25ns_bx_GEN_SIM_RAW_dataset_2.root',
 	
     ),
     inputCommands = cms.untracked.vstring(
@@ -5232,7 +5232,7 @@ process.FULLOutput = cms.EndPath( process.hltOutputFULL )
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(50)
+    input = cms.untracked.int32(85)
 )
 
 # enable the TrigReport and TimeReport

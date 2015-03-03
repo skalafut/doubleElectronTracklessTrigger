@@ -30,18 +30,30 @@
 //This fxn finds the optimal cut value for one trigger filter variable without considering correlations btwn
 //this trigger filter var and others.  Before returning the optimal cut value a histogram will be drawn
 //showing the matched signal and bkgnd distributions after the cut is applied.  This histo will be saved to file.
-std::vector<Double_t> findOptimalCutMaxSigMinBkgnd(TChain * sigChain,TChain * bkgndChain,TString sigListFillArgs,TString sigListName,TString bkgndListFillArgs,TString bkgndListName,TString sigHistPlotArg,TString bkgndHistPlotArg,TString sigHistName,TString bkgndHistName,Double_t histCritVal,TString histTitle,TString xAxisTitle,TString canvName,TCut sigFilters,TCut bkgndFilters,TString outputFile,Bool_t isPlottingEnergy,Bool_t isPlottingInverseEnergy,Bool_t isLowerBound){
+//if doCrossSxnNormalization is false, then normalize the signal histo area and summed bkgnd histo area
+//(lowpt + highpt) to 1
+std::vector<Double_t> findOptimalCutMaxSigMinBkgnd(TChain * sigChain,TChain * bkgndHighPtChain,TChain * bkgndLowPtChain,TString sigListFillArgs,TString sigListName,TString bkgndListFillArgs,TString bkgndListName,TString sigHistPlotArg,TString bkgndHighPtHistPlotArg,TString bkgndLowPtHistPlotArg,TString sigHistName,TString bkgndHighPtHistName,TString bkgndLowPtHistName,Double_t histCritVal,TString histTitle,TString xAxisTitle,TString canvName,TCut sigFilters,TCut bkgndFilters,TString outputFile,Bool_t isPlottingEnergy,Bool_t isPlottingInverseEnergy,Bool_t isLowerBound,Bool_t doCrossSxnNormalization){
 	sigChain->Draw(sigListFillArgs,sigFilters,"entrylistarray");
 	sigChain->SetEntryList((TEntryListArray*) gROOT->FindObject(sigListName) );
-	bkgndChain->Draw(bkgndListFillArgs,bkgndFilters,"entrylistarray");
-	bkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject(bkgndListName) );
+	
+	bkgndHighPtChain->Draw(bkgndListFillArgs,bkgndFilters,"entrylistarray");
+	bkgndHighPtChain->SetEntryList((TEntryListArray*) gROOT->FindObject(bkgndListName) );
+
+	TString modListName = "lowpt";
+	TString lowPtBkgndListFillArgs = bkgndListFillArgs.Append(modListName);
+	TString lowPtBkgndListName = bkgndListName.Append(modListName);
+	bkgndLowPtChain->Draw(lowPtBkgndListFillArgs,bkgndFilters,"entrylistarray");
+	bkgndLowPtChain->SetEntryList((TEntryListArray*) gROOT->FindObject(lowPtBkgndListName) );
 
 	TCanvas * canv = new TCanvas(canvName,canvName,700,700);
 	canv->cd();
 	sigChain->Draw(sigHistPlotArg);
 	TH1F * sigHist = (TH1F*) gROOT->FindObject(sigHistName);
-	bkgndChain->Draw(bkgndHistPlotArg);
-	TH1F * bkgndHist = (TH1F*) gROOT->FindObject(bkgndHistName);
+	bkgndHighPtChain->Draw(bkgndHighPtHistPlotArg);
+	TH1F * bkgndHighPtHist = (TH1F*) gROOT->FindObject(bkgndHighPtHistName);
+	bkgndLowPtChain->Draw(bkgndLowPtHistPlotArg);
+	TH1F * bkgndLowPtHist = (TH1F*) gROOT->FindObject(bkgndLowPtHistName);
+
 
 	//now find cutVal which maximizes
 	// ( ( sigHist->Integral(critVal, cutVal)/sigHist->Integral()) - (bkgndHist->Integral(critVal,cutVal)/bkgndHist->Integral())  )
@@ -60,14 +72,14 @@ std::vector<Double_t> findOptimalCutMaxSigMinBkgnd(TChain * sigChain,TChain * bk
 	for(Int_t i=2;i<sigHist->GetNbinsX();i++){
 		//start at i=1 to avoid underflow bin
 		if(!isLowerBound){
-			Double_t integralDiff = ((sigHist->Integral(1,i)/sigHist->Integral()) - (bkgndHist->Integral(1,i)/bkgndHist->Integral()) );
+			Double_t integralDiff = ((sigHist->Integral(1,i)/sigHist->Integral()) - (bkgndHighPtHist->Integral(1,i)/bkgndHighPtHist->Integral()) - (bkgndLowPtHist->Integral(1,i)/bkgndLowPtHist->Integral()) );
 			if(sigHist->GetXaxis()->GetBinCenter(i) > 0. && integralDiff > largestIntegralDiff){
 				//negative cut values should not be considered
 				largestIntegralDiff = 0;
 				largestIntegralDiff += integralDiff;
 				maxBinVals.push_back(i);
 				cutVals.push_back(sigHist->GetXaxis()->GetBinCenter(i));
-				bkgndSuppressionFrxn.push_back( (bkgndHist->Integral(1,i)/bkgndHist->Integral()) );
+				bkgndSuppressionFrxn.push_back( (bkgndHighPtHist->Integral(1,i)/bkgndHighPtHist->Integral()) + (bkgndLowPtHist->Integral(1,i)/bkgndLowPtHist->Integral()));
 				sigEfficiencyFrxn.push_back( (sigHist->Integral(1,i)/sigHist->Integral()) );
 			}
 		}//end if(!isLowerBound)
@@ -156,17 +168,20 @@ std::vector<Double_t> findOptimalCutMaxSigMinBkgnd(TChain * sigChain,TChain * bk
 	TLatex * cutBox;
 	TLatex * sigEffBox;
 	TLatex * bkgndBox;
-	if(!isLowerBound){
-		cutBox = new TLatex((0.45)*cutVals[ (cutVals.size()-1) ] ,(0.15)*(sigHist->GetMaximum()+sigHist->GetMinimum()),finalCutVal);
-		sigEffBox = new TLatex((0.45)*cutVals[ (cutVals.size()-1) ] ,(0.1)*(sigHist->GetMaximum()+sigHist->GetMinimum()),sigEff);
-		bkgndBox = new TLatex((0.45)*cutVals[ (cutVals.size()-1) ] ,(0.075)*(sigHist->GetMaximum()+sigHist->GetMinimum()),bkgndRej);
-
+	if(!isLowerBound && histTitle.Contains("Iso")){
+		cutBox = new TLatex((0.4)*cutVals[ (cutVals.size()-1) ] ,(0.01),finalCutVal);
+		sigEffBox = new TLatex((0.4)*cutVals[ (cutVals.size()-1) ] ,(0.007),sigEff);
+		bkgndBox = new TLatex((0.4)*cutVals[ (cutVals.size()-1) ] ,(0.004),bkgndRej);
+	}
+	if(!isLowerBound && !(histTitle.Contains("Iso")) ){
+		cutBox = new TLatex((0.5)*cutVals[ (cutVals.size()-1) ] ,(0.45)*(sigHist->GetMaximum()+sigHist->GetMinimum()),finalCutVal);
+		sigEffBox = new TLatex((0.5)*cutVals[ (cutVals.size()-1) ] ,(0.37)*(sigHist->GetMaximum()+sigHist->GetMinimum()),sigEff);
+		bkgndBox = new TLatex((0.5)*cutVals[ (cutVals.size()-1) ] ,(0.3)*(sigHist->GetMaximum()+sigHist->GetMinimum()),bkgndRej);
 	}
 	if(isLowerBound){
-		cutBox = new TLatex((1.2)*cutVals[ (cutVals.size()-1) ] ,(0.5)*(sigHist->GetMaximum()+sigHist->GetMinimum()),finalCutVal);
-		sigEffBox = new TLatex((1.2)*cutVals[ (cutVals.size()-1) ] ,(0.4)*(sigHist->GetMaximum()+sigHist->GetMinimum()),sigEff);
-		bkgndBox = new TLatex((1.2)*cutVals[ (cutVals.size()-1) ] ,(0.3)*(sigHist->GetMaximum()+sigHist->GetMinimum()),bkgndRej);
-
+		cutBox = new TLatex((0.5)*histCritVal,(0.45)*(sigHist->GetMaximum()+sigHist->GetMinimum()),finalCutVal);
+		sigEffBox = new TLatex((0.5)*histCritVal,(0.37)*(sigHist->GetMaximum()+sigHist->GetMinimum()),sigEff);
+		bkgndBox = new TLatex((0.5)*histCritVal,(0.3)*(sigHist->GetMaximum()+sigHist->GetMinimum()),bkgndRej);
 	}
 	cutBox->SetTextSize(0.029);
 	sigEffBox->SetTextSize(0.029);
@@ -435,10 +450,10 @@ void makeAndSaveOverlayHistoUsingEntryListsDiffCuts(TChain * sigChain,TChain * b
 //two TChains, two listFillArgs, two list names, two histPlotArgs, two histNames, one histTitle,
 //one xAxisTitle, one canvName, on TCut object, one outputFile, and two Bool_t args are given
 //to this fxn as inputs
-void makeAndSaveOverlayHistoUsingEntryLists(TChain * sigChain,TChain * bkgndChain,TString sigListFillArgs,TString sigListName,TString bkgndListFillArgs,TString bkgndListName,TString sigHistPlotArg,TString bkgndHistPlotArg,TString sigHistName,TString bkgndHistName,TString histTitle,TString xAxisTitle,TString canvName,TCut filters,TString outputFile,Bool_t isPlottingEnergy,Bool_t isPlottingInverseEnergy){
-	sigChain->Draw(sigListFillArgs,filters,"entrylistarray");
+void makeAndSaveOverlayHistoUsingEntryLists(TChain * sigChain,TChain * bkgndChain,TString sigListFillArgs,TString sigListName,TString bkgndListFillArgs,TString bkgndListName,TString sigHistPlotArg,TString bkgndHistPlotArg,TString sigHistName,TString bkgndHistName,TString histTitle,TString xAxisTitle,TString canvName,TCut sigFilt,TCut bkgndFilt,TString outputFile,Bool_t isPlottingEnergy,Bool_t isPlottingInverseEnergy){
+	sigChain->Draw(sigListFillArgs,sigFilt,"entrylistarray");
 	sigChain->SetEntryList((TEntryListArray*) gROOT->FindObject(sigListName) );
-	bkgndChain->Draw(bkgndListFillArgs,filters,"entrylistarray");
+	bkgndChain->Draw(bkgndListFillArgs,bkgndFilt,"entrylistarray");
 	bkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject(bkgndListName) );
 
 	TCanvas * canv = new TCanvas(canvName,canvName,700,700);
@@ -461,7 +476,7 @@ void makeAndSaveOverlayHistoUsingEntryLists(TChain * sigChain,TChain * bkgndChai
 	if(sigHist->GetBinContent(sigHist->GetMaximumBin()) < bkgndHist->GetBinContent(bkgndHist->GetMaximumBin()) ){
 		sigHist->SetMaximum((1.1)*( bkgndHist->GetBinContent(bkgndHist->GetMaximumBin()) ) );
 	}
-	TString titleAddendum = "  black=signal  red=bkgnd  areas normalized to 1";
+	TString titleAddendum = "  black=matched signal  red=bkgnd  areas normalized to 1";
 	TString completeTitle = histTitle + titleAddendum;
 	sigHist->SetTitle(completeTitle);
 	//if isPlottingEnergy or isPlottingInverseEnergy is true, then append units to the x axis label
@@ -625,58 +640,35 @@ void makeAndSaveSingleTreeHisto(TTree * tree,TString plotArgs,TString histName,T
 
 void testMacro(){
 
-	TChain * trackedBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
-	trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
-	trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
-	trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
-	trackedBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
+	TChain * trackedLowPtBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
+	trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
+	trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
 	
-	TChain * tracklessBkgndChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
-	tracklessBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
-	tracklessBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
-	tracklessBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
-	tracklessBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
+	TChain * trackedHighPtBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
+	trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
+	trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
+	
+	TChain * tracklessLowPtBkgndChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
+	tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
+	tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
+	
+	TChain * tracklessHighPtBkgndChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
+	tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
+	tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
 
 
 
 	//TChain * trackedSignalChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedSignal","");
-	//trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/signal/*");
+	//trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
 	//
 	//TChain * tracklessSignalChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessSignal","");
-	//tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/signal/*");
+	//tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
 	
 	TChain * matchedTrackedSignalChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
-	matchedTrackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/signal/*");
+	matchedTrackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
 	
 	TChain * matchedTracklessSignalChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
-	matchedTracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/signal/*");
-
-	//TChain * genSignalChain = new TChain("genAnalyzerOne/genElectronsFromZ");
-	//genSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_Febr27_withDiObjectMass/signal/*");
-
-	//gen eta, pt, and dilepton mass cuts
-	TCut trackedGenEta0 = "TMath::Abs(etaGenEle[0])<2.5";
-	TCut trackedGenPt0 = "ptGenEle[0]>27";
-	TCut trackedGenPtAndEta0 = trackedGenEta0 + trackedGenPt0;
-	TCut trackedGenEta1 = "TMath::Abs(etaGenEle[1])<2.5";
-	TCut trackedGenPt1 = "ptGenEle[1]>27";
-	TCut trackedGenPtAndEta1 = trackedGenEta1 + trackedGenPt1;
-
-	TCut tracklessGenEtaLow0 = "TMath::Abs(etaGenEle[0])>2.5";
-	TCut tracklessGenEtaHigh0 = "TMath::Abs(etaGenEle[0])<3.0";
-	TCut tracklessGenEtaLow1 = "TMath::Abs(etaGenEle[1])>2.5";
-	TCut tracklessGenEtaHigh1 = "TMath::Abs(etaGenEle[1])<3.0";
-	TCut tracklessGenPt0 = "ptGenEle[0]>15";
-	TCut tracklessGenPt1 = "ptGenEle[1]>15";
-
-	TCut tracklessGenPtAndEta0 = tracklessGenEtaLow0 + tracklessGenEtaHigh0 + tracklessGenPt0;
-	TCut tracklessGenPtAndEta1 = tracklessGenEtaLow1 + tracklessGenEtaHigh1 + tracklessGenPt1;
-
-	TCut dileptonGenMassLow = "invMassGen>60.";
-	TCut dileptonGenMassHigh = "invMassGen<120.";
-	TCut totalDileptonMass = dileptonGenMassLow + dileptonGenMassHigh;
-
-	TCut allGenZeeCuts = totalDileptonMass && ( (trackedGenPtAndEta0 || trackedGenPtAndEta1) && (tracklessGenPtAndEta0 || tracklessGenPtAndEta1) );
+	matchedTracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
 
 
 	//hlt eta cuts
@@ -684,12 +676,15 @@ void testMacro(){
 	TCut trackedEEHltLowEta = "TMath::Abs(etaHltEle)>1.479";
 	TCut trackedEEHltHighEta = "TMath::Abs(etaHltEle)<2.5";
 	TCut trackedEEHltEta = trackedEEHltLowEta + trackedEEHltHighEta;
-	TCut tracklessEEHltLowEta = "TMath::Abs(etaHltEle)>2.5";
-	TCut tracklessEEHltHighEta = "TMath::Abs(etaHltEle)<3.0";
+	TCut tracklessEEHltLowEta = "TMath::Abs(etaHltEle)>2.4";
+	TCut tracklessEEHltHighEta = "TMath::Abs(etaHltEle)<3.05";
 	TCut tracklessEEHltEta = tracklessEEHltLowEta + tracklessEEHltHighEta;
 
+	//hlt dR cuts
+	TCut hltDr = "deltaRHltEle<0.15";
+
 	//hlt Et cuts
-	TCut hltLowEt = "ptHltEle>10";
+	TCut hltLowEt = "ptHltEle>5";
 	TCut trackedLegHltEt = "ptHltEle>27";
 	TCut tracklessLegHltEt = "ptHltEle>15";
 
@@ -712,7 +707,7 @@ void testMacro(){
 	TCut hltMllLow = "diObjectMassHltEle>60";
 	TCut hltMllHigh = "diObjectMassHltEle<120";
 	TCut hltMllRange = hltMllLow+hltMllHigh;
-	TCut hltMllLowerBound = "diObjectMassHltEle>40";
+	TCut hltMllLowerBound = "diObjectMassHltEle>10";
 	TCut hltMllAbsoluteLowerBound = "diObjectMassHltEle>2.";
 	TCut hltMllTinyUpperBound = "diObjectMassHltEle<10";
 	
@@ -721,49 +716,73 @@ void testMacro(){
 	//matchedRecoToGenOverlayHistos(matchedTrackedSignalChain,genMllRange+trackedEEHltHighEta, matchedTracklessSignalChain,genMllRange+tracklessEEHltEta);
 	
 	//use this to quickly change the ending of the title for all plots
-	TString plotTitleModifier = "";
+	TString plotTitleModifier = " with parent mass>10 GeV ";
+
+	matchedTracklessSignalChain->Draw(">>testList",genMllRange+tracklessEEHltEta+hltDr+hltLowEt+hltMllAbsoluteLowerBound,"entrylistarray");
+	matchedTracklessSignalChain->SetEntryList((TEntryListArray*) gROOT->FindObject("testList") );
+	TCanvas * c999 = new TCanvas("c999","c999",500,500);
+	c999->cd();
+	matchedTracklessSignalChain->Draw("evtNumber>>evtNumberHisto");
+
+	TCanvas * c1010 = new TCanvas("c1010","c1010",500,500);
+	c1010->cd();
+	matchedTracklessSignalChain->Draw("diObjectMassHltEle>>diObjectMassHltEleHisto");
+
+	matchedTracklessSignalChain->SetEntryList(0);
+	TCanvas * c1011 = new TCanvas("c1011","c1011",500,500);
+	c1011->cd();
+	matchedTracklessSignalChain->Draw("evtNumber>>evtNumberHistoOne");
+
+
+
 
 
 	//plots of matched signal distributions overlaid with bkgnd distributions.  Same TCuts applied to both.
 	/*
 	//tracked barrel distributions
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigptBarrelList","trackedSigptBarrelList",">>trackedBkgndptBarrelList","trackedBkgndptBarrelList","ptHltEle>>trackedSigptBarrel(100,0.,100.)","ptHltEle>>trackedBkgndptBarrel(100,0.,100.)","trackedSigptBarrel","trackedBkgndptBarrel","pt of tracked leg hlt objects in barrel"+plotTitleModifier,"pt","c1000",trackedEBHltEta+hltMllLowerBound,"pt_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",true,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigetaBarrelList","trackedSigetaBarrelList",">>trackedBkgndetaBarrelList","trackedBkgndetaBarrelList","etaHltEle>>trackedSigetaBarrel(100,-2.0,2.0)","etaHltEle>>trackedBkgndetaBarrel(100,-2.0,2.0)","trackedSigetaBarrel","trackedBkgndetaBarrel","eta of tracked leg hlt objects in barrel"+plotTitleModifier,"eta","c1001",trackedEBHltEta+hltMllLowerBound,"eta_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigphiBarrelList","trackedSigphiBarrelList",">>trackedBkgndphiBarrelList","trackedBkgndphiBarrelList","phiHltEle>>trackedSigphiBarrel(100,-3.5,3.5)","phiHltEle>>trackedBkgndphiBarrel(100,-3.5,3.5)","trackedSigphiBarrel","trackedBkgndphiBarrel","phi of tracked leg hlt objects in barrel"+plotTitleModifier,"phi","c1002",trackedEBHltEta+hltMllLowerBound,"phi_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigclusterShapeBarrelList","trackedSigclusterShapeBarrelList",">>trackedBkgndclusterShapeBarrelList","trackedBkgndclusterShapeBarrelList","clusterShapeHltEle>>trackedSigclusterShapeBarrel(100,0.,0.04)","clusterShapeHltEle>>trackedBkgndclusterShapeBarrel(100,0.,0.04)","trackedSigclusterShapeBarrel","trackedBkgndclusterShapeBarrel","#sigma_{i#etai#eta} of tracked leg hlt objects in barrel"+plotTitleModifier,"#sigma_{i#etai#eta}","c1003",trackedEBHltEta+hltMllLowerBound,"clusterShape_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighadEmBarrelList","trackedSighadEmBarrelList",">>trackedBkgndhadEmBarrelList","trackedBkgndhadEmBarrelList","hadEmHltEle>>trackedSighadEmBarrel(100,0.,0.3)","hadEmHltEle>>trackedBkgndhadEmBarrel(100,0.,0.3)","trackedSighadEmBarrel","trackedBkgndhadEmBarrel","relative had/Em of tracked leg hlt objects in barrel"+plotTitleModifier,"had/Em/Energy","c1004",trackedEBHltEta+hltMllLowerBound,"hadEm_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,true);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigecalIsoBarrelList","trackedSigecalIsoBarrelList",">>trackedBkgndecalIsoBarrelList","trackedBkgndecalIsoBarrelList","ecalIsoHltEle>>trackedSigecalIsoBarrel(100,-0.1,1.5)","ecalIsoHltEle>>trackedBkgndecalIsoBarrel(100,-0.1,1.5)","trackedSigecalIsoBarrel","trackedBkgndecalIsoBarrel","relative ecalIso of tracked leg hlt objects in barrel"+plotTitleModifier,"ecalIso/pt","c1005",trackedEBHltEta+hltMllLowerBound,"ecalIso_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,true);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighcalIsoBarrelList","trackedSighcalIsoBarrelList",">>trackedBkgndhcalIsoBarrelList","trackedBkgndhcalIsoBarrelList","hcalIsoHltEle>>trackedSighcalIsoBarrel(100,0.,1.)","hcalIsoHltEle>>trackedBkgndhcalIsoBarrel(100,0.,1.)","trackedSighcalIsoBarrel","trackedBkgndhcalIsoBarrel","relative hcalIso of tracked leg hlt objects in barrel"+plotTitleModifier,"hcalIso/pt","c1006",trackedEBHltEta+hltMllLowerBound,"hcalIso_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,true);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigepBarrelList","trackedSigepBarrelList",">>trackedBkgndepBarrelList","trackedBkgndepBarrelList","epHltEle>>trackedSigepBarrel(100,0.,0.27)","epHltEle>>trackedBkgndepBarrel(100,0.,0.27)","trackedSigepBarrel","trackedBkgndepBarrel","(1/E)-(1/P) of tracked leg hlt objects in barrel"+plotTitleModifier,"ep","c1010",trackedEBHltEta+hltMllLowerBound,"ep_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,true);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigdEtaBarrelList","trackedSigdEtaBarrelList",">>trackedBkgnddEtaBarrelList","trackedBkgnddEtaBarrelList","dEtaHltEle>>trackedSigdEtaBarrel(100,0.,0.027)","dEtaHltEle>>trackedBkgnddEtaBarrel(100,0.,0.027)","trackedSigdEtaBarrel","trackedBkgnddEtaBarrel","#Delta #eta of tracked leg hlt objects in barrel"+plotTitleModifier,"#Delta #eta","c1007",trackedEBHltEta+hltMllLowerBound,"dEta_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigdPhiBarrelList","trackedSigdPhiBarrelList",">>trackedBkgnddPhiBarrelList","trackedBkgnddPhiBarrelList","dPhiHltEle>>trackedSigdPhiBarrel(100,0.,0.17)","dPhiHltEle>>trackedBkgnddPhiBarrel(100,0.,0.17)","trackedSigdPhiBarrel","trackedBkgnddPhiBarrel","#Delta #phi of tracked leg hlt objects in barrel"+plotTitleModifier,"#Delta #phi","c1008",trackedEBHltEta+hltMllLowerBound,"dPhi_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigtrackIsoBarrelList","trackedSigtrackIsoBarrelList",">>trackedBkgndtrackIsoBarrelList","trackedBkgndtrackIsoBarrelList","trackIsoHltEle>>trackedSigtrackIsoBarrel(100,0.,0.5)","trackIsoHltEle>>trackedBkgndtrackIsoBarrel(100,0.,0.5)","trackedSigtrackIsoBarrel","trackedBkgndtrackIsoBarrel","relative trackIso of tracked leg hlt objects in barrel"+plotTitleModifier,"trackIso/pt","c1009",trackedEBHltEta+hltMllLowerBound,"trackIso_for_tracked_barrel_hlt_objs_signal_and_bkgnd.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigptBarrelList","trackedSigptBarrelList",">>trackedBkgndptBarrelList","trackedBkgndptBarrelList","ptHltEle>>trackedSigptBarrel(100,0.,100.)","ptHltEle>>trackedBkgndptBarrel(100,0.,100.)","trackedSigptBarrel","trackedBkgndptBarrel","pt of tracked leg hlt objects in barrel"+plotTitleModifier,"pt","c1000",trackedEBHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEBHltEta+hltMllLowerBound,"pt_for_tracked_barrel_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",true,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigetaBarrelList","trackedSigetaBarrelList",">>trackedBkgndetaBarrelList","trackedBkgndetaBarrelList","etaHltEle>>trackedSigetaBarrel(100,-2.0,2.0)","etaHltEle>>trackedBkgndetaBarrel(100,-2.0,2.0)","trackedSigetaBarrel","trackedBkgndetaBarrel","eta of tracked leg hlt objects in barrel"+plotTitleModifier,"eta","c1001",trackedEBHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEBHltEta+hltMllLowerBound,"eta_for_tracked_barrel_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigphiBarrelList","trackedSigphiBarrelList",">>trackedBkgndphiBarrelList","trackedBkgndphiBarrelList","phiHltEle>>trackedSigphiBarrel(100,-3.5,3.5)","phiHltEle>>trackedBkgndphiBarrel(100,-3.5,3.5)","trackedSigphiBarrel","trackedBkgndphiBarrel","phi of tracked leg hlt objects in barrel"+plotTitleModifier,"phi","c1002",trackedEBHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEBHltEta+hltMllLowerBound,"phi_for_tracked_barrel_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigclusterShapeBarrelList","trackedSigclusterShapeBarrelList",">>trackedBkgndclusterShapeBarrelList","trackedBkgndclusterShapeBarrelList","clusterShapeHltEle>>trackedSigclusterShapeBarrel(100,0.,0.04)","clusterShapeHltEle>>trackedBkgndclusterShapeBarrel(100,0.,0.04)","trackedSigclusterShapeBarrel","trackedBkgndclusterShapeBarrel","#sigma_{i#etai#eta} of tracked leg hlt objects in barrel"+plotTitleModifier,"#sigma_{i#etai#eta}","c1003",trackedEBHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEBHltEta+hltMllLowerBound,"clusterShape_for_tracked_barrel_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighadEmBarrelList","trackedSighadEmBarrelList",">>trackedBkgndhadEmBarrelList","trackedBkgndhadEmBarrelList","hadEmHltEle>>trackedSighadEmBarrel(100,0.,0.3)","hadEmHltEle>>trackedBkgndhadEmBarrel(100,0.,0.3)","trackedSighadEmBarrel","trackedBkgndhadEmBarrel","relative had/Em of tracked leg hlt objects in barrel"+plotTitleModifier,"had/Em/Energy","c1004",trackedEBHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEBHltEta+hltMllLowerBound,"hadEm_for_tracked_barrel_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigecalIsoBarrelList","trackedSigecalIsoBarrelList",">>trackedBkgndecalIsoBarrelList","trackedBkgndecalIsoBarrelList","ecalIsoHltEle>>trackedSigecalIsoBarrel(100,-0.1,1.5)","ecalIsoHltEle>>trackedBkgndecalIsoBarrel(100,-0.1,1.5)","trackedSigecalIsoBarrel","trackedBkgndecalIsoBarrel","relative ecalIso of tracked leg hlt objects in barrel"+plotTitleModifier,"ecalIso/pt","c1005",trackedEBHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEBHltEta+hltMllLowerBound,"ecalIso_for_tracked_barrel_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighcalIsoBarrelList","trackedSighcalIsoBarrelList",">>trackedBkgndhcalIsoBarrelList","trackedBkgndhcalIsoBarrelList","hcalIsoHltEle>>trackedSighcalIsoBarrel(100,0.,1.)","hcalIsoHltEle>>trackedBkgndhcalIsoBarrel(100,0.,1.)","trackedSighcalIsoBarrel","trackedBkgndhcalIsoBarrel","relative hcalIso of tracked leg hlt objects in barrel"+plotTitleModifier,"hcalIso/pt","c1006",trackedEBHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEBHltEta+hltMllLowerBound,"hcalIso_for_tracked_barrel_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigepBarrelList","trackedSigepBarrelList",">>trackedBkgndepBarrelList","trackedBkgndepBarrelList","epHltEle>>trackedSigepBarrel(100,0.,0.27)","epHltEle>>trackedBkgndepBarrel(100,0.,0.27)","trackedSigepBarrel","trackedBkgndepBarrel","(1/E)-(1/P) of tracked leg hlt objects in barrel"+plotTitleModifier,"ep","c1010",trackedEBHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEBHltEta+hltMllLowerBound,"ep_for_tracked_barrel_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigdEtaBarrelList","trackedSigdEtaBarrelList",">>trackedBkgnddEtaBarrelList","trackedBkgnddEtaBarrelList","dEtaHltEle>>trackedSigdEtaBarrel(100,0.,0.027)","dEtaHltEle>>trackedBkgnddEtaBarrel(100,0.,0.027)","trackedSigdEtaBarrel","trackedBkgnddEtaBarrel","#Delta #eta of tracked leg hlt objects in barrel"+plotTitleModifier,"#Delta #eta","c1007",trackedEBHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEBHltEta+hltMllLowerBound,"dEta_for_tracked_barrel_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigdPhiBarrelList","trackedSigdPhiBarrelList",">>trackedBkgnddPhiBarrelList","trackedBkgnddPhiBarrelList","dPhiHltEle>>trackedSigdPhiBarrel(100,0.,0.17)","dPhiHltEle>>trackedBkgnddPhiBarrel(100,0.,0.17)","trackedSigdPhiBarrel","trackedBkgnddPhiBarrel","#Delta #phi of tracked leg hlt objects in barrel"+plotTitleModifier,"#Delta #phi","c1008",trackedEBHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEBHltEta+hltMllLowerBound,"dPhi_for_tracked_barrel_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigtrackIsoBarrelList","trackedSigtrackIsoBarrelList",">>trackedBkgndtrackIsoBarrelList","trackedBkgndtrackIsoBarrelList","trackIsoHltEle>>trackedSigtrackIsoBarrel(100,0.,0.5)","trackIsoHltEle>>trackedBkgndtrackIsoBarrel(100,0.,0.5)","trackedSigtrackIsoBarrel","trackedBkgndtrackIsoBarrel","relative trackIso of tracked leg hlt objects in barrel"+plotTitleModifier,"trackIso/pt","c1009",trackedEBHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEBHltEta+hltMllLowerBound,"trackIso_for_tracked_barrel_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigdiObjectMassBarrelList","trackedSigdiObjectMassBarrelList",">>trackedBkgnddiObjectMassBarrelList","trackedBkgnddiObjectMassBarrelList","diObjectMassHltEle>>trackedSigdiObjectMassBarrel(150,-2.,140.)","diObjectMassHltEle>>trackedBkgnddiObjectMassBarrel(150,-2.,140.)","trackedSigdiObjectMassBarrel","trackedBkgnddiObjectMassBarrel","diObjectMass of tracked leg hlt objects in barrel"+plotTitleModifier,"diObjectMass","c1011",trackedEBHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEBHltEta+hltMllLowerBound,"diObjectMass_for_tracked_barrel_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",true,false);
+	
 	*/	
 
 	/*
 	//tracked endcap distributions
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigptEndcapList","trackedSigptEndcapList",">>trackedBkgndptEndcapList","trackedBkgndptEndcapList","ptHltEle>>trackedSigptEndcap(100,0.,100.)","ptHltEle>>trackedBkgndptEndcap(100,0.,100.)","trackedSigptEndcap","trackedBkgndptEndcap","pt of tracked leg hlt objects in endcap"+plotTitleModifier,"pt","c2000",trackedEEHltEta+hltMllLowerBound,"pt_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",true,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigetaEndcapList","trackedSigetaEndcapList",">>trackedBkgndetaEndcapList","trackedBkgndetaEndcapList","etaHltEle>>trackedSigetaEndcap(100,-2.5,2.5)","etaHltEle>>trackedBkgndetaEndcap(100,-2.5,2.5)","trackedSigetaEndcap","trackedBkgndetaEndcap","eta of tracked leg hlt objects in endcap"+plotTitleModifier,"eta","c2001",trackedEEHltEta+hltMllLowerBound,"eta_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigphiEndcapList","trackedSigphiEndcapList",">>trackedBkgndphiEndcapList","trackedBkgndphiEndcapList","phiHltEle>>trackedSigphiEndcap(100,-3.5,3.5)","phiHltEle>>trackedBkgndphiEndcap(100,-3.5,3.5)","trackedSigphiEndcap","trackedBkgndphiEndcap","phi of tracked leg hlt objects in endcap"+plotTitleModifier,"phi","c2002",trackedEEHltEta+hltMllLowerBound,"phi_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigclusterShapeEndcapList","trackedSigclusterShapeEndcapList",">>trackedBkgndclusterShapeEndcapList","trackedBkgndclusterShapeEndcapList","clusterShapeHltEle>>trackedSigclusterShapeEndcap(100,0.,0.08)","clusterShapeHltEle>>trackedBkgndclusterShapeEndcap(100,0.,0.08)","trackedSigclusterShapeEndcap","trackedBkgndclusterShapeEndcap","#sigma_{i#etai#eta} of tracked leg hlt objects in endcap"+plotTitleModifier,"#sigma_{i#etai#eta}","c2003",trackedEEHltEta+hltMllLowerBound,"clusterShape_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighadEmEndcapList","trackedSighadEmEndcapList",">>trackedBkgndhadEmEndcapList","trackedBkgndhadEmEndcapList","hadEmHltEle>>trackedSighadEmEndcap(100,0.,0.7)","hadEmHltEle>>trackedBkgndhadEmEndcap(100,0.,0.7)","trackedSighadEmEndcap","trackedBkgndhadEmEndcap","relative had/Em of tracked leg hlt objects in endcap"+plotTitleModifier,"had/Em/Energy","c2004",trackedEEHltEta+hltMllLowerBound,"hadEm_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigecalIsoEndcapList","trackedSigecalIsoEndcapList",">>trackedBkgndecalIsoEndcapList","trackedBkgndecalIsoEndcapList","ecalIsoHltEle>>trackedSigecalIsoEndcap(100,-0.2,3.)","ecalIsoHltEle>>trackedBkgndecalIsoEndcap(100,-0.2,3.)","trackedSigecalIsoEndcap","trackedBkgndecalIsoEndcap","relative ecalIso of tracked leg hlt objects in endcap"+plotTitleModifier,"ecalIso/pt","c2005",trackedEEHltEta+hltMllLowerBound,"ecalIso_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighcalIsoEndcapList","trackedSighcalIsoEndcapList",">>trackedBkgndhcalIsoEndcapList","trackedBkgndhcalIsoEndcapList","hcalIsoHltEle>>trackedSighcalIsoEndcap(100,-0.2,2.5)","hcalIsoHltEle>>trackedBkgndhcalIsoEndcap(100,-0.2,2.5)","trackedSighcalIsoEndcap","trackedBkgndhcalIsoEndcap","relative hcalIso of tracked leg hlt objects in endcap"+plotTitleModifier,"hcalIso/pt","c2006",trackedEEHltEta+hltMllLowerBound,"hcalIso_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigepEndcapList","trackedSigepEndcapList",">>trackedBkgndepEndcapList","trackedBkgndepEndcapList","epHltEle>>trackedSigepEndcap(100,0.,0.27)","epHltEle>>trackedBkgndepEndcap(100,0.,0.27)","trackedSigepEndcap","trackedBkgndepEndcap","(1/E)-(1/P) of tracked leg hlt objects in endcap"+plotTitleModifier,"ep","c2010",trackedEEHltEta+hltMllLowerBound,"ep_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigdEtaEndcapList","trackedSigdEtaEndcapList",">>trackedBkgnddEtaEndcapList","trackedBkgnddEtaEndcapList","dEtaHltEle>>trackedSigdEtaEndcap(100,0.,0.027)","dEtaHltEle>>trackedBkgnddEtaEndcap(100,0.,0.027)","trackedSigdEtaEndcap","trackedBkgnddEtaEndcap","#Delta #eta of tracked leg hlt objects in endcap"+plotTitleModifier,"#Delta #eta","c2007",trackedEEHltEta+hltMllLowerBound,"dEta_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigdPhiEndcapList","trackedSigdPhiEndcapList",">>trackedBkgnddPhiEndcapList","trackedBkgnddPhiEndcapList","dPhiHltEle>>trackedSigdPhiEndcap(100,0.,0.17)","dPhiHltEle>>trackedBkgnddPhiEndcap(100,0.,0.17)","trackedSigdPhiEndcap","trackedBkgnddPhiEndcap","#Delta #phi of tracked leg hlt objects in endcap"+plotTitleModifier,"#Delta #phi","c2008",trackedEEHltEta+hltMllLowerBound,"dPhi_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigtrackIsoEndcapList","trackedSigtrackIsoEndcapList",">>trackedBkgndtrackIsoEndcapList","trackedBkgndtrackIsoEndcapList","trackIsoHltEle>>trackedSigtrackIsoEndcap(100,0.,0.5)","trackIsoHltEle>>trackedBkgndtrackIsoEndcap(100,0.,0.5)","trackedSigtrackIsoEndcap","trackedBkgndtrackIsoEndcap","relative trackIso of tracked leg hlt objects in endcap"+plotTitleModifier,"trackIso/pt","c2009",trackedEEHltEta+hltMllLowerBound,"trackIso_for_tracked_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigptEndcapList","trackedSigptEndcapList",">>trackedBkgndptEndcapList","trackedBkgndptEndcapList","ptHltEle>>trackedSigptEndcap(100,0.,100.)","ptHltEle>>trackedBkgndptEndcap(100,0.,100.)","trackedSigptEndcap","trackedBkgndptEndcap","pt of tracked leg hlt objects in endcap"+plotTitleModifier,"pt","c2000",trackedEEHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEEHltEta+hltMllLowerBound,"pt_for_tracked_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",true,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigetaEndcapList","trackedSigetaEndcapList",">>trackedBkgndetaEndcapList","trackedBkgndetaEndcapList","etaHltEle>>trackedSigetaEndcap(100,-2.5,2.5)","etaHltEle>>trackedBkgndetaEndcap(100,-2.5,2.5)","trackedSigetaEndcap","trackedBkgndetaEndcap","eta of tracked leg hlt objects in endcap"+plotTitleModifier,"eta","c2001",trackedEEHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEEHltEta+hltMllLowerBound,"eta_for_tracked_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigphiEndcapList","trackedSigphiEndcapList",">>trackedBkgndphiEndcapList","trackedBkgndphiEndcapList","phiHltEle>>trackedSigphiEndcap(100,-3.5,3.5)","phiHltEle>>trackedBkgndphiEndcap(100,-3.5,3.5)","trackedSigphiEndcap","trackedBkgndphiEndcap","phi of tracked leg hlt objects in endcap"+plotTitleModifier,"phi","c2002",trackedEEHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEEHltEta+hltMllLowerBound,"phi_for_tracked_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigclusterShapeEndcapList","trackedSigclusterShapeEndcapList",">>trackedBkgndclusterShapeEndcapList","trackedBkgndclusterShapeEndcapList","clusterShapeHltEle>>trackedSigclusterShapeEndcap(100,0.,0.08)","clusterShapeHltEle>>trackedBkgndclusterShapeEndcap(100,0.,0.08)","trackedSigclusterShapeEndcap","trackedBkgndclusterShapeEndcap","#sigma_{i#etai#eta} of tracked leg hlt objects in endcap"+plotTitleModifier,"#sigma_{i#etai#eta}","c2003",trackedEEHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEEHltEta+hltMllLowerBound,"clusterShape_for_tracked_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighadEmEndcapList","trackedSighadEmEndcapList",">>trackedBkgndhadEmEndcapList","trackedBkgndhadEmEndcapList","hadEmHltEle>>trackedSighadEmEndcap(100,0.,0.7)","hadEmHltEle>>trackedBkgndhadEmEndcap(100,0.,0.7)","trackedSighadEmEndcap","trackedBkgndhadEmEndcap","relative had/Em of tracked leg hlt objects in endcap"+plotTitleModifier,"had/Em/Energy","c2004",trackedEEHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEEHltEta+hltMllLowerBound,"hadEm_for_tracked_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigecalIsoEndcapList","trackedSigecalIsoEndcapList",">>trackedBkgndecalIsoEndcapList","trackedBkgndecalIsoEndcapList","ecalIsoHltEle>>trackedSigecalIsoEndcap(100,-0.2,3.)","ecalIsoHltEle>>trackedBkgndecalIsoEndcap(100,-0.2,3.)","trackedSigecalIsoEndcap","trackedBkgndecalIsoEndcap","relative ecalIso of tracked leg hlt objects in endcap"+plotTitleModifier,"ecalIso/pt","c2005",trackedEEHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEEHltEta+hltMllLowerBound,"ecalIso_for_tracked_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighcalIsoEndcapList","trackedSighcalIsoEndcapList",">>trackedBkgndhcalIsoEndcapList","trackedBkgndhcalIsoEndcapList","hcalIsoHltEle>>trackedSighcalIsoEndcap(100,-0.2,2.5)","hcalIsoHltEle>>trackedBkgndhcalIsoEndcap(100,-0.2,2.5)","trackedSighcalIsoEndcap","trackedBkgndhcalIsoEndcap","relative hcalIso of tracked leg hlt objects in endcap"+plotTitleModifier,"hcalIso/pt","c2006",trackedEEHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEEHltEta+hltMllLowerBound,"hcalIso_for_tracked_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigepEndcapList","trackedSigepEndcapList",">>trackedBkgndepEndcapList","trackedBkgndepEndcapList","epHltEle>>trackedSigepEndcap(100,0.,0.27)","epHltEle>>trackedBkgndepEndcap(100,0.,0.27)","trackedSigepEndcap","trackedBkgndepEndcap","(1/E)-(1/P) of tracked leg hlt objects in endcap"+plotTitleModifier,"ep","c2010",trackedEEHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEEHltEta+hltMllLowerBound,"ep_for_tracked_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigdEtaEndcapList","trackedSigdEtaEndcapList",">>trackedBkgnddEtaEndcapList","trackedBkgnddEtaEndcapList","dEtaHltEle>>trackedSigdEtaEndcap(100,0.,0.027)","dEtaHltEle>>trackedBkgnddEtaEndcap(100,0.,0.027)","trackedSigdEtaEndcap","trackedBkgnddEtaEndcap","#Delta #eta of tracked leg hlt objects in endcap"+plotTitleModifier,"#Delta #eta","c2007",trackedEEHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEEHltEta+hltMllLowerBound,"dEta_for_tracked_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigdPhiEndcapList","trackedSigdPhiEndcapList",">>trackedBkgnddPhiEndcapList","trackedBkgnddPhiEndcapList","dPhiHltEle>>trackedSigdPhiEndcap(100,0.,0.17)","dPhiHltEle>>trackedBkgnddPhiEndcap(100,0.,0.17)","trackedSigdPhiEndcap","trackedBkgnddPhiEndcap","#Delta #phi of tracked leg hlt objects in endcap"+plotTitleModifier,"#Delta #phi","c2008",trackedEEHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEEHltEta+hltMllLowerBound,"dPhi_for_tracked_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigtrackIsoEndcapList","trackedSigtrackIsoEndcapList",">>trackedBkgndtrackIsoEndcapList","trackedBkgndtrackIsoEndcapList","trackIsoHltEle>>trackedSigtrackIsoEndcap(100,0.,0.5)","trackIsoHltEle>>trackedBkgndtrackIsoEndcap(100,0.,0.5)","trackedSigtrackIsoEndcap","trackedBkgndtrackIsoEndcap","relative trackIso of tracked leg hlt objects in endcap"+plotTitleModifier,"trackIso/pt","c2009",trackedEEHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEEHltEta+hltMllLowerBound,"trackIso_for_tracked_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigdiObjectMassEndcapList","trackedSigdiObjectMassEndcapList",">>trackedBkgnddiObjectMassEndcapList","trackedBkgnddiObjectMassEndcapList","diObjectMassHltEle>>trackedSigdiObjectMassEndcap(150,-2.,140.)","diObjectMassHltEle>>trackedBkgnddiObjectMassEndcap(150,-2.,140.)","trackedSigdiObjectMassEndcap","trackedBkgnddiObjectMassEndcap","diObjectMass of tracked leg hlt objects in endcap"+plotTitleModifier,"diObjectMass","c2011",trackedEEHltEta+hltMllLowerBound+hltDr+genMllRange,trackedEEHltEta+hltMllLowerBound,"diObjectMass_for_tracked_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",true,false);
+	
 	*/
 
 	/*
 	//trackless endcap distributions
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigptEndcapList","tracklessSigptEndcapList",">>tracklessBkgndptEndcapList","tracklessBkgndptEndcapList","ptHltEle>>tracklessSigptEndcap(100,0.,100.)","ptHltEle>>tracklessBkgndptEndcap(100,0.,100.)","tracklessSigptEndcap","tracklessBkgndptEndcap","pt of trackless leg hlt objects in endcap"+plotTitleModifier,"pt","c3000",tracklessEEHltEta+hltMllLowerBound,"pt_for_trackless_endcap_hlt_objs_signal_and_bkgnd.png",true,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigetaEndcapList","tracklessSigetaEndcapList",">>tracklessBkgndetaEndcapList","tracklessBkgndetaEndcapList","etaHltEle>>tracklessSigetaEndcap(100,-3.1,3.1)","etaHltEle>>tracklessBkgndetaEndcap(100,-3.1,3.1)","tracklessSigetaEndcap","tracklessBkgndetaEndcap","eta of trackless leg hlt objects in endcap"+plotTitleModifier,"eta","c3001",tracklessEEHltEta+hltMllLowerBound,"eta_for_trackless_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigphiEndcapList","tracklessSigphiEndcapList",">>tracklessBkgndphiEndcapList","tracklessBkgndphiEndcapList","phiHltEle>>tracklessSigphiEndcap(100,-3.5,3.5)","phiHltEle>>tracklessBkgndphiEndcap(100,-3.5,3.5)","tracklessSigphiEndcap","tracklessBkgndphiEndcap","phi of trackless leg hlt objects in endcap"+plotTitleModifier,"phi","c3002",tracklessEEHltEta+hltMllLowerBound,"phi_for_trackless_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigclusterShapeEndcapList","tracklessSigclusterShapeEndcapList",">>tracklessBkgndclusterShapeEndcapList","tracklessBkgndclusterShapeEndcapList","clusterShapeHltEle>>tracklessSigclusterShapeEndcap(100,0.,0.08)","clusterShapeHltEle>>tracklessBkgndclusterShapeEndcap(100,0.,0.08)","tracklessSigclusterShapeEndcap","tracklessBkgndclusterShapeEndcap","#sigma_{i#etai#eta} of trackless leg hlt objects in endcap"+plotTitleModifier,"#sigma_{i#etai#eta}","c3003",tracklessEEHltEta+hltMllLowerBound,"clusterShape_for_trackless_endcap_hlt_objs_signal_and_bkgnd.png",false,false);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSighadEmEndcapList","tracklessSighadEmEndcapList",">>tracklessBkgndhadEmEndcapList","tracklessBkgndhadEmEndcapList","hadEmHltEle>>tracklessSighadEmEndcap(100,0.,2.)","hadEmHltEle>>tracklessBkgndhadEmEndcap(100,0.,2.)","tracklessSighadEmEndcap","tracklessBkgndhadEmEndcap","relative had/Em of trackless leg hlt objects in endcap"+plotTitleModifier,"had/Em/Energy","c3004",tracklessEEHltEta+hltMllLowerBound,"hadEm_for_trackless_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigecalIsoEndcapList","tracklessSigecalIsoEndcapList",">>tracklessBkgndecalIsoEndcapList","tracklessBkgndecalIsoEndcapList","ecalIsoHltEle>>tracklessSigecalIsoEndcap(100,-0.5,2.5)","ecalIsoHltEle>>tracklessBkgndecalIsoEndcap(100,-0.5,2.5)","tracklessSigecalIsoEndcap","tracklessBkgndecalIsoEndcap","relative ecalIso of trackless leg hlt objects in endcap"+plotTitleModifier,"ecalIso/pt","c3005",tracklessEEHltEta+hltMllLowerBound,"ecalIso_for_trackless_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
-	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSighcalIsoEndcapList","tracklessSighcalIsoEndcapList",">>tracklessBkgndhcalIsoEndcapList","tracklessBkgndhcalIsoEndcapList","hcalIsoHltEle>>tracklessSighcalIsoEndcap(100,-0.8,4.)","hcalIsoHltEle>>tracklessBkgndhcalIsoEndcap(100,-0.8,4.)","tracklessSighcalIsoEndcap","tracklessBkgndhcalIsoEndcap","relative hcalIso of trackless leg hlt objects in endcap"+plotTitleModifier,"hcalIso/pt","c3006",tracklessEEHltEta+hltMllLowerBound,"hcalIso_for_trackless_endcap_hlt_objs_signal_and_bkgnd.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigptEndcapList","tracklessSigptEndcapList",">>tracklessBkgndptEndcapList","tracklessBkgndptEndcapList","ptHltEle[0]>>tracklessSigptEndcap(100,0.,100.)","ptHltEle>>tracklessBkgndptEndcap(100,0.,100.)","tracklessSigptEndcap","tracklessBkgndptEndcap","pt of trackless leg hlt objects in endcap"+plotTitleModifier,"pt","c3000",tracklessEEHltEta+hltMllLowerBound+hltDr+genMllRange,tracklessEEHltEta+hltMllLowerBound,"pt_for_trackless_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",true,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigetaEndcapList","tracklessSigetaEndcapList",">>tracklessBkgndetaEndcapList","tracklessBkgndetaEndcapList","etaHltEle[0]>>tracklessSigetaEndcap(100,-3.1,3.1)","etaHltEle>>tracklessBkgndetaEndcap(100,-3.1,3.1)","tracklessSigetaEndcap","tracklessBkgndetaEndcap","eta of trackless leg hlt objects in endcap"+plotTitleModifier,"eta","c3001",tracklessEEHltEta+hltMllLowerBound+hltDr+genMllRange,tracklessEEHltEta+hltMllLowerBound,"eta_for_trackless_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigphiEndcapList","tracklessSigphiEndcapList",">>tracklessBkgndphiEndcapList","tracklessBkgndphiEndcapList","phiHltEle[0]>>tracklessSigphiEndcap(100,-3.5,3.5)","phiHltEle>>tracklessBkgndphiEndcap(100,-3.5,3.5)","tracklessSigphiEndcap","tracklessBkgndphiEndcap","phi of trackless leg hlt objects in endcap"+plotTitleModifier,"phi","c3002",tracklessEEHltEta+hltMllLowerBound+hltDr+genMllRange,tracklessEEHltEta+hltMllLowerBound,"phi_for_trackless_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigclusterShapeEndcapList","tracklessSigclusterShapeEndcapList",">>tracklessBkgndclusterShapeEndcapList","tracklessBkgndclusterShapeEndcapList","clusterShapeHltEle[0]>>tracklessSigclusterShapeEndcap(100,0.,0.08)","clusterShapeHltEle>>tracklessBkgndclusterShapeEndcap(100,0.,0.08)","tracklessSigclusterShapeEndcap","tracklessBkgndclusterShapeEndcap","#sigma_{i#etai#eta} of trackless leg hlt objects in endcap"+plotTitleModifier,"#sigma_{i#etai#eta}","c3003",tracklessEEHltEta+hltMllLowerBound+hltDr+genMllRange,tracklessEEHltEta+hltMllLowerBound,"clusterShape_for_trackless_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,false);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSighadEmEndcapList","tracklessSighadEmEndcapList",">>tracklessBkgndhadEmEndcapList","tracklessBkgndhadEmEndcapList","hadEmHltEle[0]>>tracklessSighadEmEndcap(100,0.,2.)","hadEmHltEle>>tracklessBkgndhadEmEndcap(100,0.,2.)","tracklessSighadEmEndcap","tracklessBkgndhadEmEndcap","relative had/Em of trackless leg hlt objects in endcap"+plotTitleModifier,"had/Em/Energy","c3004",tracklessEEHltEta+hltMllLowerBound+hltDr+genMllRange,tracklessEEHltEta+hltMllLowerBound,"hadEm_for_trackless_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigecalIsoEndcapList","tracklessSigecalIsoEndcapList",">>tracklessBkgndecalIsoEndcapList","tracklessBkgndecalIsoEndcapList","ecalIsoHltEle[0]>>tracklessSigecalIsoEndcap(100,-0.5,2.5)","ecalIsoHltEle>>tracklessBkgndecalIsoEndcap(100,-0.5,2.5)","tracklessSigecalIsoEndcap","tracklessBkgndecalIsoEndcap","relative ecalIso of trackless leg hlt objects in endcap"+plotTitleModifier,"ecalIso/pt","c3005",tracklessEEHltEta+hltMllLowerBound+hltDr+genMllRange,tracklessEEHltEta+hltMllLowerBound,"ecalIso_for_trackless_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSighcalIsoEndcapList","tracklessSighcalIsoEndcapList",">>tracklessBkgndhcalIsoEndcapList","tracklessBkgndhcalIsoEndcapList","hcalIsoHltEle[0]>>tracklessSighcalIsoEndcap(100,-0.8,4.)","hcalIsoHltEle>>tracklessBkgndhcalIsoEndcap(100,-0.8,4.)","tracklessSighcalIsoEndcap","tracklessBkgndhcalIsoEndcap","relative hcalIso of trackless leg hlt objects in endcap"+plotTitleModifier,"hcalIso/pt","c3006",tracklessEEHltEta+hltMllLowerBound+hltDr+genMllRange,tracklessEEHltEta+hltMllLowerBound,"hcalIso_for_trackless_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",false,true);
+	makeAndSaveOverlayHistoUsingEntryLists(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigdiObjectMassEndcapList","tracklessSigdiObjectMassEndcapList",">>tracklessBkgnddiObjectMassEndcapList","tracklessBkgnddiObjectMassEndcapList","diObjectMassHltEle[0]>>tracklessSigdiObjectMassEndcap(150,-2.,140.)","diObjectMassHltEle>>tracklessBkgnddiObjectMassEndcap(150,-2.,140.)","tracklessSigdiObjectMassEndcap","tracklessBkgnddiObjectMassEndcap","diObjectMass of trackless leg hlt objects in endcap"+plotTitleModifier,"diObjectMass","c3007",tracklessEEHltEta+hltMllLowerBound+hltDr+genMllRange,tracklessEEHltEta+hltMllLowerBound,"diObjectMass_for_trackless_endcap_hlt_objs_signal_and_bkgnd_parent_mass_above_10.png",true,false);
+	
 	*/
 	
 	
@@ -888,22 +907,21 @@ void testMacro(){
 
 	//Double_t findOptimalCutMaxSigMinBkgnd(TChain * sigChain,TChain * bkgndChain,TString sigListFillArgs,TString sigListName,TString bkgndListFillArgs,TString bkgndListName,TString sigHistPlotArg,TString bkgndHistPlotArg,TString sigHistName,TString bkgndHistName,Double_t histCritVal,TString histTitle,TString xAxisTitle,TString canvName,TCut sigFilters,TCut bkgndFilters,TString outputFile,Bool_t isPlottingEnergy,Bool_t isPlottingInverseEnergy)
 
+	/*
 	std::vector<TString> cutVarNames;
 	cutVarNames.push_back("dilepton mass cut = ");
 	cutVarNames.push_back("hcalIso cut for tracked endcap = ");
 	cutVarNames.push_back("hadEm cut for tracked endcap = ");
 	cutVarNames.push_back("ecalIso cut for tracked endcap = ");
 
-
-
 	std::vector<std::vector<Double_t>> cutInfo;
-	cutInfo.push_back(findOptimalCutMaxSigMinBkgnd(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigdiObjectMassList","tracklessSigdiObjectMassList",">>tracklessBkgnddiObjectMassList","tracklessBkgnddiObjectMassList","diObjectMassHltEle>>tracklessSigdiObjectMass(150,0.,140.)","diObjectMassHltEle>>tracklessBkgnddiObjectMass(150,0.,140.)","tracklessSigdiObjectMass","tracklessBkgnddiObjectMass",140.,"optimal diObjectMass cut value"+plotTitleModifier,"diObjectMass","c4000",tracklessEEHltEta+hltMllAbsoluteLowerBound+genMllRange,tracklessEEHltEta+hltMllAbsoluteLowerBound,"optimal_diObjectMass_cut_val_trackless_.png",true,false,true));
+	cutInfo.push_back(findOptimalCutMaxSigMinBkgnd(matchedTracklessSignalChain,tracklessBkgndChain,">>tracklessSigdiObjectMassList","tracklessSigdiObjectMassList",">>tracklessBkgnddiObjectMassList","tracklessBkgnddiObjectMassList","diObjectMassHltEle>>tracklessSigdiObjectMass(150,0.,140.)","diObjectMassHltEle>>tracklessBkgnddiObjectMass(150,0.,140.)","tracklessSigdiObjectMass","tracklessBkgnddiObjectMass",140.,"optimal diObjectMass cut value"+plotTitleModifier,"diObjectMass","c4000",tracklessEEHltEta+hltMllAbsoluteLowerBound+genMllRange+hltDr+hltLowEt,tracklessEEHltEta+hltMllAbsoluteLowerBound+hltLowEt,"optimal_diObjectMass_cut_val_trackless.png",true,false,true));
 
-	cutInfo.push_back(findOptimalCutMaxSigMinBkgnd(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighcalIsoEndcapList","trackedSighcalIsoEndcapList",">>trackedBkgndhcalIsoEndcapList","trackedBkgndhcalIsoEndcapList","hcalIsoHltEle>>trackedSighcalIsoEndcap(100,-0.2,2.5)","hcalIsoHltEle>>trackedBkgndhcalIsoEndcap(100,-0.2,2.5)","trackedSighcalIsoEndcap","trackedBkgndhcalIsoEndcap",-0.2,"optimal hcalIso cut value for tracked leg endcap"+plotTitleModifier,"hcalIso/pt","c4001",trackedEEHltEta+hltMllAbsoluteLowerBound+genMllRange,trackedEEHltEta+hltMllAbsoluteLowerBound,"optimal_hcalIso_cut_val_tracked_endcap.png",false,true,false));
+	cutInfo.push_back(findOptimalCutMaxSigMinBkgnd(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighcalIsoEndcapList","trackedSighcalIsoEndcapList",">>trackedBkgndhcalIsoEndcapList","trackedBkgndhcalIsoEndcapList","hcalIsoHltEle>>trackedSighcalIsoEndcap(100,-0.2,2.5)","hcalIsoHltEle>>trackedBkgndhcalIsoEndcap(100,-0.2,2.5)","trackedSighcalIsoEndcap","trackedBkgndhcalIsoEndcap",-0.2,"optimal hcalIso cut value for tracked leg endcap"+plotTitleModifier,"hcalIso/pt","c4001",trackedEEHltEta+hltMllAbsoluteLowerBound+genMllRange+hltDr+hltLowEt,trackedEEHltEta+hltMllAbsoluteLowerBound+hltLowEt,"optimal_hcalIso_cut_val_tracked_endcap.png",false,true,false));
 
-	cutInfo.push_back(findOptimalCutMaxSigMinBkgnd(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighadEmEndcapList","trackedSighadEmEndcapList",">>trackedBkgndhadEmEndcapList","trackedBkgndhadEmEndcapList","hadEmHltEle>>trackedSighadEmEndcap(100,0.,2.5)","hadEmHltEle>>trackedBkgndhadEmEndcap(100,0.,2.5)","trackedSighadEmEndcap","trackedBkgndhadEmEndcap",0.,"optimal hadEm cut value for tracked leg endcap"+plotTitleModifier,"hadEm/pt","c4002",trackedEEHltEta+hltMllAbsoluteLowerBound+genMllRange,trackedEEHltEta+hltMllAbsoluteLowerBound,"optimal_hadEm_cut_val_tracked_endcap.png",false,true,false));
+	cutInfo.push_back(findOptimalCutMaxSigMinBkgnd(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSighadEmEndcapList","trackedSighadEmEndcapList",">>trackedBkgndhadEmEndcapList","trackedBkgndhadEmEndcapList","hadEmHltEle>>trackedSighadEmEndcap(100,0.,2.5)","hadEmHltEle>>trackedBkgndhadEmEndcap(100,0.,2.5)","trackedSighadEmEndcap","trackedBkgndhadEmEndcap",0.,"optimal hadEm cut value for tracked leg endcap"+plotTitleModifier,"hadEm/pt","c4002",trackedEEHltEta+hltMllAbsoluteLowerBound+genMllRange+hltDr+hltLowEt,trackedEEHltEta+hltMllAbsoluteLowerBound+hltLowEt,"optimal_hadEm_cut_val_tracked_endcap.png",false,true,false));
 
-	cutInfo.push_back(findOptimalCutMaxSigMinBkgnd(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigecalIsoEndcapList","trackedSigecalIsoEndcapList",">>trackedBkgndecalIsoEndcapList","trackedBkgndecalIsoEndcapList","ecalIsoHltEle>>trackedSigecalIsoEndcap(100,-0.2,2.5)","ecalIsoHltEle>>trackedBkgndecalIsoEndcap(100,-0.2,2.5)","trackedSigecalIsoEndcap","trackedBkgndecalIsoEndcap",-0.2,"optimal ecalIso cut value for tracked leg endcap"+plotTitleModifier,"ecalIso/pt","c4003",trackedEEHltEta+hltMllAbsoluteLowerBound+genMllRange,trackedEEHltEta+hltMllAbsoluteLowerBound,"optimal_ecalIso_cut_val_tracked_endcap.png",false,true,false));
+	cutInfo.push_back(findOptimalCutMaxSigMinBkgnd(matchedTrackedSignalChain,trackedBkgndChain,">>trackedSigecalIsoEndcapList","trackedSigecalIsoEndcapList",">>trackedBkgndecalIsoEndcapList","trackedBkgndecalIsoEndcapList","ecalIsoHltEle>>trackedSigecalIsoEndcap(100,-0.2,2.5)","ecalIsoHltEle>>trackedBkgndecalIsoEndcap(100,-0.2,2.5)","trackedSigecalIsoEndcap","trackedBkgndecalIsoEndcap",-0.2,"optimal ecalIso cut value for tracked leg endcap"+plotTitleModifier,"ecalIso/pt","c4003",trackedEEHltEta+hltMllAbsoluteLowerBound+genMllRange+hltDr+hltLowEt,trackedEEHltEta+hltMllAbsoluteLowerBound+hltLowEt,"optimal_ecalIso_cut_val_tracked_endcap.png",false,true,false));
 
 
 	for(unsigned int j=0; j<cutInfo.size(); j++){
@@ -914,6 +932,7 @@ void testMacro(){
 		}
 	}//end loop which prints all cut values which were determined using the simple algorithm (no correlations taken into account)
 
+	*/
 
 }//end testMacro()
 
