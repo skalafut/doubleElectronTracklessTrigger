@@ -722,69 +722,76 @@ void makeAndSaveSingleTreeHisto(TTree * tree,TString plotArgs,TString histName,T
 
 void testMacro(){
 
+	//use these TString objects for plotting and filtering
+	TString BkgndTrackedTreeName = "recoTreeBeforeTriggerFiltersTrackedBkgnd.";
+	TString BkgndTracklessTreeName = "recoTreeBeforeTriggerFiltersTracklessBkgnd.";
+	TString SignalTrackedTreeName = "recoTreeBeforeTriggerFiltersTrackedSignal.";
+	TString SignalTracklessTreeName = "recoTreeBeforeTriggerFiltersTracklessSignal.";
+
+
 	TChain * trackedLowPtBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
-	trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
-	trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
-	//trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_6*");
+	//trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
+	//trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
+	trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/*");
 	
 	TChain * trackedHighPtBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
-	trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
-	trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
-	//trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_18*");
+	//trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
+	//trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
+	trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/*");
 
 
 	TChain * copy_trackedLowPtBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
-	copy_trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
-	copy_trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
+	//copy_trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
+	//copy_trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
+	copy_trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/*");
 	
 	TChain * copy_trackedHighPtBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
-	copy_trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
-	copy_trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
-	
-	
-	TChain * copy_two_trackedLowPtBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
-	copy_two_trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
-	copy_two_trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
-	
-	TChain * copy_two_trackedHighPtBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
-	copy_two_trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
-	copy_two_trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
+	//copy_trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
+	//copy_trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
+	copy_trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/*");
 	
 
 	TChain * tracklessLowPtBkgndChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
-	tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
-	tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
-	//tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_6*");
+	//tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
+	//tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
+	tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/*");
 	
 	TChain * tracklessHighPtBkgndChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
-	tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
-	tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
-	//tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_18*");
+	//tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
+	//tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
+	tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/*");
+
 
 	TChain * copy_tracklessLowPtBkgndChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
-	copy_tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
-	copy_tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
+	//copy_tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
+	//copy_tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
+	copy_tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/*");
 	
 	TChain * copy_tracklessHighPtBkgndChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
-	copy_tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
-	copy_tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
+	//copy_tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
+	//copy_tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
+	copy_tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/*");
 	
-	TChain * copy_two_tracklessLowPtBkgndChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
-	copy_two_tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
-	copy_two_tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
 	
-	TChain * copy_two_tracklessHighPtBkgndChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
-	copy_two_tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
-	copy_two_tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
+	TChain * trackedSignalChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedSignal","");
+	trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
 	
+	TChain * tracklessSignalChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessSignal","");
+	tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+
+	TChain * copy_trackedSignalChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedSignal","");
+	copy_trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+	
+	TChain * copy_tracklessSignalChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessSignal","");
+	copy_tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+
+	TChain * copy_two_trackedSignalChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedSignal","");
+	copy_two_trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+	
+	TChain * copy_two_tracklessSignalChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessSignal","");
+	copy_two_tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
 
 
-
-	//TChain * trackedSignalChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedSignal","");
-	//trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
-	//
-	//TChain * tracklessSignalChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessSignal","");
-	//tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
 
 	//TChain * matchedTrackedSignalChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
 	//matchedTrackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
@@ -800,12 +807,6 @@ void testMacro(){
 	//copy_matchedTracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
 
 
-	//TChain * copy_two_matchedTrackedSignalChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
-	//copy_two_matchedTrackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
-	//
-	//TChain * copy_two_matchedTracklessSignalChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
-	//copy_two_matchedTracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
-
 
 
 	//hlt eta cuts
@@ -813,8 +814,8 @@ void testMacro(){
 	TCut trackedEEHltLowEta = "TMath::Abs(etaHltEle)>1.479";
 	TCut trackedEEHltHighEta = "TMath::Abs(etaHltEle)<2.5";
 	TCut trackedEEHltEta = trackedEEHltLowEta + trackedEEHltHighEta;
-	TCut tracklessEEHltLowEta = "TMath::Abs(etaHltEle)>2.4";
-	TCut tracklessEEHltHighEta = "TMath::Abs(etaHltEle)<3.05";
+	TCut tracklessEEHltLowEta = "TMath::Abs(etaHltEle)>2.5";
+	TCut tracklessEEHltHighEta = "TMath::Abs(etaHltEle)<3.0";
 	TCut tracklessEEHltEta = tracklessEEHltLowEta + tracklessEEHltHighEta;
 
 	//hlt dR cuts
@@ -848,62 +849,108 @@ void testMacro(){
 	TCut hltMllAbsoluteLowerBound = "diObjectMassHltEle>2.";
 	TCut hltMllTinyUpperBound = "diObjectMassHltEle<10";
 
-	//cumulative tracked and trackless leg cuts
-	TCut oldTrackedPt = "ptHltEle>27.";
-	TCut oldTrackedEESigmaIEIE = "clusterShapeHltEle<0.031";
-	TCut oldTrackedEEHE = "hadEmHltEle<0.075";
-	TCut oldTrackedEEEcalIso = "ecalIsoHltEle<0.11";
-	TCut oldTrackedEEHcalIso = "hcalIsoHltEle<0.11";
-	TCut oldTrackedEEEp = "epHltEle<0.009";
-	TCut oldTrackedEEDeta = "dEtaHltEle<0.01";
-	TCut oldTrackedEEDphi = "dPhiHltEle<0.03";
-	TCut oldTrackedEETrackIso = "trackIsoHltEle<0.125";
-	TCut oldTrackedEBSigmaIEIE = "clusterShapeHltEle<0.011";
-	TCut oldTrackedEBHE = "hadEmHltEle<0.1";
-	TCut oldTrackedEBEcalIso = "ecalIsoHltEle<0.16";
-	TCut oldTrackedEBHcalIso = "hcalIsoHltEle<0.11";
-	TCut oldTrackedEBEp = "epHltEle<0.012";
-	TCut oldTrackedEBDeta = "dEtaHltEle<0.005";
-	TCut oldTrackedEBDphi = "dPhiHltEle<0.03";
-	TCut oldTrackedEBTrackIso = "trackIsoHltEle<0.125";
+	//tracked and trackless leg cuts from old trigger used in 2012
+	//original tracked leg
+	TCut TrackedPt = "ptHltEle>27.";
+	TCut TrackedEESigmaIEIE = "clusterShapeHltEle<0.031";
+	TCut TrackedEEHE = "hadEmHltEle<0.075";
+	TCut TrackedEEEcalIso = "ecalIsoHltEle<0.11";
+	TCut TrackedEEHcalIso = "hcalIsoHltEle<0.11";
 	
-	TCut oldTracklessPt = "ptHltEle>15.";
-	TCut oldTracklessEESigmaIEIE = "clusterShapeHltEle<0.031";
-	TCut oldTracklessEEHE = "hadEmHltEle<0.075";
-	TCut oldTracklessEEEcalIso = "ecalIsoHltEle<0.2";
-	TCut oldTracklessEEHcalIso = "hcalIsoHltEle<0.2";
-
-	TCut oldTrackedBarrelLeg = oldTrackedPt+oldTrackedEBSigmaIEIE+oldTrackedEBHE+oldTrackedEBEcalIso+oldTrackedEBHcalIso+trackedEBHltEta+oldTrackedEBEp+oldTrackedEBDeta+oldTrackedEBDphi+oldTrackedEBTrackIso;
-	TCut oldTrackedEndcapLeg = oldTrackedPt+oldTrackedEESigmaIEIE+oldTrackedEEHE+oldTrackedEEEcalIso+oldTrackedEEHcalIso+trackedEEHltEta+oldTrackedEEEp+oldTrackedEEDeta+oldTrackedEEDphi+oldTrackedEETrackIso;
-	TCut oldTracklessEndcapLeg = oldTracklessPt+oldTracklessEESigmaIEIE+oldTracklessEEHE+oldTracklessEEEcalIso+oldTracklessEEHcalIso+tracklessEEHltEta;
-
-	std::cout<< trackedHighPtBkgndChain->GetEntries() <<" high pt bkgnd evts pass the old tracked leg"<<std::endl;
-	std::cout<< tracklessHighPtBkgndChain->GetEntries() <<" high pt bkgnd evts pass the old trackless leg"<<std::endl;
-	std::cout<<" "<<std::endl;
-	std::cout<< trackedLowPtBkgndChain->GetEntries() <<" low pt bkgnd evts pass the old tracked leg"<<std::endl;
-	std::cout<< tracklessLowPtBkgndChain->GetEntries() <<" low pt bkgnd evts pass the old trackless leg"<<std::endl;
+	TCut TrackedEEEp = "epHltEle<0.009";
+	TCut TrackedEEDeta = "dEtaHltEle<0.01";
+	TCut TrackedEEDphi = "dPhiHltEle<0.03";
+	TCut TrackedEETrackIso = "trackIsoHltEle<0.125";
+	TCut TrackedEBSigmaIEIE = "clusterShapeHltEle<0.011";
+	TCut TrackedEBHE = "hadEmHltEle<0.1";
+	TCut TrackedEBEcalIso = "ecalIsoHltEle<0.16";
+	TCut TrackedEBHcalIso = "hcalIsoHltEle<0.11";
+	TCut TrackedEBEp = "epHltEle<0.012";
+	TCut TrackedEBDeta = "dEtaHltEle<0.005";
+	TCut TrackedEBDphi = "dPhiHltEle<0.03";
+	TCut TrackedEBTrackIso = "trackIsoHltEle<0.125";
 
 
+	//optimized tracked leg
+	//TCut TrackedPt = "ptHltEle>31.";
+	//TCut TrackedEESigmaIEIE = "clusterShapeHltEle<0.027";
+	//TCut TrackedEEHE = "hadEmHltEle<0.063";
+	//TCut TrackedEEEcalIso = "ecalIsoHltEle<0.084";
+	//TCut TrackedEEHcalIso = "hcalIsoHltEle<0.14";
+	//
+	//TCut TrackedEEEp = "epHltEle<0.0019";
+	//TCut TrackedEEDeta = "dEtaHltEle<0.0011";
+	//TCut TrackedEEDphi = "dPhiHltEle<0.0075";
+	//TCut TrackedEETrackIso = "trackIsoHltEle<0.07";
+	//
+	//TCut TrackedEBSigmaIEIE = "clusterShapeHltEle<0.009";
+	//TCut TrackedEBHE = "hadEmHltEle<0.038";
+	//TCut TrackedEBEcalIso = "ecalIsoHltEle<0.11";
+	//TCut TrackedEBHcalIso = "hcalIsoHltEle<0.1";
+	//TCut TrackedEBEp = "epHltEle<0.0039";
+	//TCut TrackedEBDeta = "dEtaHltEle<0.0017";
+	//TCut TrackedEBDphi = "dPhiHltEle<0.0015";
+	//TCut TrackedEBTrackIso = "trackIsoHltEle<0.044";
+
+	//original trackless leg
+	TCut TracklessPt = "ptHltEle>15.";
+	TCut TracklessEESigmaIEIE = "clusterShapeHltEle<0.031";
+	TCut TracklessEEHE = "hadEmHltEle<0.075";
+	TCut TracklessEEEcalIso = "ecalIsoHltEle<0.2";
+	TCut TracklessEEHcalIso = "hcalIsoHltEle<0.2";
+
+	//optimized trackless leg
+	//TCut TracklessPt = "ptHltEle>25.";
+	//TCut TracklessEESigmaIEIE = "clusterShapeHltEle<0.027";
+	//TCut TracklessEEHE = "hadEmHltEle<0.13";
+	//TCut TracklessEEEcalIso = "ecalIsoHltEle<0.084";
+	//TCut TracklessEEHcalIso = "hcalIsoHltEle<0.37";
+
+	//ultra loose trackless leg
+	//TCut TracklessPt = "ptHltEle>5.";
+	//TCut TracklessEESigmaIEIE = "clusterShapeHltEle<0.127";
+	//TCut TracklessEEHE = "hadEmHltEle<0.33";
+	//TCut TracklessEEEcalIso = "ecalIsoHltEle<0.84";
+	//TCut TracklessEEHcalIso = "hcalIsoHltEle<0.7";
+
+
+
+	TCut TrackedBarrelLeg = TrackedPt+TrackedEBSigmaIEIE+TrackedEBHE+TrackedEBEcalIso+TrackedEBHcalIso+trackedEBHltEta+TrackedEBEp+TrackedEBDeta+TrackedEBDphi+TrackedEBTrackIso;
+	TCut TrackedEndcapLeg = TrackedPt+TrackedEESigmaIEIE+TrackedEEHE+TrackedEEEcalIso+TrackedEEHcalIso+trackedEEHltEta+TrackedEEEp+TrackedEEDeta+TrackedEEDphi+TrackedEETrackIso;
+	TCut TracklessEndcapLeg = TracklessPt+TracklessEESigmaIEIE+TracklessEEHE+TracklessEEEcalIso+TracklessEEHcalIso+tracklessEEHltEta;
+
+	
 	//these are the filtered trees which contain evts passing all tracked and trackless leg selections
-	trackedLowPtBkgndChain->Draw(">>LowPtTrackedLegList",(oldTrackedBarrelLeg || oldTrackedEndcapLeg),"entrylistarray");
-	trackedLowPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("LowPtTrackedLegList") );
-	trackedHighPtBkgndChain->Draw(">>HighPtTrackedLegList",(oldTrackedBarrelLeg || oldTrackedEndcapLeg),"entrylistarray");
-	trackedHighPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("HighPtTrackedLegList") );
-	//matchedTrackedPtChain->Draw(">>trackedLegSignalList",(oldTrackedBarrelLeg || oldTrackedEndcapLeg),"entrylistarray");
-	//matchedTrackedPtChain->SetEntryList((TEntryListArray*) gROOT->FindObject("trackedLegSignalList") );
-	tracklessLowPtBkgndChain->Draw(">>LowPtTracklessLegList",oldTracklessEndcapLeg,"entrylistarray");
-	tracklessLowPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("LowPtTracklessLegList") );
-	tracklessHighPtBkgndChain->Draw(">>HighPtTracklessLegList",oldTracklessEndcapLeg,"entrylistarray");
-	tracklessHighPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("HighPtTracklessLegList") );
-	//matchedTracklessPtChain->Draw(">>tracklessLegSignalList",oldTracklessEndcapLeg,"entrylistarray");
-	//matchedTracklessPtChain->SetEntryList((TEntryListArray*) gROOT->FindObject("tracklessLegSignalList") );
+	//trackedLowPtBkgndChain->Draw(">>LowPtTrackedLegList",(TrackedBarrelLeg || TrackedEndcapLeg),"entrylistarray");
+	//trackedLowPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("LowPtTrackedLegList") );
+	//trackedHighPtBkgndChain->Draw(">>HighPtTrackedLegList",(TrackedBarrelLeg || TrackedEndcapLeg),"entrylistarray");
+	//trackedHighPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("HighPtTrackedLegList") );
+	trackedSignalChain->Draw(">>trackedLegSignalList",(TrackedBarrelLeg || TrackedEndcapLeg),"entrylistarray");
+	trackedSignalChain->SetEntryList((TEntryListArray*) gROOT->FindObject("trackedLegSignalList") );
+	
+	//tracklessLowPtBkgndChain->Draw(">>LowPtTracklessLegList",TracklessEndcapLeg,"entrylistarray");
+	//tracklessLowPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("LowPtTracklessLegList") );
+	//tracklessHighPtBkgndChain->Draw(">>HighPtTracklessLegList",TracklessEndcapLeg,"entrylistarray");
+	//tracklessHighPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("HighPtTracklessLegList") );
+	tracklessSignalChain->Draw(">>tracklessLegSignalList",TracklessEndcapLeg,"entrylistarray");
+	tracklessSignalChain->SetEntryList((TEntryListArray*) gROOT->FindObject("tracklessLegSignalList") );
+	
 
-
-	std::cout<< trackedHighPtBkgndChain->GetEntriesFast() <<" high pt bkgnd evts pass the old tracked leg"<<std::endl;
-	std::cout<< tracklessHighPtBkgndChain->GetEntriesFast() <<" high pt bkgnd evts pass the old trackless leg"<<std::endl;
+	/*
+	std::cout<< trackedHighPtBkgndChain->GetEntryList()->GetN() <<" high pt bkgnd evts pass the  tracked leg"<<std::endl;
+	std::cout<< tracklessHighPtBkgndChain->GetEntryList()->GetN() <<" high pt bkgnd evts pass the  trackless leg"<<std::endl;
 	std::cout<<" "<<std::endl;
-	std::cout<< trackedLowPtBkgndChain->GetEntriesFast() <<" low pt bkgnd evts pass the old tracked leg"<<std::endl;
-	std::cout<< tracklessLowPtBkgndChain->GetEntriesFast() <<" low pt bkgnd evts pass the old trackless leg"<<std::endl;
+	std::cout<< trackedLowPtBkgndChain->GetEntryList()->GetN() <<" low pt bkgnd evts pass the  tracked leg"<<std::endl;
+	std::cout<< tracklessLowPtBkgndChain->GetEntryList()->GetN() <<" low pt bkgnd evts pass the  trackless leg"<<std::endl;
+	std::cout<<" "<<std::endl;
+	*/
+
+	std::cout<< trackedSignalChain->GetEntryList()->GetN() <<" signal evts pass the tracked leg"<<std::endl;
+	std::cout<< tracklessSignalChain->GetEntryList()->GetN() <<" signal evts pass the trackless leg"<<std::endl;
+
+	makeAndSaveOverlayHistoUsingEntryListsDiffCuts(tracklessSignalChain,trackedSignalChain,">>tracklessevtNumberZeroSignalList","tracklessevtNumberZeroSignalList",">>trackedevtNumberZeroSigList","trackedevtNumberZeroSigList","evtNumber>>tracklessevtNumberZeroSig","evtNumber>>trackedevtNumberZeroSig","tracklessevtNumberZeroSig","trackedevtNumberZeroSig","evt number for evts passing trackless (black) and tracked (red) legs","evtNumber","c110",TracklessEndcapLeg,(TrackedBarrelLeg || TrackedEndcapLeg),"evt_num_passing_trackless_or_tracked_legs.png",true,false,false);
+
+
 
 	/*
 	Long64_t numHighPtBkgndEvtsPassing = 0;
@@ -917,8 +964,8 @@ void testMacro(){
 	for(Long64_t z=0;z<copy_trackedHighPtBkgndChain->GetEntriesFast();z++){
 		copy_trackedHighPtBkgndChain->GetEntry(z);
 		//now look to see if this evtNum appears in the trees with selections applied
-		for(Long64_t r=0;r<trackedHighPtBkgndChain->GetEntriesFast();r++){
-			trackedHighPtBkgndChain->GetEntry(r);
+		for(Long64_t r=0;r<trackedHighPtBkgndChain->GetEntryList()->GetN();r++){
+			trackedHighPtBkgndChain->GetEntryList()->GetEntry(r);
 			if(HighPtTrackedEvtNum == filteredHighPtTrackedEvtNum){
 				foundHighPtTrackedEvt = true;
 				break;
@@ -928,8 +975,8 @@ void testMacro(){
 			foundHighPtTrackedEvt = false;
 			//now look to see if the same HighPt evt number appears in the filtered trackless tree
 			//if it does, increment numHighPtBkgndEvtsPassing by 1
-			for(Long64_t g=0;g<tracklessHighPtBkgndChain->GetEntriesFast();g++){
-				tracklessHighPtBkgndChain->GetEntry(g);
+			for(Long64_t g=0;g<tracklessHighPtBkgndChain->GetEntryList()->GetN();g++){
+				tracklessHighPtBkgndChain->GetEntryList()->GetEntry(g);
 				if(HighPtTrackedEvtNum == filteredHighPtTracklessEvtNum){
 					numHighPtBkgndEvtsPassing += 1;
 					break;
@@ -938,9 +985,74 @@ void testMacro(){
 		}//end if(foundHighPtTrackedEvt)
 	}//end loop over evts in unfiltered HighPt bkgnd tuple
 	std::cout<< numHighPtBkgndEvtsPassing << " high pt bkgnd evts passed the old trigger"<<std::endl;
+
+
+	Long64_t numLowPtBkgndEvtsPassing = 0;
+	Bool_t foundLowPtTrackedEvt = false;
+	ULong64_t LowPtTrackedEvtNum;
+	copy_trackedLowPtBkgndChain->SetBranchAddress("evtNumber", &LowPtTrackedEvtNum);
+	ULong64_t filteredLowPtTrackedEvtNum;
+	trackedLowPtBkgndChain->SetBranchAddress("evtNumber",&filteredLowPtTrackedEvtNum);
+	ULong64_t filteredLowPtTracklessEvtNum;
+	tracklessLowPtBkgndChain->SetBranchAddress("evtNumber",&filteredLowPtTracklessEvtNum);
+	for(Long64_t z=0;z<copy_trackedLowPtBkgndChain->GetEntriesFast();z++){
+		copy_trackedLowPtBkgndChain->GetEntry(z);
+		//now look to see if this evtNum appears in the trees with selections applied
+		for(Long64_t r=0;r<trackedLowPtBkgndChain->GetEntryList()->GetN();r++){
+			trackedLowPtBkgndChain->GetEntryList()->GetEntry(r);
+			if(LowPtTrackedEvtNum == filteredLowPtTrackedEvtNum){
+				foundLowPtTrackedEvt = true;
+				break;
+			}//require evt numbers to be equal
+		}//end loop over filtered trackedLowPtBkgnd trees
+		if(foundLowPtTrackedEvt){
+			foundLowPtTrackedEvt = false;
+			//now look to see if the same LowPt evt number appears in the filtered trackless tree
+			//if it does, increment numLowPtBkgndEvtsPassing by 1
+			for(Long64_t g=0;g<tracklessLowPtBkgndChain->GetEntryList()->GetN();g++){
+				tracklessLowPtBkgndChain->GetEntryList()->GetEntry(g);
+				if(LowPtTrackedEvtNum == filteredLowPtTracklessEvtNum){
+					numLowPtBkgndEvtsPassing += 1;
+					break;
+				}
+			}//end loop over trackless, Low pt bkgnd evts
+		}//end if(foundLowPtTrackedEvt)
+	}//end loop over evts in unfiltered LowPt bkgnd tuple
+	std::cout<< numLowPtBkgndEvtsPassing << " low pt bkgnd evts passed the old trigger"<<std::endl;
 	*/
 
 
+	/*
+	Long64_t numSignalEvtsPassing = 0;
+	
+	ULong64_t filteredSignalTrackedEvtNum;
+	trackedSignalChain->SetBranchAddress("evtNumber",&filteredSignalTrackedEvtNum);
+
+	Long64_t filteredSignalTracklessEvtNum;
+	tracklessSignalChain->SetBranchAddress("evtNumber",&filteredSignalTracklessEvtNum);
+	for(Long64_t z=0;z<tracklessSignalChain->GetEntryList()->GetN();z++){
+		tracklessSignalChain->GetEntryList()->GetEntry(z);
+		if(z==0) std::cout<<"trackless evt num = "<< filteredSignalTracklessEvtNum <<std::endl;
+		if(z==1) std::cout<<"trackless evt num = "<< filteredSignalTracklessEvtNum <<std::endl;
+		if(z==2) std::cout<<"trackless evt num = "<< filteredSignalTracklessEvtNum <<std::endl;
+		//now look to see if this evtNum appears in the trees with selections applied
+		for(Long64_t r=0;r<trackedSignalChain->GetEntryList()->GetN();r++){
+			trackedSignalChain->GetEntryList()->GetEntry(r);
+			//if(r==0) std::cout<<"tracked evt num = "<< filteredSignalTrackedEvtNum <<std::endl;
+			//if(r==1) std::cout<<"tracked evt num = "<< filteredSignalTrackedEvtNum <<std::endl;
+			//if(r==2) std::cout<<"tracked evt num = "<< filteredSignalTrackedEvtNum <<std::endl;
+			if(TMath::AreEqualRel(filteredSignalTracklessEvtNum, filteredSignalTrackedEvtNum,1.8)){
+				std::cout<<"found a matching tracked signal evt"<<std::endl;
+				numSignalEvtsPassing += 1;
+				break;
+			}//require evt numbers to be equal
+		}//end loop over filtered trackedSignal trees
+	}//end loop over evts in filtered trackless signal tuple
+	std::cout<<" "<<std::endl;
+	std::cout<< numSignalEvtsPassing << " signal evts passed the old trigger"<<std::endl;
+	std::cout<<" "<<std::endl;
+	*/
+	
 	gStyle->SetOptStat(1111);
 
 	//matchedRecoToGenOverlayHistos(matchedTrackedSignalChain,genMllRange+trackedEEHltHighEta, matchedTracklessSignalChain,genMllRange+tracklessEEHltEta);
