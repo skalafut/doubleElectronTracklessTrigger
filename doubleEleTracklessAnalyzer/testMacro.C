@@ -20,6 +20,30 @@
 //#include <array>
 #include <vector>
 
+
+//use this fxn to add a new branch containing rescaledEvtNumber (Double_t) values to TTrees in a TChain
+//rescaledEvtNumber = TMath::Log(evtNumber)
+//cannot call chain->Fill() 
+/*
+void addRescaledEvtNumber(TChain * chain){
+	ULong64_t treeEvtNum;
+	chain->SetBranchAddress("evtNumber",&treeEvtNum);
+	std::cout<<"chain->GetEntries() returns "<< chain->GetEntries() <<std::endl;
+	Double_t rescaledEvtNumber;
+	chain->Branch("rescaledEvtNumber",&rescaledEvtNumber,"rescaledEvtNumber/D");
+	for(Long64_t h=0;h<3;h++){
+		chain->GetEntry(h);
+		if(h==0) std::cout<< treeEvtNum <<std::endl;
+		if(h==1) std::cout<< treeEvtNum <<std::endl;
+		rescaledEvtNumber = TMath::Log(treeEvtNum);
+		std::cout<<"rescaledEvtNumber = " << rescaledEvtNumber << std::endl;
+		chain->Fill();
+	}//end loop over entries in chain
+
+}//end addRescaledEvtNumber(TChain * chain)
+*/
+
+
 //use this fxn to make a histogram of a kinematic or isolation variable for matched signal objects,
 //and objects from bkgnd files.  The matched signal objects will be subject to a slightly different
 //set of cuts than the objects from bkgnd events, but only because some deltaR filtering will be done
@@ -448,7 +472,7 @@ void matchedRecoToGenOverlayHistos(TChain * trackedChain,TCut trackedCuts,TChain
 //two TChains, two listFillArgs, two list names, two histPlotArgs, two histNames, one histTitle,
 //one xAxisTitle, one canvName, two TCut objects, one outputFile, and two Bool_t args are given
 //to this fxn as inputs
-void makeAndSaveOverlayHistoUsingEntryListsDiffCuts(TChain * sigChain,TChain * bkgndChain,TString sigListFillArgs,TString sigListName,TString bkgndListFillArgs,TString bkgndListName,TString sigHistPlotArg,TString bkgndHistPlotArg,TString sigHistName,TString bkgndHistName,TString histTitle,TString xAxisTitle,TString canvName,TCut sigFilters,TCut bkgndFilters,TString outputFile,Bool_t isPlottingEnergy,Bool_t isPlottingInverseEnergy,Bool_t doScaling){
+Float_t makeAndSaveOverlayHistoUsingEntryListsDiffCuts(TChain * sigChain,TChain * bkgndChain,TString sigListFillArgs,TString sigListName,TString bkgndListFillArgs,TString bkgndListName,TString sigHistPlotArg,TString bkgndHistPlotArg,TString sigHistName,TString bkgndHistName,TString histTitle,TString xAxisTitle,TString canvName,TCut sigFilters,TCut bkgndFilters,TString outputFile,Bool_t isPlottingEnergy,Bool_t isPlottingInverseEnergy,Bool_t doScaling,Bool_t doLogX){
 	sigChain->Draw(sigListFillArgs,sigFilters,"entrylistarray");
 	sigChain->SetEntryList((TEntryListArray*) gROOT->FindObject(sigListName) );
 	bkgndChain->Draw(bkgndListFillArgs,bkgndFilters,"entrylistarray");
@@ -467,6 +491,9 @@ void makeAndSaveOverlayHistoUsingEntryListsDiffCuts(TChain * sigChain,TChain * b
 		sigHist->Scale(1/sigIntegral);
 		Double_t bkgndIntegral = bkgndHist->Integral();
 		bkgndHist->Scale(1/bkgndIntegral);
+	}
+	if(doLogX){
+		canv->SetLogx(1);
 	}
 	sigHist->SetLineColor(1);	//black
 	bkgndHist->SetLineColor(2);	//red
@@ -517,10 +544,72 @@ void makeAndSaveOverlayHistoUsingEntryListsDiffCuts(TChain * sigChain,TChain * b
 	}
 	std::cout<<"sigHist has "<< sigHist->GetEntries() <<" entries"<<std::endl;
 	std::cout<<"bkgndHist has "<< bkgndHist->GetEntries() <<" entries"<<std::endl;
+	std::cout<<" "<<std::endl;
 	sigHist->GetYaxis()->SetTitle(temp);
 	sigHist->Draw();
 	bkgndHist->Draw("same");
 	canv->SaveAs(outputFile,"recreate");
+	Float_t numOverlappingEntries = 0;
+	if(sigHistName.Contains("evtNumber")){
+		//determine how many entries in the sigChain histo also appear in the bkgndChain histo
+		//this should only be used when plotting evtNumber
+		if(sigHist->GetBinContent(sigHist->GetNbinsX()+1) > 0 || bkgndHist->GetBinContent(bkgndHist->GetNbinsX()+1) > 0){
+			std::cout<<"there are overflow evt numbers. increase x axis upper limit and number of bins"<<std::endl;
+			return numOverlappingEntries;
+		}
+
+		std::vector<Int_t> origBinsWithContent;
+		if(sigHist->GetEntries() <= bkgndHist->GetEntries() ){
+
+			for(Int_t i=1;i<=sigHist->GetNbinsX();i++){
+				if(sigHist->GetBinContent(i) > 1){
+					std::cout<<"found a bin with more than 1 entry. Increase number of bins and/or decrease xMax"<<std::endl;
+					return numOverlappingEntries;
+				}
+				if(sigHist->GetBinContent(i) == 1){
+					origBinsWithContent.push_back(i);
+				}//end requirement that bin has nonzero contents
+			}//end loop over bins in original sigHist
+			TH1 * newSigHist = sigHist->Rebin(1,"newSigHist");
+			TH1 * newBkgndHist = bkgndHist->Rebin(1,"newBkgndHist");
+			newSigHist->Add(newBkgndHist,-1.);
+			for(Int_t j=0;j<origBinsWithContent.size();j++){
+				//count how many of the original bins which had nonzero bin content
+				//that now have bin content = 0
+				if(newSigHist->GetBinContent(origBinsWithContent[j]) == 0){
+					numOverlappingEntries += 1;
+				}
+			}//end loop over origBinsWithContent
+
+		}//end if(fewer entries in sigHist than bkgndHist)
+		
+		if(sigHist->GetEntries() > bkgndHist->GetEntries() ){
+
+			for(Int_t i=1;i<=bkgndHist->GetNbinsX();i++){
+				if(bkgndHist->GetBinContent(i) > 1){
+					std::cout<<"found a bin with more than 1 entry. Increase number of bins and/or decrease xMax"<<std::endl;
+					return numOverlappingEntries;
+				}
+				if(bkgndHist->GetBinContent(i) == 1){
+					origBinsWithContent.push_back(i);
+				}//end requirement that bin has nonzero contents
+			}//end loop over bins in original bkgndHist
+			TH1 * newSigHist = sigHist->Rebin(1,"newSigHist");
+			TH1 * newBkgndHist = bkgndHist->Rebin(1,"newBkgndHist");
+			newBkgndHist->Add(newSigHist,-1.);
+			for(Int_t j=0;j<origBinsWithContent.size();j++){
+				//count how many of the original bins which had nonzero bin content
+				//that now have bin content = 0
+				if(newBkgndHist->GetBinContent(origBinsWithContent[j]) == 0){
+					numOverlappingEntries += 1;
+				}
+			}//end loop over origBinsWithContent
+
+		}//end if(more entries in sigHist than bkgndHist)
+
+	}
+	std::cout<<"numOverlappingEntries = "<< numOverlappingEntries << std::endl;
+	return numOverlappingEntries;
 	
 }//end makeAndSaveOverlayHistoUsingEntryListsDiffCuts()
 
@@ -851,208 +940,151 @@ void testMacro(){
 
 	//tracked and trackless leg cuts from old trigger used in 2012
 	//original tracked leg
-	TCut TrackedPt = "ptHltEle>27.";
-	TCut TrackedEESigmaIEIE = "clusterShapeHltEle<0.031";
-	TCut TrackedEEHE = "hadEmHltEle<0.075";
-	TCut TrackedEEEcalIso = "ecalIsoHltEle<0.11";
-	TCut TrackedEEHcalIso = "hcalIsoHltEle<0.11";
+	TCut originalTrackedPt = "ptHltEle>27.";
+	TCut originalTrackedEESigmaIEIE = "clusterShapeHltEle<0.031";
+	TCut originalTrackedEEHE = "hadEmHltEle<0.075";
+	TCut originalTrackedEEEcalIso = "ecalIsoHltEle<0.11";
+	TCut originalTrackedEEHcalIso = "hcalIsoHltEle<0.11";
 	
-	TCut TrackedEEEp = "epHltEle<0.009";
-	TCut TrackedEEDeta = "dEtaHltEle<0.01";
-	TCut TrackedEEDphi = "dPhiHltEle<0.03";
-	TCut TrackedEETrackIso = "trackIsoHltEle<0.125";
-	TCut TrackedEBSigmaIEIE = "clusterShapeHltEle<0.011";
-	TCut TrackedEBHE = "hadEmHltEle<0.1";
-	TCut TrackedEBEcalIso = "ecalIsoHltEle<0.16";
-	TCut TrackedEBHcalIso = "hcalIsoHltEle<0.11";
-	TCut TrackedEBEp = "epHltEle<0.012";
-	TCut TrackedEBDeta = "dEtaHltEle<0.005";
-	TCut TrackedEBDphi = "dPhiHltEle<0.03";
-	TCut TrackedEBTrackIso = "trackIsoHltEle<0.125";
-
-
-	//optimized tracked leg
-	//TCut TrackedPt = "ptHltEle>31.";
-	//TCut TrackedEESigmaIEIE = "clusterShapeHltEle<0.027";
-	//TCut TrackedEEHE = "hadEmHltEle<0.063";
-	//TCut TrackedEEEcalIso = "ecalIsoHltEle<0.084";
-	//TCut TrackedEEHcalIso = "hcalIsoHltEle<0.14";
-	//
-	//TCut TrackedEEEp = "epHltEle<0.0019";
-	//TCut TrackedEEDeta = "dEtaHltEle<0.0011";
-	//TCut TrackedEEDphi = "dPhiHltEle<0.0075";
-	//TCut TrackedEETrackIso = "trackIsoHltEle<0.07";
-	//
-	//TCut TrackedEBSigmaIEIE = "clusterShapeHltEle<0.009";
-	//TCut TrackedEBHE = "hadEmHltEle<0.038";
-	//TCut TrackedEBEcalIso = "ecalIsoHltEle<0.11";
-	//TCut TrackedEBHcalIso = "hcalIsoHltEle<0.1";
-	//TCut TrackedEBEp = "epHltEle<0.0039";
-	//TCut TrackedEBDeta = "dEtaHltEle<0.0017";
-	//TCut TrackedEBDphi = "dPhiHltEle<0.0015";
-	//TCut TrackedEBTrackIso = "trackIsoHltEle<0.044";
+	TCut originalTrackedEEEp = "epHltEle<0.009";
+	TCut originalTrackedEEDeta = "dEtaHltEle<0.01";
+	TCut originalTrackedEEDphi = "dPhiHltEle<0.03";
+	TCut originalTrackedEETrackIso = "trackIsoHltEle<0.125";
+	TCut originalTrackedEBSigmaIEIE = "clusterShapeHltEle<0.011";
+	TCut originalTrackedEBHE = "hadEmHltEle<0.1";
+	TCut originalTrackedEBEcalIso = "ecalIsoHltEle<0.16";
+	TCut originalTrackedEBHcalIso = "hcalIsoHltEle<0.11";
+	TCut originalTrackedEBEp = "epHltEle<0.012";
+	TCut originalTrackedEBDeta = "dEtaHltEle<0.005";
+	TCut originalTrackedEBDphi = "dPhiHltEle<0.03";
+	TCut originalTrackedEBTrackIso = "trackIsoHltEle<0.125";
 
 	//original trackless leg
-	TCut TracklessPt = "ptHltEle>15.";
-	TCut TracklessEESigmaIEIE = "clusterShapeHltEle<0.031";
-	TCut TracklessEEHE = "hadEmHltEle<0.075";
-	TCut TracklessEEEcalIso = "ecalIsoHltEle<0.2";
-	TCut TracklessEEHcalIso = "hcalIsoHltEle<0.2";
-
-	//optimized trackless leg
-	//TCut TracklessPt = "ptHltEle>25.";
-	//TCut TracklessEESigmaIEIE = "clusterShapeHltEle<0.027";
-	//TCut TracklessEEHE = "hadEmHltEle<0.13";
-	//TCut TracklessEEEcalIso = "ecalIsoHltEle<0.084";
-	//TCut TracklessEEHcalIso = "hcalIsoHltEle<0.37";
-
-	//ultra loose trackless leg
-	//TCut TracklessPt = "ptHltEle>5.";
-	//TCut TracklessEESigmaIEIE = "clusterShapeHltEle<0.127";
-	//TCut TracklessEEHE = "hadEmHltEle<0.33";
-	//TCut TracklessEEEcalIso = "ecalIsoHltEle<0.84";
-	//TCut TracklessEEHcalIso = "hcalIsoHltEle<0.7";
+	TCut originalTracklessPt = "ptHltEle>15.";
+	TCut originalTracklessEESigmaIEIE = "clusterShapeHltEle<0.031";
+	TCut originalTracklessEEHE = "hadEmHltEle<0.075";
+	TCut originalTracklessEEEcalIso = "ecalIsoHltEle<0.2";
+	TCut originalTracklessEEHcalIso = "hcalIsoHltEle<0.2";
 
 
+	//optimized tracked leg 
+	TCut optimizedTrackedPt = "ptHltEle>31.";
+	TCut optimizedTrackedEESigmaIEIE = "clusterShapeHltEle<0.027";
+	TCut optimizedTrackedEEHE = "hadEmHltEle<0.063";
+	TCut optimizedTrackedEEEcalIso = "ecalIsoHltEle<0.084";
+	TCut optimizedTrackedEEHcalIso = "hcalIsoHltEle<0.14";
+	
+	TCut optimizedTrackedEEEp = "epHltEle<0.0019";
+	TCut optimizedTrackedEEDeta = "dEtaHltEle<0.0011";
+	TCut optimizedTrackedEEDphi = "dPhiHltEle<0.0075";
+	TCut optimizedTrackedEETrackIso = "trackIsoHltEle<0.07";
+	
+	TCut optimizedTrackedEBSigmaIEIE = "clusterShapeHltEle<0.009";
+	TCut optimizedTrackedEBHE = "hadEmHltEle<0.038";
+	TCut optimizedTrackedEBEcalIso = "ecalIsoHltEle<0.11";
+	TCut optimizedTrackedEBHcalIso = "hcalIsoHltEle<0.1";
+	TCut optimizedTrackedEBEp = "epHltEle<0.0039";
+	TCut optimizedTrackedEBDeta = "dEtaHltEle<0.0017";
+	TCut optimizedTrackedEBDphi = "dPhiHltEle<0.0015";
+	TCut optimizedTrackedEBTrackIso = "trackIsoHltEle<0.044";
 
-	TCut TrackedBarrelLeg = TrackedPt+TrackedEBSigmaIEIE+TrackedEBHE+TrackedEBEcalIso+TrackedEBHcalIso+trackedEBHltEta+TrackedEBEp+TrackedEBDeta+TrackedEBDphi+TrackedEBTrackIso;
-	TCut TrackedEndcapLeg = TrackedPt+TrackedEESigmaIEIE+TrackedEEHE+TrackedEEEcalIso+TrackedEEHcalIso+trackedEEHltEta+TrackedEEEp+TrackedEEDeta+TrackedEEDphi+TrackedEETrackIso;
-	TCut TracklessEndcapLeg = TracklessPt+TracklessEESigmaIEIE+TracklessEEHE+TracklessEEEcalIso+TracklessEEHcalIso+tracklessEEHltEta;
+
+	//optimized trackless leg 
+	TCut optimizedTracklessPt = "ptHltEle>25.";
+	TCut optimizedTracklessEESigmaIEIE = "clusterShapeHltEle<0.027";
+	TCut optimizedTracklessEEHE = "hadEmHltEle<0.13";
+	TCut optimizedTracklessEEEcalIso = "ecalIsoHltEle<0.084";
+	TCut optimizedTracklessEEHcalIso = "hcalIsoHltEle<0.37";
+
+
+	////tracked and trackless leg cuts for playing around
+	TCut trialTrackedPt = "ptHltEle>27.";
+	TCut trialTrackedEESigmaIEIE = "clusterShapeHltEle<0.031";
+	TCut trialTrackedEEHE = "hadEmHltEle<0.075";
+	TCut trialTrackedEEEcalIso = "ecalIsoHltEle<0.11";
+	TCut trialTrackedEEHcalIso = "hcalIsoHltEle<0.11";
+	
+	TCut trialTrackedEEEp = "epHltEle<0.009";
+	TCut trialTrackedEEDeta = "dEtaHltEle<0.01";
+	TCut trialTrackedEEDphi = "dPhiHltEle<0.03";
+	TCut trialTrackedEETrackIso = "trackIsoHltEle<0.125";
+	TCut trialTrackedEBSigmaIEIE = "clusterShapeHltEle<0.011";
+	TCut trialTrackedEBHE = "hadEmHltEle<0.1";
+	TCut trialTrackedEBEcalIso = "ecalIsoHltEle<0.16";
+	TCut trialTrackedEBHcalIso = "hcalIsoHltEle<0.11";
+	TCut trialTrackedEBEp = "epHltEle<0.012";
+	TCut trialTrackedEBDeta = "dEtaHltEle<0.005";
+	TCut trialTrackedEBDphi = "dPhiHltEle<0.03";
+	TCut trialTrackedEBTrackIso = "trackIsoHltEle<0.125";
+	
+	TCut trialTracklessPt = "ptHltEle>25.";
+	TCut trialTracklessEESigmaIEIE = "clusterShapeHltEle<0.027";
+	TCut trialTracklessEEHE = "hadEmHltEle<0.13";
+	TCut trialTracklessEEEcalIso = "ecalIsoHltEle<0.084";
+	TCut trialTracklessEEHcalIso = "hcalIsoHltEle<0.37";
+
+
+
+
+
+
+	TCut originalTrackedBarrelLeg = originalTrackedPt+originalTrackedEBSigmaIEIE+originalTrackedEBHE+originalTrackedEBEcalIso+originalTrackedEBHcalIso+trackedEBHltEta+originalTrackedEBEp+originalTrackedEBDeta+originalTrackedEBDphi+originalTrackedEBTrackIso;
+	TCut originalTrackedEndcapLeg = originalTrackedPt+originalTrackedEESigmaIEIE+originalTrackedEEHE+originalTrackedEEEcalIso+originalTrackedEEHcalIso+trackedEEHltEta+originalTrackedEEEp+originalTrackedEEDeta+originalTrackedEEDphi+originalTrackedEETrackIso;
+	TCut originalTracklessEndcapLeg = originalTracklessPt+originalTracklessEESigmaIEIE+originalTracklessEEHE+originalTracklessEEEcalIso+originalTracklessEEHcalIso+tracklessEEHltEta;
+
+	TCut optimizedTrackedBarrelLeg = optimizedTrackedPt+optimizedTrackedEBSigmaIEIE+optimizedTrackedEBHE+optimizedTrackedEBEcalIso+optimizedTrackedEBHcalIso+trackedEBHltEta+optimizedTrackedEBEp+optimizedTrackedEBDeta+optimizedTrackedEBDphi+optimizedTrackedEBTrackIso;
+	TCut optimizedTrackedEndcapLeg = optimizedTrackedPt+optimizedTrackedEESigmaIEIE+optimizedTrackedEEHE+optimizedTrackedEEEcalIso+optimizedTrackedEEHcalIso+trackedEEHltEta+optimizedTrackedEEEp+optimizedTrackedEEDeta+optimizedTrackedEEDphi+optimizedTrackedEETrackIso;
+	TCut optimizedTracklessEndcapLeg = optimizedTracklessPt+optimizedTracklessEESigmaIEIE+optimizedTracklessEEHE+optimizedTracklessEEEcalIso+optimizedTracklessEEHcalIso+tracklessEEHltEta;
+
+	TCut trialTrackedBarrelLeg = trialTrackedPt+trialTrackedEBSigmaIEIE+trialTrackedEBHE+trialTrackedEBEcalIso+trialTrackedEBHcalIso+trackedEBHltEta+trialTrackedEBEp+trialTrackedEBDeta+trialTrackedEBDphi+trialTrackedEBTrackIso;
+	TCut trialTrackedEndcapLeg = trialTrackedPt+trialTrackedEESigmaIEIE+trialTrackedEEHE+trialTrackedEEEcalIso+trialTrackedEEHcalIso+trackedEEHltEta+trialTrackedEEEp+trialTrackedEEDeta+trialTrackedEEDphi+trialTrackedEETrackIso;
+	TCut trialTracklessEndcapLeg = trialTracklessPt+trialTracklessEESigmaIEIE+trialTracklessEEHE+trialTracklessEEEcalIso+trialTracklessEEHcalIso+tracklessEEHltEta;
+
 
 	
 	//these are the filtered trees which contain evts passing all tracked and trackless leg selections
-	//trackedLowPtBkgndChain->Draw(">>LowPtTrackedLegList",(TrackedBarrelLeg || TrackedEndcapLeg),"entrylistarray");
-	//trackedLowPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("LowPtTrackedLegList") );
-	//trackedHighPtBkgndChain->Draw(">>HighPtTrackedLegList",(TrackedBarrelLeg || TrackedEndcapLeg),"entrylistarray");
-	//trackedHighPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("HighPtTrackedLegList") );
-	trackedSignalChain->Draw(">>trackedLegSignalList",(TrackedBarrelLeg || TrackedEndcapLeg),"entrylistarray");
+	trackedLowPtBkgndChain->Draw(">>LowPtoriginalTrackedLegList",(originalTrackedBarrelLeg || originalTrackedEndcapLeg),"entrylistarray");
+	trackedLowPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("LowPtoriginalTrackedLegList") );
+	trackedHighPtBkgndChain->Draw(">>HighPtoriginalTrackedLegList",(originalTrackedBarrelLeg || originalTrackedEndcapLeg),"entrylistarray");
+	trackedHighPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("HighPtoriginalTrackedLegList") );
+	trackedSignalChain->Draw(">>trackedLegSignalList",(originalTrackedBarrelLeg || originalTrackedEndcapLeg),"entrylistarray");
 	trackedSignalChain->SetEntryList((TEntryListArray*) gROOT->FindObject("trackedLegSignalList") );
 	
-	//tracklessLowPtBkgndChain->Draw(">>LowPtTracklessLegList",TracklessEndcapLeg,"entrylistarray");
-	//tracklessLowPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("LowPtTracklessLegList") );
-	//tracklessHighPtBkgndChain->Draw(">>HighPtTracklessLegList",TracklessEndcapLeg,"entrylistarray");
-	//tracklessHighPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("HighPtTracklessLegList") );
-	tracklessSignalChain->Draw(">>tracklessLegSignalList",TracklessEndcapLeg,"entrylistarray");
+	tracklessLowPtBkgndChain->Draw(">>LowPtoriginalTracklessLegList",originalTracklessEndcapLeg,"entrylistarray");
+	tracklessLowPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("LowPtoriginalTracklessLegList") );
+	tracklessHighPtBkgndChain->Draw(">>HighPtoriginalTracklessLegList",originalTracklessEndcapLeg,"entrylistarray");
+	tracklessHighPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("HighPtoriginalTracklessLegList") );
+	tracklessSignalChain->Draw(">>tracklessLegSignalList",originalTracklessEndcapLeg,"entrylistarray");
 	tracklessSignalChain->SetEntryList((TEntryListArray*) gROOT->FindObject("tracklessLegSignalList") );
 	
 
-	/*
-	std::cout<< trackedHighPtBkgndChain->GetEntryList()->GetN() <<" high pt bkgnd evts pass the  tracked leg"<<std::endl;
-	std::cout<< tracklessHighPtBkgndChain->GetEntryList()->GetN() <<" high pt bkgnd evts pass the  trackless leg"<<std::endl;
+	std::cout<< trackedHighPtBkgndChain->GetEntryList()->GetN() <<" high pt bkgnd evts pass the tracked leg"<<std::endl;
+	std::cout<< tracklessHighPtBkgndChain->GetEntryList()->GetN() <<" high pt bkgnd evts pass the trackless leg"<<std::endl;
 	std::cout<<" "<<std::endl;
-	std::cout<< trackedLowPtBkgndChain->GetEntryList()->GetN() <<" low pt bkgnd evts pass the  tracked leg"<<std::endl;
-	std::cout<< tracklessLowPtBkgndChain->GetEntryList()->GetN() <<" low pt bkgnd evts pass the  trackless leg"<<std::endl;
+	
+	std::cout<< trackedLowPtBkgndChain->GetEntryList()->GetN() <<" low pt bkgnd evts pass the tracked leg"<<std::endl;
+	std::cout<< tracklessLowPtBkgndChain->GetEntryList()->GetN() <<" low pt bkgnd evts pass the trackless leg"<<std::endl;
 	std::cout<<" "<<std::endl;
-	*/
 
 	std::cout<< trackedSignalChain->GetEntryList()->GetN() <<" signal evts pass the tracked leg"<<std::endl;
 	std::cout<< tracklessSignalChain->GetEntryList()->GetN() <<" signal evts pass the trackless leg"<<std::endl;
-
-	makeAndSaveOverlayHistoUsingEntryListsDiffCuts(tracklessSignalChain,trackedSignalChain,">>tracklessevtNumberZeroSignalList","tracklessevtNumberZeroSignalList",">>trackedevtNumberZeroSigList","trackedevtNumberZeroSigList","evtNumber>>tracklessevtNumberZeroSig","evtNumber>>trackedevtNumberZeroSig","tracklessevtNumberZeroSig","trackedevtNumberZeroSig","evt number for evts passing trackless (black) and tracked (red) legs","evtNumber","c110",TracklessEndcapLeg,(TrackedBarrelLeg || TrackedEndcapLeg),"evt_num_passing_trackless_or_tracked_legs.png",true,false,false);
-
+	std::cout<<" "<<std::endl;
 
 
 	/*
-	Long64_t numHighPtBkgndEvtsPassing = 0;
-	Bool_t foundHighPtTrackedEvt = false;
-	ULong64_t HighPtTrackedEvtNum;
-	copy_trackedHighPtBkgndChain->SetBranchAddress("evtNumber", &HighPtTrackedEvtNum);
-	ULong64_t filteredHighPtTrackedEvtNum;
-	trackedHighPtBkgndChain->SetBranchAddress("evtNumber",&filteredHighPtTrackedEvtNum);
-	ULong64_t filteredHighPtTracklessEvtNum;
-	tracklessHighPtBkgndChain->SetBranchAddress("evtNumber",&filteredHighPtTracklessEvtNum);
-	for(Long64_t z=0;z<copy_trackedHighPtBkgndChain->GetEntriesFast();z++){
-		copy_trackedHighPtBkgndChain->GetEntry(z);
-		//now look to see if this evtNum appears in the trees with selections applied
-		for(Long64_t r=0;r<trackedHighPtBkgndChain->GetEntryList()->GetN();r++){
-			trackedHighPtBkgndChain->GetEntryList()->GetEntry(r);
-			if(HighPtTrackedEvtNum == filteredHighPtTrackedEvtNum){
-				foundHighPtTrackedEvt = true;
-				break;
-			}//require evt numbers to be equal
-		}//end loop over filtered trackedHighPtBkgnd trees
-		if(foundHighPtTrackedEvt){
-			foundHighPtTrackedEvt = false;
-			//now look to see if the same HighPt evt number appears in the filtered trackless tree
-			//if it does, increment numHighPtBkgndEvtsPassing by 1
-			for(Long64_t g=0;g<tracklessHighPtBkgndChain->GetEntryList()->GetN();g++){
-				tracklessHighPtBkgndChain->GetEntryList()->GetEntry(g);
-				if(HighPtTrackedEvtNum == filteredHighPtTracklessEvtNum){
-					numHighPtBkgndEvtsPassing += 1;
-					break;
-				}
-			}//end loop over trackless, High pt bkgnd evts
-		}//end if(foundHighPtTrackedEvt)
-	}//end loop over evts in unfiltered HighPt bkgnd tuple
-	std::cout<< numHighPtBkgndEvtsPassing << " high pt bkgnd evts passed the old trigger"<<std::endl;
+	makeAndSaveOverlayHistoUsingEntryListsDiffCuts(tracklessSignalChain,trackedSignalChain,">>tracklessevtNumberZeroSignalList","tracklessevtNumberZeroSignalList",">>trackedevtNumberZeroSignalList","trackedevtNumberZeroSignalList","TMath::Log(evtNumber)>>tracklessevtNumberZeroSignal(100000000,0.,22.)","TMath::Log(evtNumber)>>trackedevtNumberZeroSignal(100000000,0.,22.)","tracklessevtNumberZeroSignal","trackedevtNumberZeroSignal","evt number for Signal evts passing trackless (black) or tracked (red) legs","evtNumber","c110",originalTracklessEndcapLeg,(originalTrackedBarrelLeg || originalTrackedEndcapLeg),"evt_num_passing_originalTrackless_or_originalTracked_legs_Signal_unmatched.png",false,false,false,false);
 
+	makeAndSaveOverlayHistoUsingEntryListsDiffCuts(tracklessLowPtBkgndChain,trackedLowPtBkgndChain,">>tracklessevtNumberZeroLowPtBkgndList","tracklessevtNumberZeroLowPtBkgndList",">>trackedevtNumberZeroLowPtBkgndList","trackedevtNumberZeroLowPtBkgndList","TMath::Log(evtNumber)>>tracklessevtNumberZeroLowPtBkgnd(100000000,0.,22.)","TMath::Log(evtNumber)>>trackedevtNumberZeroLowPtBkgnd(100000000,0.,22.)","tracklessevtNumberZeroLowPtBkgnd","trackedevtNumberZeroLowPtBkgnd","evt number for LowPtBkgnd evts passing trackless (black) or tracked (red) legs","evtNumber","c111",originalTracklessEndcapLeg,(originalTrackedBarrelLeg || originalTrackedEndcapLeg),"evt_num_passing_originalTrackless_or_originalTracked_legs_LowPtBkgnd.png",false,false,false,false);
 
-	Long64_t numLowPtBkgndEvtsPassing = 0;
-	Bool_t foundLowPtTrackedEvt = false;
-	ULong64_t LowPtTrackedEvtNum;
-	copy_trackedLowPtBkgndChain->SetBranchAddress("evtNumber", &LowPtTrackedEvtNum);
-	ULong64_t filteredLowPtTrackedEvtNum;
-	trackedLowPtBkgndChain->SetBranchAddress("evtNumber",&filteredLowPtTrackedEvtNum);
-	ULong64_t filteredLowPtTracklessEvtNum;
-	tracklessLowPtBkgndChain->SetBranchAddress("evtNumber",&filteredLowPtTracklessEvtNum);
-	for(Long64_t z=0;z<copy_trackedLowPtBkgndChain->GetEntriesFast();z++){
-		copy_trackedLowPtBkgndChain->GetEntry(z);
-		//now look to see if this evtNum appears in the trees with selections applied
-		for(Long64_t r=0;r<trackedLowPtBkgndChain->GetEntryList()->GetN();r++){
-			trackedLowPtBkgndChain->GetEntryList()->GetEntry(r);
-			if(LowPtTrackedEvtNum == filteredLowPtTrackedEvtNum){
-				foundLowPtTrackedEvt = true;
-				break;
-			}//require evt numbers to be equal
-		}//end loop over filtered trackedLowPtBkgnd trees
-		if(foundLowPtTrackedEvt){
-			foundLowPtTrackedEvt = false;
-			//now look to see if the same LowPt evt number appears in the filtered trackless tree
-			//if it does, increment numLowPtBkgndEvtsPassing by 1
-			for(Long64_t g=0;g<tracklessLowPtBkgndChain->GetEntryList()->GetN();g++){
-				tracklessLowPtBkgndChain->GetEntryList()->GetEntry(g);
-				if(LowPtTrackedEvtNum == filteredLowPtTracklessEvtNum){
-					numLowPtBkgndEvtsPassing += 1;
-					break;
-				}
-			}//end loop over trackless, Low pt bkgnd evts
-		}//end if(foundLowPtTrackedEvt)
-	}//end loop over evts in unfiltered LowPt bkgnd tuple
-	std::cout<< numLowPtBkgndEvtsPassing << " low pt bkgnd evts passed the old trigger"<<std::endl;
 	*/
 
+	makeAndSaveOverlayHistoUsingEntryListsDiffCuts(tracklessHighPtBkgndChain,trackedHighPtBkgndChain,">>tracklessevtNumberZeroHighPtBkgndList","tracklessevtNumberZeroHighPtBkgndList",">>trackedevtNumberZeroHighPtBkgndList","trackedevtNumberZeroHighPtBkgndList","TMath::Log(evtNumber)>>tracklessevtNumberZeroHighPtBkgnd(100000000,0.,22.)","TMath::Log(evtNumber)>>trackedevtNumberZeroHighPtBkgnd(100000000,0.,22.)","tracklessevtNumberZeroHighPtBkgnd","trackedevtNumberZeroHighPtBkgnd","evt number for HighPtBkgnd evts passing trackless (black) or tracked (red) legs","evtNumber","c112",originalTracklessEndcapLeg,(originalTrackedBarrelLeg || originalTrackedEndcapLeg),"evt_num_passing_originalTrackless_or_originalTracked_legs_HighPtBkgnd.png",false,false,false,false);
 
-	/*
-	Long64_t numSignalEvtsPassing = 0;
-	
-	ULong64_t filteredSignalTrackedEvtNum;
-	trackedSignalChain->SetBranchAddress("evtNumber",&filteredSignalTrackedEvtNum);
 
-	Long64_t filteredSignalTracklessEvtNum;
-	tracklessSignalChain->SetBranchAddress("evtNumber",&filteredSignalTracklessEvtNum);
-	for(Long64_t z=0;z<tracklessSignalChain->GetEntryList()->GetN();z++){
-		tracklessSignalChain->GetEntryList()->GetEntry(z);
-		if(z==0) std::cout<<"trackless evt num = "<< filteredSignalTracklessEvtNum <<std::endl;
-		if(z==1) std::cout<<"trackless evt num = "<< filteredSignalTracklessEvtNum <<std::endl;
-		if(z==2) std::cout<<"trackless evt num = "<< filteredSignalTracklessEvtNum <<std::endl;
-		//now look to see if this evtNum appears in the trees with selections applied
-		for(Long64_t r=0;r<trackedSignalChain->GetEntryList()->GetN();r++){
-			trackedSignalChain->GetEntryList()->GetEntry(r);
-			//if(r==0) std::cout<<"tracked evt num = "<< filteredSignalTrackedEvtNum <<std::endl;
-			//if(r==1) std::cout<<"tracked evt num = "<< filteredSignalTrackedEvtNum <<std::endl;
-			//if(r==2) std::cout<<"tracked evt num = "<< filteredSignalTrackedEvtNum <<std::endl;
-			if(TMath::AreEqualRel(filteredSignalTracklessEvtNum, filteredSignalTrackedEvtNum,1.8)){
-				std::cout<<"found a matching tracked signal evt"<<std::endl;
-				numSignalEvtsPassing += 1;
-				break;
-			}//require evt numbers to be equal
-		}//end loop over filtered trackedSignal trees
-	}//end loop over evts in filtered trackless signal tuple
-	std::cout<<" "<<std::endl;
-	std::cout<< numSignalEvtsPassing << " signal evts passed the old trigger"<<std::endl;
-	std::cout<<" "<<std::endl;
-	*/
-	
+
+
+
+
 	gStyle->SetOptStat(1111);
 
 	//matchedRecoToGenOverlayHistos(matchedTrackedSignalChain,genMllRange+trackedEEHltHighEta, matchedTracklessSignalChain,genMllRange+tracklessEEHltEta);

@@ -529,6 +529,8 @@ Float_t diObjectMassGenEle;
 
 Int_t runNumber;
 Long64_t evtNumber;
+Double_t rescaledEvtNumber;
+
 
 
 };
@@ -595,6 +597,7 @@ recoAnalyzerGeneric::recoAnalyzerGeneric(const edm::ParameterSet& iConfig):
    //branches unrelated to REC objects
    tree->Branch("evtNumber",&evtNumber,"evtNumber/l");
    tree->Branch("runNumber",&runNumber,"runNumber/I");
+   tree->Branch("rescaledEvtNumber",&rescaledEvtNumber,"rescaledEvtNumber/D");
 
 }
 
@@ -630,6 +633,8 @@ recoAnalyzerGeneric::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 
 	evtNumber = iEvent.id().event();
 	runNumber = iEvent.id().run();
+	rescaledEvtNumber = TMath::Log(iEvent.id().event());
+
 
 	nHltEle = 0;
 	
