@@ -19,30 +19,124 @@
 //this include gives ROOT a temper tantrum 
 //#include <array>
 #include <vector>
+#include <algorithm>
 
+//use this fxn to calculate total trigger rate and uncertainty
+//given the number of signal and bkgnd evts which pass the trigger
+std::vector<Float_t> calcTriggerRate(Float_t nSigEvts, TChain * sigChain, Float_t nLowPtBkgndEvts, TChain * lowPtBkgndChain, Float_t nHighPtBkgndEvts, TChain * highPtBkgndChain){
+	Float_t peakLumi = (0.9)*(TMath::Power(10.,34));
+	Float_t signalXSxn = (6960)*(TMath::Power(10.,-36));
+	Float_t lowPtXSxn = (677300000*0.01029)*(TMath::Power(10.,-36));
+	Float_t highPtXSxn = (185900000*0.06071)*(TMath::Power(10.,-36));
 
-//use this fxn to add a new branch containing rescaledEvtNumber (Double_t) values to TTrees in a TChain
-//rescaledEvtNumber = TMath::Log(evtNumber)
-//cannot call chain->Fill() 
-/*
-void addRescaledEvtNumber(TChain * chain){
-	ULong64_t treeEvtNum;
-	chain->SetBranchAddress("evtNumber",&treeEvtNum);
-	std::cout<<"chain->GetEntries() returns "<< chain->GetEntries() <<std::endl;
-	Double_t rescaledEvtNumber;
-	chain->Branch("rescaledEvtNumber",&rescaledEvtNumber,"rescaledEvtNumber/D");
-	for(Long64_t h=0;h<3;h++){
-		chain->GetEntry(h);
-		if(h==0) std::cout<< treeEvtNum <<std::endl;
-		if(h==1) std::cout<< treeEvtNum <<std::endl;
-		rescaledEvtNumber = TMath::Log(treeEvtNum);
-		std::cout<<"rescaledEvtNumber = " << rescaledEvtNumber << std::endl;
-		chain->Fill();
-	}//end loop over entries in chain
+	Float_t sigRateErr=100, lowPtBkgndRateErr=100, highPtBkgndRateErr=100;
+	Float_t sigRate = signalXSxn*peakLumi*nSigEvts/(sigChain->GetEntries());
+	if(nSigEvts>0) sigRateErr = sigRate/(TMath::Sqrt(nSigEvts));
+	Float_t lowPtBkgndRate = lowPtXSxn*peakLumi*nLowPtBkgndEvts/(lowPtBkgndChain->GetEntries());
+	if(nLowPtBkgndEvts>0) lowPtBkgndRateErr = lowPtBkgndRate/(TMath::Sqrt(nLowPtBkgndEvts));
+	Float_t highPtBkgndRate = highPtXSxn*peakLumi*nHighPtBkgndEvts/(highPtBkgndChain->GetEntries());
+	if(nHighPtBkgndEvts>0) highPtBkgndRateErr = highPtBkgndRate/(TMath::Sqrt(nHighPtBkgndEvts));
 
-}//end addRescaledEvtNumber(TChain * chain)
-*/
+	//trig rate uncertainty = trigger rate/sqrt(number of evts passing trigger)
+	//sum signal and bkgnd rates in quadrature
+	Float_t totRate = sigRate + lowPtBkgndRate + highPtBkgndRate;
+	Float_t totRateErr = TMath::Sqrt( sigRateErr*sigRateErr + lowPtBkgndRateErr*lowPtBkgndRateErr + highPtBkgndRateErr*highPtBkgndRateErr );
+	std::cout<<"total rate = "<< totRate << std::endl;
+	std::cout<<"total rate error = "<< totRateErr << std::endl;
+	std::vector<Float_t> rateAndErr;
+	rateAndErr.push_back(totRate);
+	rateAndErr.push_back(totRateErr);
+	return rateAndErr;
+}
 
+//use this fxn to find the number of evts from one particular physics process (signal: DY->ee, low pt bkgnd,
+//high pt bkgnd) pass both legs of the trigger with cuts applied to the tracked and trackless legs
+//return the number of evts which passed both legs
+Float_t numEvtsPassingBothLegs(TChain * tracklessChain,TChain * trackedChain,TString tracklessListFillArgs,TString tracklessListName,TString trackedListFillArgs,TString trackedListName,TCut tracklessFilters,TCut trackedFilters ){
+	tracklessChain->Draw(tracklessListFillArgs,tracklessFilters,"entrylistarray");
+	TEntryListArray * tracklessList = (TEntryListArray*) gROOT->Get(tracklessListName);
+	tracklessChain->SetEntryList((TEntryListArray*) gROOT->FindObject(tracklessListName) );
+	
+	trackedChain->Draw(trackedListFillArgs,trackedFilters,"entrylistarray");
+	TEntryListArray * trackedList = (TEntryListArray*) gROOT->Get(trackedListName);
+	trackedChain->SetEntryList((TEntryListArray*) gROOT->FindObject(trackedListName) );
+
+	Float_t numOverlappingEntries = 0;
+	
+	trackedChain->SetBranchStatus("*",0);
+	trackedChain->SetBranchStatus("evtNumber",1);
+	ULong64_t trackedEvtNum=-1;
+	trackedChain->SetBranchAddress("evtNumber", &trackedEvtNum);
+	Long64_t numFilteredtrackedEntries = trackedList->GetN();
+	Long64_t trackedChainEntries = trackedChain->GetEntries();
+	std::vector<ULong64_t> trackedEvtNumVec;
+
+	tracklessChain->SetBranchStatus("*",0);
+	tracklessChain->SetBranchStatus("evtNumber",1);
+	ULong64_t tracklessEvtNum=-1;
+	tracklessChain->SetBranchAddress("evtNumber", &tracklessEvtNum);
+	Long64_t numFilteredtracklessEntries = tracklessList->GetN();
+	Long64_t tracklessChainEntries = tracklessChain->GetEntries();
+	std::vector<ULong64_t> tracklessEvtNumVec;
+
+	std::cout<< trackedChainEntries << " evts in tracked chain"<<std::endl;
+	std::cout<< numFilteredtrackedEntries << " evts in tracked chain pass filters"<<std::endl;
+	std::cout<< tracklessChainEntries << " evts in trackless chain"<<std::endl;
+	std::cout<< numFilteredtracklessEntries << " evts in trackless chain pass filters"<<std::endl;
+
+	Int_t treeNum=0;
+	for(Long64_t oen = 0; oen < numFilteredtracklessEntries; oen++){
+		if(oen==500) std::cout<<"finished 500 trackless evts"<<std::endl;
+		Long64_t tracklessTreeEntry = tracklessList->GetEntryAndTree(oen,treeNum);
+		Long64_t tracklessChainEntry = tracklessTreeEntry + tracklessChain->GetTreeOffset()[treeNum];
+		tracklessChain->LoadTree(tracklessChainEntry);
+		tracklessChain->GetEntry(tracklessTreeEntry);
+		tracklessEvtNumVec.push_back(tracklessEvtNum);
+	}//end loop over filtered trackless evts
+	std::sort(tracklessEvtNumVec.begin(), tracklessEvtNumVec.end());	//sort tracklessEvt vector from low to high
+
+	for(Long64_t oen = 0; oen < numFilteredtrackedEntries; oen++){
+		if(oen==500) std::cout<<"finished 500 tracked evts"<<std::endl;
+		Long64_t trackedTreeEntry = trackedList->GetEntryAndTree(oen,treeNum);
+		Long64_t trackedChainEntry = trackedTreeEntry + trackedChain->GetTreeOffset()[treeNum];
+		trackedChain->LoadTree(trackedChainEntry);
+		trackedChain->GetEntry(trackedTreeEntry);
+		trackedEvtNumVec.push_back(trackedEvtNum);
+	}//end loop over filtered tracked evts
+	std::sort(trackedEvtNumVec.begin(), trackedEvtNumVec.end());	//sort trackedEvt vector from low to high
+
+	std::cout<<"finished sorting the two vectors of evt numbers"<<std::endl;
+
+	if(tracklessEvtNumVec.size() < trackedEvtNumVec.size()){
+		for(UInt_t i=0;i<tracklessEvtNumVec.size();i++){
+			for(UInt_t j=0;j<trackedEvtNumVec.size();j++){
+				if(trackedEvtNumVec[j] < tracklessEvtNumVec[i]) continue;
+				if(trackedEvtNumVec[j] > tracklessEvtNumVec[i]) break;
+				if(tracklessEvtNumVec[i]==trackedEvtNumVec[j]){
+					numOverlappingEntries += 1;
+					break;
+				}
+			}//end loop over filtered tracked evt numbers
+		}//end loop over filtered trackless evt numbers
+	}//fewer tracklessEvts than trackedEvts
+
+	if(tracklessEvtNumVec.size() >= trackedEvtNumVec.size()){
+		for(UInt_t i=0;i<trackedEvtNumVec.size();i++){
+			for(UInt_t j=0;j<tracklessEvtNumVec.size();j++){
+				if(tracklessEvtNumVec[j] < trackedEvtNumVec[i]) continue;
+				if(tracklessEvtNumVec[j] > trackedEvtNumVec[i]) break;
+				if(trackedEvtNumVec[i]==tracklessEvtNumVec[j]){
+					numOverlappingEntries += 1;
+					break;
+				}
+			}//end loop over filtered trackless evt numbers
+		}//end loop over filtered tracked evt numbers
+	}//fewer (or equal) trackedEvts than tracklessEvts
+	
+	std::cout<< numOverlappingEntries <<" evts passed both legs" << std::endl;
+	return numOverlappingEntries;
+
+}//end numEvtsPassingBothLegs()	
 
 //use this fxn to make a histogram of a kinematic or isolation variable for matched signal objects,
 //and objects from bkgnd files.  The matched signal objects will be subject to a slightly different
@@ -474,10 +568,14 @@ void matchedRecoToGenOverlayHistos(TChain * trackedChain,TCut trackedCuts,TChain
 //to this fxn as inputs
 Float_t makeAndSaveOverlayHistoUsingEntryListsDiffCuts(TChain * sigChain,TChain * bkgndChain,TString sigListFillArgs,TString sigListName,TString bkgndListFillArgs,TString bkgndListName,TString sigHistPlotArg,TString bkgndHistPlotArg,TString sigHistName,TString bkgndHistName,TString histTitle,TString xAxisTitle,TString canvName,TCut sigFilters,TCut bkgndFilters,TString outputFile,Bool_t isPlottingEnergy,Bool_t isPlottingInverseEnergy,Bool_t doScaling,Bool_t doLogX){
 	sigChain->Draw(sigListFillArgs,sigFilters,"entrylistarray");
+	TEntryListArray * sigList = (TEntryListArray*) gROOT->Get(sigListName);
 	sigChain->SetEntryList((TEntryListArray*) gROOT->FindObject(sigListName) );
+	
 	bkgndChain->Draw(bkgndListFillArgs,bkgndFilters,"entrylistarray");
+	TEntryListArray * bkgndList = (TEntryListArray*) gROOT->Get(bkgndListName);
 	bkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject(bkgndListName) );
 
+	
 	TCanvas * canv = new TCanvas(canvName,canvName,700,700);
 	canv->cd();
 	sigChain->Draw(sigHistPlotArg);
@@ -551,64 +649,85 @@ Float_t makeAndSaveOverlayHistoUsingEntryListsDiffCuts(TChain * sigChain,TChain 
 	canv->SaveAs(outputFile,"recreate");
 	Float_t numOverlappingEntries = 0;
 	if(sigHistName.Contains("evtNumber")){
-		//determine how many entries in the sigChain histo also appear in the bkgndChain histo
-		//this should only be used when plotting evtNumber
-		if(sigHist->GetBinContent(sigHist->GetNbinsX()+1) > 0 || bkgndHist->GetBinContent(bkgndHist->GetNbinsX()+1) > 0){
-			std::cout<<"there are overflow evt numbers. increase x axis upper limit and number of bins"<<std::endl;
-			return numOverlappingEntries;
-		}
+		//determine how many evts are present in both filtered chains (i.e. how many evts pass both legs)
+		//here bkgnd and sig correspond to tracked and trackless legs for the same physics process (like DY->ee)
+		bkgndChain->SetBranchStatus("*",0);
+		bkgndChain->SetBranchStatus("evtNumber",1);
+		ULong64_t bkgndEvtNum=-1;
+		bkgndChain->SetBranchAddress("evtNumber", &bkgndEvtNum);
+		Long64_t numFilteredbkgndEntries = bkgndList->GetN();
+		Long64_t bkgndChainEntries = bkgndChain->GetEntries();
+		std::vector<ULong64_t> bkgndEvtNumVec;
+	
+		sigChain->SetBranchStatus("*",0);
+		sigChain->SetBranchStatus("evtNumber",1);
+		ULong64_t sigEvtNum=-1;
+		sigChain->SetBranchAddress("evtNumber", &sigEvtNum);
+		Long64_t numFilteredsigEntries = sigList->GetN();
+		Long64_t sigChainEntries = sigChain->GetEntries();
+		std::vector<ULong64_t> sigEvtNumVec;
+	
+		std::cout<< bkgndChainEntries << " evts in bkgnd chain"<<std::endl;
+		std::cout<< numFilteredbkgndEntries << " evts in bkgnd chain pass filters"<<std::endl;
+		std::cout<< sigChainEntries << " evts in sig chain"<<std::endl;
+		std::cout<< numFilteredsigEntries << " evts in sig chain pass filters"<<std::endl;
 
-		std::vector<Int_t> origBinsWithContent;
-		if(sigHist->GetEntries() <= bkgndHist->GetEntries() ){
+		Int_t treeNum=0;
+		for(Long64_t oen = 0; oen < numFilteredsigEntries; oen++){
+			if(oen==500) std::cout<<"finished exploring 500 evts"<<std::endl;
+			Long64_t sigTreeEntry = sigList->GetEntryAndTree(oen,treeNum);
+			Long64_t sigChainEntry = sigTreeEntry + sigChain->GetTreeOffset()[treeNum];
+			sigChain->LoadTree(sigChainEntry);
+			sigChain->GetEntry(sigTreeEntry);
+			sigEvtNumVec.push_back(sigEvtNum);
+		}//end loop over filtered sig evts
+		std::sort(sigEvtNumVec.begin(), sigEvtNumVec.end());	//sort sigEvt vector from low to high
 
-			for(Int_t i=1;i<=sigHist->GetNbinsX();i++){
-				if(sigHist->GetBinContent(i) > 1){
-					std::cout<<"found a bin with more than 1 entry. Increase number of bins and/or decrease xMax"<<std::endl;
-					return numOverlappingEntries;
-				}
-				if(sigHist->GetBinContent(i) == 1){
-					origBinsWithContent.push_back(i);
-				}//end requirement that bin has nonzero contents
-			}//end loop over bins in original sigHist
-			TH1 * newSigHist = sigHist->Rebin(1,"newSigHist");
-			TH1 * newBkgndHist = bkgndHist->Rebin(1,"newBkgndHist");
-			newSigHist->Add(newBkgndHist,-1.);
-			for(Int_t j=0;j<origBinsWithContent.size();j++){
-				//count how many of the original bins which had nonzero bin content
-				//that now have bin content = 0
-				if(newSigHist->GetBinContent(origBinsWithContent[j]) == 0){
-					numOverlappingEntries += 1;
-				}
-			}//end loop over origBinsWithContent
+		for(Long64_t oen = 0; oen < numFilteredbkgndEntries; oen++){
+			if(oen==500) std::cout<<"finished exploring 500 evts"<<std::endl;
+			Long64_t bkgndTreeEntry = bkgndList->GetEntryAndTree(oen,treeNum);
+			Long64_t bkgndChainEntry = bkgndTreeEntry + bkgndChain->GetTreeOffset()[treeNum];
+			bkgndChain->LoadTree(bkgndChainEntry);
+			bkgndChain->GetEntry(bkgndTreeEntry);
+			bkgndEvtNumVec.push_back(bkgndEvtNum);
+		}//end loop over filtered bkgnd evts
+		std::sort(bkgndEvtNumVec.begin(), bkgndEvtNumVec.end());	//sort bkgndEvt vector from low to high
 
-		}//end if(fewer entries in sigHist than bkgndHist)
+		std::cout<<"finished sorting the two vectors of evt numbers"<<std::endl;
+
+		if(sigEvtNumVec.size() < bkgndEvtNumVec.size()){
+			for(UInt_t i=0;i<sigEvtNumVec.size();i++){
+				for(UInt_t j=0;j<bkgndEvtNumVec.size();j++){
+					if(bkgndEvtNumVec[j] < sigEvtNumVec[i]) continue;
+					if(bkgndEvtNumVec[j] > sigEvtNumVec[i]) break;
+					if(sigEvtNumVec[i]==bkgndEvtNumVec[j]){
+						numOverlappingEntries += 1;
+						//std::cout<<"found an event which passes both legs"<<std::endl;
+						break;
+					}
+
+				}//end loop over filtered bkgnd evt numbers
+			}//end loop over filtered sig evt numbers
+		}//fewer sigEvts than bkgndEvts
 		
-		if(sigHist->GetEntries() > bkgndHist->GetEntries() ){
+		if(sigEvtNumVec.size() >= bkgndEvtNumVec.size()){
+			for(UInt_t i=0;i<bkgndEvtNumVec.size();i++){
+				for(UInt_t j=0;j<sigEvtNumVec.size();j++){
+					if(sigEvtNumVec[j] < bkgndEvtNumVec[i]) continue;
+					if(sigEvtNumVec[j] > bkgndEvtNumVec[i]) break;
+					if(bkgndEvtNumVec[i]==sigEvtNumVec[j]){
+						numOverlappingEntries += 1;
+						//std::cout<<"found an event which passes both legs"<<std::endl;
+						break;
+					}
+				}//end loop over filtered bkgnd evt numbers
+			}//end loop over filtered sig evt numbers
+		}//fewer (or equal) bkgndEvts than sigEvts
 
-			for(Int_t i=1;i<=bkgndHist->GetNbinsX();i++){
-				if(bkgndHist->GetBinContent(i) > 1){
-					std::cout<<"found a bin with more than 1 entry. Increase number of bins and/or decrease xMax"<<std::endl;
-					return numOverlappingEntries;
-				}
-				if(bkgndHist->GetBinContent(i) == 1){
-					origBinsWithContent.push_back(i);
-				}//end requirement that bin has nonzero contents
-			}//end loop over bins in original bkgndHist
-			TH1 * newSigHist = sigHist->Rebin(1,"newSigHist");
-			TH1 * newBkgndHist = bkgndHist->Rebin(1,"newBkgndHist");
-			newBkgndHist->Add(newSigHist,-1.);
-			for(Int_t j=0;j<origBinsWithContent.size();j++){
-				//count how many of the original bins which had nonzero bin content
-				//that now have bin content = 0
-				if(newBkgndHist->GetBinContent(origBinsWithContent[j]) == 0){
-					numOverlappingEntries += 1;
-				}
-			}//end loop over origBinsWithContent
+	}//end if(sigHistName contains evtNumber)
 
-		}//end if(more entries in sigHist than bkgndHist)
-
-	}
-	std::cout<<"numOverlappingEntries = "<< numOverlappingEntries << std::endl;
+	std::cout<< numOverlappingEntries <<" evts passed both legs" << std::endl;
+	//std::cout<<"num bins with more than 1 entry = "<< numLargeBins << std::endl;
 	return numOverlappingEntries;
 	
 }//end makeAndSaveOverlayHistoUsingEntryListsDiffCuts()
@@ -882,11 +1001,11 @@ void testMacro(){
 
 
 
-	//TChain * matchedTrackedSignalChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
-	//matchedTrackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+	TChain * matchedTrackedSignalChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
+	matchedTrackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
 	//
-	//TChain * matchedTracklessSignalChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
-	//matchedTracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+	TChain * matchedTracklessSignalChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
+	matchedTracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
 
 
 	//TChain * copy_matchedTrackedSignalChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
@@ -908,7 +1027,7 @@ void testMacro(){
 	TCut tracklessEEHltEta = tracklessEEHltLowEta + tracklessEEHltHighEta;
 
 	//hlt dR cuts
-	TCut hltDr = "deltaRHltEle<0.15";
+	TCut hltDr = "deltaRHltEle<0.12";
 
 	//hlt Et cuts
 	TCut hltLowEt = "ptHltEle>10";
@@ -999,29 +1118,29 @@ void testMacro(){
 
 	////tracked and trackless leg cuts for playing around
 	TCut trialTrackedPt = "ptHltEle>27.";
-	TCut trialTrackedEESigmaIEIE = "clusterShapeHltEle<0.031";
-	TCut trialTrackedEEHE = "hadEmHltEle<0.075";
-	TCut trialTrackedEEEcalIso = "ecalIsoHltEle<0.11";
-	TCut trialTrackedEEHcalIso = "hcalIsoHltEle<0.11";
+	TCut trialTrackedEESigmaIEIE = "clusterShapeHltEle<0.041";
+	TCut trialTrackedEEHE = "hadEmHltEle<0.125";
+	TCut trialTrackedEEEcalIso = "ecalIsoHltEle<0.16";
+	TCut trialTrackedEEHcalIso = "hcalIsoHltEle<0.16";
 	
-	TCut trialTrackedEEEp = "epHltEle<0.009";
-	TCut trialTrackedEEDeta = "dEtaHltEle<0.01";
-	TCut trialTrackedEEDphi = "dPhiHltEle<0.03";
-	TCut trialTrackedEETrackIso = "trackIsoHltEle<0.125";
-	TCut trialTrackedEBSigmaIEIE = "clusterShapeHltEle<0.011";
-	TCut trialTrackedEBHE = "hadEmHltEle<0.1";
-	TCut trialTrackedEBEcalIso = "ecalIsoHltEle<0.16";
-	TCut trialTrackedEBHcalIso = "hcalIsoHltEle<0.11";
-	TCut trialTrackedEBEp = "epHltEle<0.012";
-	TCut trialTrackedEBDeta = "dEtaHltEle<0.005";
-	TCut trialTrackedEBDphi = "dPhiHltEle<0.03";
-	TCut trialTrackedEBTrackIso = "trackIsoHltEle<0.125";
+	TCut trialTrackedEEEp = "epHltEle<0.015";
+	TCut trialTrackedEEDeta = "dEtaHltEle<0.015";
+	TCut trialTrackedEEDphi = "dPhiHltEle<0.04";
+	TCut trialTrackedEETrackIso = "trackIsoHltEle<0.185";
+	TCut trialTrackedEBSigmaIEIE = "clusterShapeHltEle<0.016";
+	TCut trialTrackedEBHE = "hadEmHltEle<0.17";
+	TCut trialTrackedEBEcalIso = "ecalIsoHltEle<0.21";
+	TCut trialTrackedEBHcalIso = "hcalIsoHltEle<0.16";
+	TCut trialTrackedEBEp = "epHltEle<0.018";
+	TCut trialTrackedEBDeta = "dEtaHltEle<0.008";
+	TCut trialTrackedEBDphi = "dPhiHltEle<0.04";
+	TCut trialTrackedEBTrackIso = "trackIsoHltEle<0.185";
 	
-	TCut trialTracklessPt = "ptHltEle>25.";
-	TCut trialTracklessEESigmaIEIE = "clusterShapeHltEle<0.027";
-	TCut trialTracklessEEHE = "hadEmHltEle<0.13";
-	TCut trialTracklessEEEcalIso = "ecalIsoHltEle<0.084";
-	TCut trialTracklessEEHcalIso = "hcalIsoHltEle<0.37";
+	TCut trialTracklessPt = "ptHltEle>18.";
+	TCut trialTracklessEESigmaIEIE = "clusterShapeHltEle<0.047";
+	TCut trialTracklessEEHE = "hadEmHltEle<0.23";
+	TCut trialTracklessEEEcalIso = "ecalIsoHltEle<0.14";
+	TCut trialTracklessEEHcalIso = "hcalIsoHltEle<0.57";
 
 
 
@@ -1041,7 +1160,8 @@ void testMacro(){
 	TCut trialTracklessEndcapLeg = trialTracklessPt+trialTracklessEESigmaIEIE+trialTracklessEEHE+trialTracklessEEEcalIso+trialTracklessEEHcalIso+tracklessEEHltEta;
 
 
-	
+
+	/*
 	//these are the filtered trees which contain evts passing all tracked and trackless leg selections
 	trackedLowPtBkgndChain->Draw(">>LowPtoriginalTrackedLegList",(originalTrackedBarrelLeg || originalTrackedEndcapLeg),"entrylistarray");
 	trackedLowPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("LowPtoriginalTrackedLegList") );
@@ -1052,8 +1172,11 @@ void testMacro(){
 	
 	tracklessLowPtBkgndChain->Draw(">>LowPtoriginalTracklessLegList",originalTracklessEndcapLeg,"entrylistarray");
 	tracklessLowPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("LowPtoriginalTracklessLegList") );
-	tracklessHighPtBkgndChain->Draw(">>HighPtoriginalTracklessLegList",originalTracklessEndcapLeg,"entrylistarray");
-	tracklessHighPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("HighPtoriginalTracklessLegList") );
+
+	tracklessHighPtBkgndChain->Draw(">>HighPttrialTracklessLegList",trialTracklessEndcapLeg,"entrylistarray");
+	TEntryListArray * highPtTracklessLegList = (TEntryListArray*) gROOT->Get("HighPttrialTracklessLegList");
+	tracklessHighPtBkgndChain->SetEntryList((TEntryListArray*) gROOT->FindObject("HighPttrialTracklessLegList") );
+	
 	tracklessSignalChain->Draw(">>tracklessLegSignalList",originalTracklessEndcapLeg,"entrylistarray");
 	tracklessSignalChain->SetEntryList((TEntryListArray*) gROOT->FindObject("tracklessLegSignalList") );
 	
@@ -1069,20 +1192,33 @@ void testMacro(){
 	std::cout<< trackedSignalChain->GetEntryList()->GetN() <<" signal evts pass the tracked leg"<<std::endl;
 	std::cout<< tracklessSignalChain->GetEntryList()->GetN() <<" signal evts pass the trackless leg"<<std::endl;
 	std::cout<<" "<<std::endl;
-
-
-	/*
-	makeAndSaveOverlayHistoUsingEntryListsDiffCuts(tracklessSignalChain,trackedSignalChain,">>tracklessevtNumberZeroSignalList","tracklessevtNumberZeroSignalList",">>trackedevtNumberZeroSignalList","trackedevtNumberZeroSignalList","TMath::Log(evtNumber)>>tracklessevtNumberZeroSignal(100000000,0.,22.)","TMath::Log(evtNumber)>>trackedevtNumberZeroSignal(100000000,0.,22.)","tracklessevtNumberZeroSignal","trackedevtNumberZeroSignal","evt number for Signal evts passing trackless (black) or tracked (red) legs","evtNumber","c110",originalTracklessEndcapLeg,(originalTrackedBarrelLeg || originalTrackedEndcapLeg),"evt_num_passing_originalTrackless_or_originalTracked_legs_Signal_unmatched.png",false,false,false,false);
-
-	makeAndSaveOverlayHistoUsingEntryListsDiffCuts(tracklessLowPtBkgndChain,trackedLowPtBkgndChain,">>tracklessevtNumberZeroLowPtBkgndList","tracklessevtNumberZeroLowPtBkgndList",">>trackedevtNumberZeroLowPtBkgndList","trackedevtNumberZeroLowPtBkgndList","TMath::Log(evtNumber)>>tracklessevtNumberZeroLowPtBkgnd(100000000,0.,22.)","TMath::Log(evtNumber)>>trackedevtNumberZeroLowPtBkgnd(100000000,0.,22.)","tracklessevtNumberZeroLowPtBkgnd","trackedevtNumberZeroLowPtBkgnd","evt number for LowPtBkgnd evts passing trackless (black) or tracked (red) legs","evtNumber","c111",originalTracklessEndcapLeg,(originalTrackedBarrelLeg || originalTrackedEndcapLeg),"evt_num_passing_originalTrackless_or_originalTracked_legs_LowPtBkgnd.png",false,false,false,false);
-
 	*/
 
-	makeAndSaveOverlayHistoUsingEntryListsDiffCuts(tracklessHighPtBkgndChain,trackedHighPtBkgndChain,">>tracklessevtNumberZeroHighPtBkgndList","tracklessevtNumberZeroHighPtBkgndList",">>trackedevtNumberZeroHighPtBkgndList","trackedevtNumberZeroHighPtBkgndList","TMath::Log(evtNumber)>>tracklessevtNumberZeroHighPtBkgnd(100000000,0.,22.)","TMath::Log(evtNumber)>>trackedevtNumberZeroHighPtBkgnd(100000000,0.,22.)","tracklessevtNumberZeroHighPtBkgnd","trackedevtNumberZeroHighPtBkgnd","evt number for HighPtBkgnd evts passing trackless (black) or tracked (red) legs","evtNumber","c112",originalTracklessEndcapLeg,(originalTrackedBarrelLeg || originalTrackedEndcapLeg),"evt_num_passing_originalTrackless_or_originalTracked_legs_HighPtBkgnd.png",false,false,false,false);
+
+	Float_t sigEvtsPassing=0, bkgndLowPtEvtsPassing=0, bkgndHighPtEvtsPassing=0;
+
+	/*
+	sigEvtsPassing = makeAndSaveOverlayHistoUsingEntryListsDiffCuts(tracklessSignalChain,trackedSignalChain,">>tracklessevtNumberZeroSignalList","tracklessevtNumberZeroSignalList",">>trackedevtNumberZeroSignalList","trackedevtNumberZeroSignalList","evtNumber>>tracklessevtNumberZeroSignal","evtNumber>>trackedevtNumberZeroSignal","tracklessevtNumberZeroSignal","trackedevtNumberZeroSignal","evt number for Signal evts passing trackless (black) or tracked (red) legs","evtNumber","c110",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg),"evt_num_passing_trialTrackless_or_trialTracked_legs_Signal_unmatched.png",false,false,false,false);
+
+	bkgndLowPtEvtsPassing = makeAndSaveOverlayHistoUsingEntryListsDiffCuts(tracklessLowPtBkgndChain,trackedLowPtBkgndChain,">>tracklessevtNumberZeroLowPtBkgndList","tracklessevtNumberZeroLowPtBkgndList",">>trackedevtNumberZeroLowPtBkgndList","trackedevtNumberZeroLowPtBkgndList","TMath::Sqrt((0.5)*TMath::Log(evtNumber))>>tracklessevtNumberZeroLowPtBkgnd(100000000,2.38,3.24)","TMath::Sqrt((0.5)*TMath::Log(evtNumber))>>trackedevtNumberZeroLowPtBkgnd(100000000,2.38,3.24)","tracklessevtNumberZeroLowPtBkgnd","trackedevtNumberZeroLowPtBkgnd","evt number for LowPtBkgnd evts passing trackless (black) or tracked (red) legs","evtNumber","c111",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg),"evt_num_passing_trialTrackless_or_trialTracked_legs_LowPtBkgnd.png",false,false,false,false);
+
+	bkgndHighPtEvtsPassing = makeAndSaveOverlayHistoUsingEntryListsDiffCuts(tracklessHighPtBkgndChain,trackedHighPtBkgndChain,">>tracklessevtNumberZeroHighPtBkgndList","tracklessevtNumberZeroHighPtBkgndList",">>trackedevtNumberZeroHighPtBkgndList","trackedevtNumberZeroHighPtBkgndList","TMath::Sqrt((0.5)*TMath::Log(evtNumber))>>tracklessevtNumberZeroHighPtBkgnd(100000000,2.144,3.082)","TMath::Sqrt((0.5)*TMath::Log(evtNumber))>>trackedevtNumberZeroHighPtBkgnd(100000000,2.144,3.082)","tracklessevtNumberZeroHighPtBkgnd","trackedevtNumberZeroHighPtBkgnd","evt number for HighPtBkgnd evts passing trackless (black) or tracked (red) legs","evtNumber","c112",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg),"evt_num_passing_trialTrackless_or_trialTracked_legs_HighPtBkgnd.png",false,false,false,false);
+	*/
+
+	//Float_t numEvtsPassingBothLegs(TChain * tracklessChain,TChain * trackedChain,TString tracklessListFillArgs,TString tracklessListName,TString trackedListFillArgs,TString trackedListName,TCut tracklessFilters,TCut trackedFilters )
+	numEvtsPassingBothLegs(matchedTracklessSignalChain,matchedTrackedSignalChain,">>tracklessevtNumberZeroMatchedSignalList","tracklessevtNumberZeroMatchedSignalList",">>trackedevtNumberZeroMatchedSignalList","trackedevtNumberZeroMatchedSignalList",hltDr+trialTracklessEndcapLeg,hltDr+(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
+
+	sigEvtsPassing = numEvtsPassingBothLegs(tracklessSignalChain,trackedSignalChain,">>tracklessevtNumberZeroSignalList","tracklessevtNumberZeroSignalList",">>trackedevtNumberZeroSignalList","trackedevtNumberZeroSignalList",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
 
 
+	bkgndLowPtEvtsPassing = numEvtsPassingBothLegs(tracklessLowPtBkgndChain,trackedLowPtBkgndChain,">>tracklessevtNumberZeroLowPtBkgndList","tracklessevtNumberZeroLowPtBkgndList",">>trackedevtNumberZeroLowPtBkgndList","trackedevtNumberZeroLowPtBkgndList",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
+
+	bkgndHighPtEvtsPassing = numEvtsPassingBothLegs(tracklessHighPtBkgndChain,trackedHighPtBkgndChain,">>tracklessevtNumberZeroHighPtBkgndList","tracklessevtNumberZeroHighPtBkgndList",">>trackedevtNumberZeroHighPtBkgndList","trackedevtNumberZeroHighPtBkgndList",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
 
 
+	//std::vector<Float_t> calcTriggerRate(Float_t nSigEvts, TChain * sigChain, Float_t nLowPtBkgndEvts, TChain * lowPtBkgndChain, Float_t nHighPtBkgndEvts, TChain * highPtBkgndChain)
+
+	calcTriggerRate(sigEvtsPassing,trackedSignalChain,bkgndLowPtEvtsPassing,trackedLowPtBkgndChain,bkgndHighPtEvtsPassing,trackedHighPtBkgndChain);
 
 
 	gStyle->SetOptStat(1111);
