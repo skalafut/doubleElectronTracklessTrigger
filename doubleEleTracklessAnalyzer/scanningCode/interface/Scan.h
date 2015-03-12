@@ -1,9 +1,10 @@
 #include "CutVar.h" 
 #include <string>
 #include <vector>
+#include <array>
 #include <map>
-//#include "TTree.h"
-//#include "TChain.h"
+#include "TTree.h"
+#include "TChain.h"
 
 
 class Scan{
@@ -14,19 +15,26 @@ class Scan{
 		//a tag to indicate tracked barrel or endcap which will be used to define the output branch names
 		Scan(const char * configTxtFileName);
 		
-		//void initialize(Int_t numVars,std::string outputFile,std::string treeOneName,std::string treeTwoName);
-	
-		//call InitCutVars() first, then InitInputTree(), then InitOutputTree() in scanning.cpp file
+		//call InitCutVars() before InitInputTree() and InitOutputTree()
 	
 		//this fxn uses member var configFileName to create CutVar objects, and adds them
 		//to cutContainer
 		void InitCutVars();
 
-		//fxn which returns the number of CutVar objects in the cutContainer vector 
+		//this fxn returns the number of CutVar objects in the cutContainer vector 
 		unsigned int numCutVars();
+
+		//this fxn looks at all of the objects in cutContainer and, based on the name of each
+		//object, identifies the number of unique branches to create within InitInputTuple()
+		std::vector<std::string> identifyUniqueBranchNames();
 		
-		void InitInputTree();
-		void InitOutputTree(std::string outputFile,std::string outChainName);
+		//this fxn initializes the N input TChain pointers, the entries in the inputBranchNamesAndVals
+		//map (both the strings and floats), and calls SetBranchAddress using the map entries
+		//the vector<string> objects will be filled with information from two txt files which are read
+		//by scanning.cpp, and a call to identifyUniqueBranchNames() by a Scan class object 
+		void InitInputTuple(std::vector<std::string> pathToInputTuples,std::vector<std::string> inputTupleNames,std::vector<std::string> branchNames);
+		
+		void InitOutputTuple(std::string outputFile,std::string outChainName);
 		//void setRange(std::string varName,float min,float max,float step);
 		
 		//runScan() consists of three nested for loops.  The outer most loops over elements in cutContainer,
@@ -38,11 +46,11 @@ class Scan{
 		const char * configFileName;
 		std::vector<CutVar> cutContainer;	//no emo :)
 		
-		//TChain * inputChainOne;
-		//TChain * inputChainTwo;
+		std::vector<TChain*> pInputChains;
 		//TChain * outputChain;
 		std::string outputFileName;
-		std::map<std::string,float> inputBranchNamesAndVals;
+		std::map<std::string,std::array<float>> inputBranchArrayNamesAndVals;	//branches which have arrays of floats
+		std::map<std::string,float> inputBranchNamesAndVals;		//branches with one float per entry
 		
 		//outputBranch map will have at least 2 more elements than cutContainer
 		//one for the number of evts which were analyzed, and another branch which 

@@ -2,8 +2,6 @@
 //#include "TString.h"
 //#include "TTree.h"
 //#include "TChain.h"
-//#include "../interface/CutVar.h"
-//#include "../interface/Scan.h"
 #include "../src/Scan.cc"
 #include <cstdlib>
 #include <stdio.h>

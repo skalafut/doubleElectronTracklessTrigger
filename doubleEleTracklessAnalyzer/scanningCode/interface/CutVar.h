@@ -6,8 +6,9 @@
 
 class CutVar{
 	public:
-		CutVar(std::string str,float val,float min,float max,float step,bool setUpper){
+		CutVar(std::string str,std::string zone,float val,float min,float max,float step,bool setUpper){
 			cutName = str;
+			detectorRegion = zone;
 			threshVal = val;
 			minThresh = min;
 			maxThresh = max;
@@ -15,8 +16,19 @@ class CutVar{
 			isUpperBound = setUpper;
 		};
 
+		float getMinThreshold(){ return minThresh;};
+		float getMaxThreshold(){ return maxThresh;};
+		float getThresholdStep(){ return threshStep;};
+		float getCurrentThreshold(){ return threshVal;};
+		bool isThresholdUpperBound(){ return isUpperBound;};
+		std::string getCutName(){ return cutName;};
+		std::string getRegion(){ return detectorRegion;};
+
+		void setThresholdValue(float value){ threshVal = value;};
+
 	private:
-		std::string cutName;
+		//detectorRegion is used to distinguish tracked EB, tracked EE, and trackless EE
+		std::string cutName, detectorRegion;
 		float threshVal, minThresh, maxThresh, threshStep;
 		bool isUpperBound;	//indicates if this cut will be used as an upper bound (someVal < threshVal)
 };//end class cutVar
