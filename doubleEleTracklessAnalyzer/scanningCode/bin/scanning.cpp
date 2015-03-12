@@ -2,6 +2,9 @@
 //#include "TString.h"
 //#include "TTree.h"
 //#include "TChain.h"
+//#include "../interface/CutVar.h"
+//#include "../interface/Scan.h"
+#include "../src/Scan.cc"
 #include <cstdlib>
 #include <stdio.h>
 #include <vector>
@@ -10,6 +13,46 @@
 #include <fstream>
 
 using namespace std;
+
+//use this fxn for testing operations to read text in from a file
+void testReadFxns(const char * fName){
+	FILE * pF = fopen(fName,"r");
+	ifstream testStrm(fName,ifstream::in);
+	if(pF != NULL){
+		while(testStrm.peek() != EOF){
+			string aLine;
+			getline(testStrm,aLine);
+			size_t openBracket = aLine.find_first_of("[");
+			if(openBracket==string::npos) continue;
+			size_t closeBracket = aLine.find_first_of("]");
+			size_t firstComma = aLine.find_first_of(",");
+			size_t secondComma = aLine.find_first_of(",",firstComma+1);
+			size_t thirdComma = aLine.find_first_of(",",secondComma+1);
+
+			//now parse the line of text in aLine
+			string name = aLine.substr(0,openBracket);
+			string minimum = aLine.substr(openBracket+1,firstComma-openBracket-1);
+			string maximum = aLine.substr(firstComma+1,secondComma-firstComma-1);
+			string stepLength = aLine.substr(secondComma+1,thirdComma-secondComma-1);
+			string setAsUpperBound = aLine.substr(thirdComma+1,closeBracket-thirdComma-1);
+			float minVal = strtof(minimum.c_str(),NULL);
+			float maxVal = strtof(maximum.c_str(),NULL);
+			float stepVal = strtof(stepLength.c_str(),NULL);
+			cout<<"name = "<< name << endl;
+			cout<<"minimum = "<< minimum << endl;
+			cout<<"minimum = "<< minVal << " using stof fxn"<< endl;
+			cout<<"maximum = "<< maximum << endl;
+			cout<<"maximum = "<< maxVal << " using stof fxn"<< endl;
+			cout<<"stepLength = "<< stepLength << endl;
+			cout<<"stepLength = "<< stepVal << " using stof fxn"<< endl;
+			cout<<"setAsUpperBound = "<< setAsUpperBound << endl;
+			cout<<" "<<endl;
+
+	
+		}//end while
+	}//end null check
+
+}//end testReadFxns()
 
 //this fxn reads a txt file which specifies the absolute paths to the
 //output files (each containing one TTree).  Eventually each output 
@@ -42,12 +85,26 @@ int main(int argc, char **argv){
 	//TStopwatch myClock, globalClock;
 	//globalClock.Start();
 
-	char fName[] = "/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/scanningCode/doc/outputFiles.txt";
-	vector<string> outFileNames = getFileOutNames(fName);
+	/*
+	char fiName[] = "/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/scanningCode/doc/outputFiles.txt";
+	vector<string> outFileNames = getFileOutNames(fiName);
 	for(unsigned int i=0;i<outFileNames.size();i++){
 		cout<<"path to output file number "<< i << " is "<< outFileNames[i] <<endl;
 	}//end loop over vector of pathnames to output files
+	*/
+	
+	//call InitCutVars() first, then InitInputTree(), then InitOutputTree() in scanning.cpp file
+	
+
+	char testFileName[] = "/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/scanningCode/doc/trial.txt";
+	//testReadFxns(testFileName);
+	Scan testScan(testFileName);
+	testScan.InitCutVars();
+	cout<<"there are "<< testScan.numCutVars() <<" CutVar objects in the cutContainer vector"<<endl;
+
+	
 	return 0;
+
 
 }//end main()
 
