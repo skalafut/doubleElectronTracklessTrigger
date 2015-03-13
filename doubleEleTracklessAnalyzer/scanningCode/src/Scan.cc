@@ -1,4 +1,5 @@
 #include "../interface/Scan.h"
+#include "TFile.h"
 //#include "TEntryListArray.h"
 #include <cstdlib>
 #include <stdio.h>
@@ -42,7 +43,7 @@ void Scan::InitCutVars(){
 			//now make a cutVar object, set the name, four floats, and one bool var
 			//associated with this object, and add the object to the scan class member 
 			//var named cutContainer. This member var is a vector of cutVar objects.
-			CutVar cutObject(name,region,0,minVal,maxVal,stepVal, (setAsUpperBound.compare("y")==0) );
+			CutVar cutObject(name,region,minVal,minVal,maxVal,stepVal, (setAsUpperBound.compare("y")==0) );
 			cutContainer.push_back(cutObject);
 
 		}//end while
@@ -115,6 +116,7 @@ void Scan::InitInputTuple(vector<string> pathToInputTuples,vector<string> inputT
 	pInputChains->SetBranchAddress(arrayTwoName.c_str(),arrayTwo);
 	pInputChains->SetBranchAddress(arrayThreeName.c_str(),arrayThree);
 
+	/*
 	float one=0,two=0,three=0,four=0;
 	string oneName="etaGenEle",twoName="ptGenEle",threeName="phiGenEle",fourName="diObjectMassGenEle"; 
 	inputBranchNamesAndVals[oneName]=one;
@@ -125,19 +127,47 @@ void Scan::InitInputTuple(vector<string> pathToInputTuples,vector<string> inputT
 	pInputChains->SetBranchAddress(twoName.c_str(),&two);
 	pInputChains->SetBranchAddress(threeName.c_str(),&three);
 	pInputChains->SetBranchAddress(fourName.c_str(),&four);
+	*/
 
 }//end InitInputTuple()
 
-void Scan::InitOutputTuple(string outputFile,string outChainName){
+void Scan::InitOutputTuple(string outTupleName){
+	outputTree = new TTree(outputTupleName.c_str(),"");
+	for(vector<CutVar>::const_iterator cutIt=cutContainer->begin(); cutIt!=cutContainer->end(); cutIt++){
+		string aCutVarName= (*cutIt).getCutName() + (*cutIt).getRegion();
+		string nameAndType = aCutVarName + "/f";
+		float val=0.;
+		outputBranchNamesAndVals[aCutVarName]=val;
+		outputTree->Branch(aCutVarName.c_str(),&(outputBranchNamesAndVals[aCutVarName]),nameAndType.c_str());
+	}//end loop over cutContainer elements (objects of CutVar class)
+
+	//add two additional float branches to count the number of events analyzed, and
+	//the number of evts which passed all cuts
+	float valOne=0., valTwo=0.;
+	string valOneName="nEvtsAnalyzed", valTwoName="nEvtsPassing";
+	outputBranchNamesAndVals[valOneName]=valOne;
+	outputBranchNamesAndVals[valTwoName]=valTwo;
+	outputTree->Branch(valOneName.c_str(),&(outputBranchNamesAndVals[valOneName]),(valOneName + "/f" ).c_str() );
+	outputTree->Branch(valTwoName.c_str(),&(outputBranchNamesAndVals[valTwoName]),(valTwoName + "/f" ).c_str() );
 
 }//end InitOutputTuple()
 
 /*
 void setRange(std::string varName,float min,float max,float step){
-
 }//end setRange()
 */
 
-void Scan::runScan(){
+void Scan::runScan(string pathToOutputFile){
+	//scan over all of the variables in cutContainer, and for each variable loop over all possible
+	//values of the threshold.  For each variable threshold value, loop over all input events
+	//and count how many pass the current threshold values of all variables in cutContainer.
+	for(vector<CutVar>::const_iterator cIt=cutContainer->begin(); cIt!=cutContainer->end(); cIt++){
+		for()
+	}//end loop over all CutVar objects in cutContainer
 
+	//once the scan is finished write the tree, with all of its entries, to a file
+	TFile * outTupleFile = new TFile(pathToOutputFile.c_str(),"recreate");
+	outTupleFile->cd();
+	outputTree->Write();
+	outputTupleFile->Close();
 }//end runScan()

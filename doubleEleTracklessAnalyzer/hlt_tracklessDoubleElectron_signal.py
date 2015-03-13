@@ -5009,7 +5009,7 @@ process.genEleTrack = cms.EDFilter("CandSelector",
 #use this genTracked and twoGenTrackedFilter in combination
 process.genTracked = cms.EDFilter("CandSelector",
 		src = cms.InputTag("genEle"),
-		cut = cms.string("pt>15 && eta < 5 && eta > -5")
+		cut = cms.string("pt>27 && eta < 2.5 && eta > -2.5")
 		)
 process.twoGenTrackedFilter = cms.EDFilter("CandViewCountFilter",
 		src = cms.InputTag("genTracked"),

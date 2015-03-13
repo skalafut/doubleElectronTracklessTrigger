@@ -41,8 +41,14 @@ std::vector<Float_t> calcTriggerRate(Float_t nSigEvts, TChain * sigChain, Float_
 	//sum signal and bkgnd rates in quadrature
 	Float_t totRate = sigRate + lowPtBkgndRate + highPtBkgndRate;
 	Float_t totRateErr = TMath::Sqrt( sigRateErr*sigRateErr + lowPtBkgndRateErr*lowPtBkgndRateErr + highPtBkgndRateErr*highPtBkgndRateErr );
+	std::cout<<" "<<std::endl;
+	std::cout<<"bkgnd rate = "<< lowPtBkgndRate+highPtBkgndRate << std::endl;
+	std::cout<<"num bkgnd evts analyzed = "<< lowPtBkgndChain->GetEntries()+highPtBkgndChain->GetEntries() << std::cout;
+	std::cout<<"sig rate = "<< sigRate << std::endl;
+	std::cout<<"num sig evts analyzed = "<< sigChain->GetEntries() << std::endl;
 	std::cout<<"total rate = "<< totRate << std::endl;
 	std::cout<<"total rate error = "<< totRateErr << std::endl;
+	std::cout<<" "<<std::endl;
 	std::vector<Float_t> rateAndErr;
 	rateAndErr.push_back(totRate);
 	rateAndErr.push_back(totRateErr);
@@ -50,7 +56,7 @@ std::vector<Float_t> calcTriggerRate(Float_t nSigEvts, TChain * sigChain, Float_
 }
 
 //use this fxn to find the number of evts from one particular physics process (signal: DY->ee, low pt bkgnd,
-//high pt bkgnd) pass both legs of the trigger with cuts applied to the tracked and trackless legs
+//high pt bkgnd) which pass both legs of the trigger with cuts applied to the tracked and trackless legs
 //return the number of evts which passed both legs
 Float_t numEvtsPassingBothLegs(TChain * tracklessChain,TChain * trackedChain,TString tracklessListFillArgs,TString tracklessListName,TString trackedListFillArgs,TString trackedListName,TCut tracklessFilters,TCut trackedFilters ){
 	tracklessChain->Draw(tracklessListFillArgs,tracklessFilters,"entrylistarray");
@@ -81,8 +87,10 @@ Float_t numEvtsPassingBothLegs(TChain * tracklessChain,TChain * trackedChain,TSt
 
 	std::cout<< trackedChainEntries << " evts in tracked chain"<<std::endl;
 	std::cout<< numFilteredtrackedEntries << " evts in tracked chain pass filters"<<std::endl;
+	std::cout<<"tracked leg efficiency = "<< numFilteredtrackedEntries/trackedChainEntries << std::endl;
 	std::cout<< tracklessChainEntries << " evts in trackless chain"<<std::endl;
 	std::cout<< numFilteredtracklessEntries << " evts in trackless chain pass filters"<<std::endl;
+	std::cout<<"trackless leg efficiency = "<< numFilteredtracklessEntries/tracklessChainEntries << std::endl;
 
 	Int_t treeNum=0;
 	for(Long64_t oen = 0; oen < numFilteredtracklessEntries; oen++){
@@ -1206,14 +1214,14 @@ void testMacro(){
 	*/
 
 	//Float_t numEvtsPassingBothLegs(TChain * tracklessChain,TChain * trackedChain,TString tracklessListFillArgs,TString tracklessListName,TString trackedListFillArgs,TString trackedListName,TCut tracklessFilters,TCut trackedFilters )
-	numEvtsPassingBothLegs(matchedTracklessSignalChain,matchedTrackedSignalChain,">>tracklessevtNumberZeroMatchedSignalList","tracklessevtNumberZeroMatchedSignalList",">>trackedevtNumberZeroMatchedSignalList","trackedevtNumberZeroMatchedSignalList",hltDr+trialTracklessEndcapLeg,hltDr+(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
+	numEvtsPassingBothLegs(matchedTracklessSignalChain,matchedTrackedSignalChain,">>tracklessevtNumberZeroMatchedSignalList","tracklessevtNumberZeroMatchedSignalList",">>trackedevtNumberZeroMatchedSignalList","trackedevtNumberZeroMatchedSignalList",hltDr+originalTracklessEndcapLeg,hltDr+(originalTrackedBarrelLeg || originalTrackedEndcapLeg) );
 
-	sigEvtsPassing = numEvtsPassingBothLegs(tracklessSignalChain,trackedSignalChain,">>tracklessevtNumberZeroSignalList","tracklessevtNumberZeroSignalList",">>trackedevtNumberZeroSignalList","trackedevtNumberZeroSignalList",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
+	sigEvtsPassing = numEvtsPassingBothLegs(tracklessSignalChain,trackedSignalChain,">>tracklessevtNumberZeroSignalList","tracklessevtNumberZeroSignalList",">>trackedevtNumberZeroSignalList","trackedevtNumberZeroSignalList",originalTracklessEndcapLeg,(originalTrackedBarrelLeg || originalTrackedEndcapLeg) );
 
 
-	bkgndLowPtEvtsPassing = numEvtsPassingBothLegs(tracklessLowPtBkgndChain,trackedLowPtBkgndChain,">>tracklessevtNumberZeroLowPtBkgndList","tracklessevtNumberZeroLowPtBkgndList",">>trackedevtNumberZeroLowPtBkgndList","trackedevtNumberZeroLowPtBkgndList",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
+	bkgndLowPtEvtsPassing = numEvtsPassingBothLegs(tracklessLowPtBkgndChain,trackedLowPtBkgndChain,">>tracklessevtNumberZeroLowPtBkgndList","tracklessevtNumberZeroLowPtBkgndList",">>trackedevtNumberZeroLowPtBkgndList","trackedevtNumberZeroLowPtBkgndList",originalTracklessEndcapLeg,(originalTrackedBarrelLeg || originalTrackedEndcapLeg) );
 
-	bkgndHighPtEvtsPassing = numEvtsPassingBothLegs(tracklessHighPtBkgndChain,trackedHighPtBkgndChain,">>tracklessevtNumberZeroHighPtBkgndList","tracklessevtNumberZeroHighPtBkgndList",">>trackedevtNumberZeroHighPtBkgndList","trackedevtNumberZeroHighPtBkgndList",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
+	bkgndHighPtEvtsPassing = numEvtsPassingBothLegs(tracklessHighPtBkgndChain,trackedHighPtBkgndChain,">>tracklessevtNumberZeroHighPtBkgndList","tracklessevtNumberZeroHighPtBkgndList",">>trackedevtNumberZeroHighPtBkgndList","trackedevtNumberZeroHighPtBkgndList",originalTracklessEndcapLeg,(originalTrackedBarrelLeg || originalTrackedEndcapLeg) );
 
 
 	//std::vector<Float_t> calcTriggerRate(Float_t nSigEvts, TChain * sigChain, Float_t nLowPtBkgndEvts, TChain * lowPtBkgndChain, Float_t nHighPtBkgndEvts, TChain * highPtBkgndChain)

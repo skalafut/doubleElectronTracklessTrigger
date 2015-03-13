@@ -33,24 +33,26 @@ class Scan{
 		//the vector<string> objects will be filled with information from two txt files which are read
 		//by scanning.cpp, and a call to identifyUniqueBranchNames() by a Scan class object 
 		void InitInputTuple(std::vector<std::string> pathToInputTuples,std::vector<std::string> inputTupleNames,std::vector<std::string> branchNames);
+	
+		//don't need to give branch names as an input to this fxn; the names can be obtained from
+		//the objects in cutContainer
+		//the two input string args will be specified in scanning.cpp
+		void InitOutputTuple(std::string outTupleName);
 		
-		void InitOutputTuple(std::string outputFile,std::string outChainName);
 		//void setRange(std::string varName,float min,float max,float step);
-		
-		//runScan() consists of three nested for loops.  The outer most loops over elements in cutContainer,
-		//the middle loops over possible values of one cut variable (btwn min and max), and the inner most
-		//loops over events from the two input TChains 
-		void runScan();
+	
+		//runScan is a recursive function.  It will call itself from within the fxn.  See cell phone pics
+		//and whiteboard in building 40 office for more details.
+		void runScan(std::string pathToOutputFile);
 
 	private:
 		const char * configFileName;
 		std::vector<CutVar> cutContainer;	//no emo :)
 		
 		std::vector<TChain*> pInputChains;
-		//TChain * outputChain;
-		std::string outputFileName;
+		TTree * outputTree;
 		std::map<std::string,std::array<float>> inputBranchArrayNamesAndVals;	//branches which have arrays of floats
-		std::map<std::string,float> inputBranchNamesAndVals;		//branches with one float per entry
+		//std::map<std::string,float> inputBranchNamesAndVals;		//branches with one float per entry
 		
 		//outputBranch map will have at least 2 more elements than cutContainer
 		//one for the number of evts which were analyzed, and another branch which 

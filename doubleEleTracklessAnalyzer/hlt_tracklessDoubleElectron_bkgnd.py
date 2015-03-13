@@ -5140,7 +5140,50 @@ process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study = cms.Path(
 #		+ process.HLTEle15WPYYtracklessSequence 
 #		+ process.HLTEndSequence )
 
+#check that the bkgnd samples do not have any GEN Z->ee events
+process.genEle = cms.EDFilter("CandViewSelector",
+		src = cms.InputTag("genParticles"),
+		cut = cms.string("(pdgId == 11 || pdgId == -11) && mother(0).pdgId == 23"),
+		)
+
+process.twoGenFilter = cms.EDFilter("CandViewCountFilter",
+		src = cms.InputTag("genEle"),
+		minNumber = cms.uint32(2)
+		)
+
+process.genTracked = cms.EDFilter("CandSelector",
+		src = cms.InputTag("genEle"),
+		cut = cms.string("pt>27 && eta < 2.5 && eta > -2.5")
+		)
+
+process.genTrackless = cms.EDFilter("CandSelector",
+		src = cms.InputTag("genEle"),
+		cut = cms.string("pt>15 && ( (eta < 3.0 && eta > 2.5 ) || (eta < -2.5 && eta > -3.0) )")
+		)
+
+process.genTrackedFilter = cms.EDFilter("CandViewCountFilter",
+		src = cms.InputTag("genTracked"),
+		minNumber = cms.uint32(1)
+		)
+
+process.genTracklessFilter = cms.EDFilter("CandViewCountFilter",
+		src = cms.InputTag("genTrackless"),
+		minNumber = cms.uint32(1)
+		)
+
+process.quickGenStudyOneTrackedOneTrackless = cms.Path(
+		process.genEle
+		*process.twoGenFilter
+		*process.genTracked
+		*process.genTrackedFilter
+		*process.genTrackless
+		*process.genTracklessFilter
+		)
+
+
 process.HLTriggerFinalPath = cms.Path( process.hltGtDigis + process.hltScalersRawToDigi + process.hltFEDSelector + process.hltTriggerSummaryAOD + process.hltTriggerSummaryRAW )
+
+process.schedule = cms.Schedule(process.quickGenStudyOneTrackedOneTrackless)
 
 process.TFileService = cms.Service("TFileService",
 		fileName = cms.string('bkgnd_analyzer_trees.root')
@@ -5151,9 +5194,9 @@ process.TFileService = cms.Service("TFileService",
 process.source = cms.Source( "PoolSource",
     fileNames = cms.untracked.vstring(
         #'file:RelVal_Raw_GRun_MC.root',
-		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_QCD_pt_30_to_80_EM_enriched_13TeV_40PU_25ns_bx_GEN_SIM_RAW_dataset_0.root',
-		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_QCD_pt_30_to_80_EM_enriched_13TeV_40PU_25ns_bx_GEN_SIM_RAW_dataset_1.root',
-		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_QCD_pt_30_to_80_EM_enriched_13TeV_40PU_25ns_bx_GEN_SIM_RAW_dataset_2.root',
+		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_QCD_pt_30_to_80_EM_enriched_13TeV_40PU_25ns_bx_GEN_SIM_RAW_dataset_0.root',
+		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_QCD_pt_30_to_80_EM_enriched_13TeV_40PU_25ns_bx_GEN_SIM_RAW_dataset_1.root',
+		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_QCD_pt_30_to_80_EM_enriched_13TeV_40PU_25ns_bx_GEN_SIM_RAW_dataset_2.root',
 	
     ),
     inputCommands = cms.untracked.vstring(
@@ -5232,7 +5275,7 @@ process.FULLOutput = cms.EndPath( process.hltOutputFULL )
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(85)
+    input = cms.untracked.int32(-1)
 )
 
 # enable the TrigReport and TimeReport
