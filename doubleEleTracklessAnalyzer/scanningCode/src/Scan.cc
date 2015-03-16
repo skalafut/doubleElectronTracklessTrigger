@@ -57,12 +57,12 @@ unsigned int Scan::numCutVars(){
 
 vector<string> identifyUniqueBranchNames(){
 	vector<string> uniqueBranchNames;	//the vector which will be returned by this fxn
-	for(vector<CutVar>::const_iterator cutIt=cutContainer->begin(); cutIt!=cutContainer->end(); cutIt++){
+	for(vector<CutVar>::const_iterator cutIt=cutContainer.begin(); cutIt!=cutContainer.end(); cutIt++){
 		string tempName = (*cutIt).getCutName();
 		bool foundIdentical = false;
 		if(uniqueBranchNames.size()==0) uniqueBranchNames.push_back(tempName);
 		else{
-			for(vector<string>::const_iterator namesIt=uniqueBranchNames->begin(); namesIt!=uniqueBranchNames->end(); namesIt++){
+			for(vector<string>::const_iterator namesIt=uniqueBranchNames.begin(); namesIt!=uniqueBranchNames.end(); namesIt++){
 				if(tempName.compare(*namesIt)==0) foundIdentical=true;
 				if(foundIdentical) break;
 			}//end loop over uniqueBranchNames vector
@@ -72,6 +72,7 @@ vector<string> identifyUniqueBranchNames(){
 	return uniqueBranchNames;
 }//end identifyBranchNames()	
 
+//use the vector<string> returned by identifyUniqueBranchNames() as the input parameter branchNames to InitInputTuple()
 void Scan::InitInputTuple(vector<string> pathToInputTuples,vector<string> inputTupleNames,vector<string> branchNames){
 	if(pathToInputTuples.size() != inputTupleNames.size()){
 		cout<<"can't initialize input tuples because there are more unique tuple names than paths to tuple files"<<endl;
@@ -79,61 +80,56 @@ void Scan::InitInputTuple(vector<string> pathToInputTuples,vector<string> inputT
 		return;
 	}
 	
-	vector<string>::const_iterator pathIt = pathToInputTuples->begin();
-	for(vector<string>::const_iterator tupleIt=inputTupleNames->begin(); tupleIt!=inputTupleNames->end(); tupleIt++){
+	vector<string>::const_iterator pathIt = pathToInputTuples.begin();
+	for(vector<string>::const_iterator tupleIt=inputTupleNames.begin(); tupleIt!=inputTupleNames.end(); tupleIt++){
 		pInputChains.push_back(new TChain((*tupleIt).c_str() ,""));
 		(pInputChains.back())->Add((*pathIt).c_str() );
 		pathIt++;	//not completely confident that this pathIt approach will work 
 	}//make a new TChain pointer for every unique tree name
 
-	for(vector<string>::const_iterator brIt=branchNames->begin(); cutIt!=branchNames->end(); cutIt++){
-		//add an entry to inputBranchArrayNamesAndVals for each entry in the vector
-		//returned by identifyUniqueBranchNames()
-		//(*brIt) is the name of a branch in an input file which will be used in the optimization, like
-		//ecalIsoHltEle 
-		array<float,NELE> inputArray;
-		for(unsigned int i=0;i<inputArray.size();i++){ inputArray[i]=0.;}	//initialize all elements to zero
-		inputBranchArrayNamesAndVals[(*brIt)]= inputArray;		//should there be an asterisk or ampersand?
-		pInputChains->SetBranchAddress((*brIt).c_str(),inputBranchArrayNamesAndVals[(*brIt)]);	//need an asterisk or ampersand in front of map name?
-	}//end loop over unique branch names identified pulled from objects in cutContainer
+	//now setup maps between float arrays and branch (cut) variable names
+	for(unsigned int h=0;h<pInputChains.size(); h++){
+		map<string,Float_t[NELE]> inputMap;
+		unsigned int index = 0;
+		for(vector<string>::const_iterator brIt=branchNames.begin(); brIt!=branchNames.end(); brIt++){
+			//add an entry to inputBranchArrayNamesAndVals for each entry in the vector
+			//returned by identifyUniqueBranchNames()
+			//(*brIt) is the name of a branch in an input file which will be used in the optimization, like
+			//ecalIsoHltEle
+			Float_t arr[NELE];
+			for(unsigned int i=0;i<NELE;i++){ arr[i]=0.;}	//initialize all elements to zero
+			inputMap[(*brIt)]=arr;
+			index++;
+			if(index == branchNames.size()){
+				//add entries to inputBranchArrayNames and inputBranchNames maps, and update pInputChains with map entries, to read in
+				//fixed size Float_t arrays containing eta, phi, and deltaR values
+				Float_t arrayOne[NELE],arrayTwo[NELE],arrayThree[NELE];
+				for(unsigned int j=0;j<NELE;j++){
+					arrayOne[j]=0.;
+					arrayTwo[j]=0.;
+					arrayThree[j]=0.;
+				}//end array initialization
+				string arrayOneName="etaHltEle",arrayTwoName="phiHltEle",arrayThreeName="deltaRHltEle";
+				inputMap[arrayOneName]=arrayOne;
+				inputMap[arrayTwoName]=arrayTwo;
+				inputMap[arrayThreeName]=arrayThree;
 
-	//add entries to inputBranchArrayNames and inputBranchNames maps, and update pInputChains with map entries, to read in
-	//float arrays containing eta, phi, and deltaR values, and float values (one per evt)
-	//for the pt, eta, phi of each gen electron, and the float value
-	//representing their dilepton mass (at gen level).  These values exist in the bkgnd files
-	//as well as the signal files
-	array<float,NELE> arrayOne,arrayTwo,arrayThree;
-	for(unsigned int j=0;j<arrayOne.size();j++){
-		arrayOne[j]=0.;
-		arrayTwo[j]=0.;
-		arrayThree[j]=0.;
-	}//end array initialization
-	string arrayOneName="etaHltEle",arrayTwoName="phiHltEle",arrayThreeName="deltaRHltEle";
-	inputBranchArrayNamesAndVals[arrayOneName]= arrayOne;
-	inputBranchArrayNamesAndVals[arrayTwoName]= arrayTwo;
-	inputBranchArrayNamesAndVals[arrayThreeName]= arrayThree;
-	pInputChains->SetBranchAddress(arrayOneName.c_str(),arrayOne);
-	pInputChains->SetBranchAddress(arrayTwoName.c_str(),arrayTwo);
-	pInputChains->SetBranchAddress(arrayThreeName.c_str(),arrayThree);
+				//now that all of the maps are setup, add inputMap to the vector of map objects
+				inputBranchArrayNamesAndVals.push_back(inputMap);
+			}//end if(index == number of unique branch names)
+		}//end loop over unique branch names pulled from objects in cutContainer
 
-	/*
-	float one=0,two=0,three=0,four=0;
-	string oneName="etaGenEle",twoName="ptGenEle",threeName="phiGenEle",fourName="diObjectMassGenEle"; 
-	inputBranchNamesAndVals[oneName]=one;
-	inputBranchNamesAndVals[twoName]=two;
-	inputBranchNamesAndVals[threeName]=three;
-	inputBranchNamesAndVals[fourName]=four;
-	pInputChains->SetBranchAddress(oneName.c_str(),&one);
-	pInputChains->SetBranchAddress(twoName.c_str(),&two);
-	pInputChains->SetBranchAddress(threeName.c_str(),&three);
-	pInputChains->SetBranchAddress(fourName.c_str(),&four);
-	*/
+		for(map<string,Float_t[NELE]>::iterator mapIt=inputBranchArrayNamesAndVals[h].begin(); mapIt!=inputBranchArrayNamesAndVals[h].end(); mapIt++){
+			pInputChains[h]->SetBranchAddress((mapIt->first).c_str(),mapIt->second);
+		}//end loop over map elements
+
+	}//end loop over pointers to input TChain objects
 
 }//end InitInputTuple()
 
 void Scan::InitOutputTuple(string outTupleName){
 	outputTree = new TTree(outputTupleName.c_str(),"");
-	for(vector<CutVar>::const_iterator cutIt=cutContainer->begin(); cutIt!=cutContainer->end(); cutIt++){
+	for(vector<CutVar>::const_iterator cutIt=cutContainer.begin(); cutIt!=cutContainer.end(); cutIt++){
 		string aCutVarName= (*cutIt).getCutName() + (*cutIt).getRegion();
 		string nameAndType = aCutVarName + "/f";
 		float val=0.;
@@ -157,17 +153,90 @@ void setRange(std::string varName,float min,float max,float step){
 }//end setRange()
 */
 
-void Scan::runScan(string pathToOutputFile){
+void Scan::runScan(string pathToOutputFile, unsigned int iCut){
 	//scan over all of the variables in cutContainer, and for each variable loop over all possible
 	//values of the threshold.  For each variable threshold value, loop over all input events
 	//and count how many pass the current threshold values of all variables in cutContainer.
-	for(vector<CutVar>::const_iterator cIt=cutContainer->begin(); cIt!=cutContainer->end(); cIt++){
-		for()
-	}//end loop over all CutVar objects in cutContainer
 
-	//once the scan is finished write the tree, with all of its entries, to a file
-	TFile * outTupleFile = new TFile(pathToOutputFile.c_str(),"recreate");
-	outTupleFile->cd();
-	outputTree->Write();
-	outputTupleFile->Close();
+	if(iCut==0){
+		//once iCut equals zero all of the cut thresholds have been set to new values
+		//using these new threshold values I should loop over all events in the input tuple
+		//and count how many pass the set of cuts.  This event count, the values of
+		//every cut threshold, and the number of input evts analyzed should be written
+		//to the output tuple by calling outputTree->Fill().  This tree should then be saved
+		//to the output file by calling outputTree->Write().  Finally, I should return control
+		//to the main program.
+
+		//CutVar::isThresholdUpperBound()
+		if(pInputChains.size() < 2){
+			cout<<"setup runScan method in Scan.cc to work with only one input tuple"<<endl;
+			return;
+		}
+
+
+		//use this string to distinguish tracked tree from trackless tree, and signal trees from bkgnd trees
+		string firstTupleName = pInputChains[0]->GetName();
+		size_t racklessPosition = firstTupleName.find("rackless");
+		size_t bkgndPosition = firstTupleName.find("kgnd");
+		bool failedTrackedEB = false, failedTrackedEE = false, failedTracklessEE = false;
+		
+		//loop over all entries in the two input tuples
+		for(long evt = 0; evt<pInputChains[0]->GetEntries(); evt++){
+			pInputChains[0]->GetEntry(evt);
+			pInputChains[1]->GetEntry(evt);
+	
+			//for each event in both trees, loop over all elements in cutContainer
+			for(vector<CutVar>::const_iterator cutIt=cutContainer.begin(); cutIt!=cutContainer.end(); cutIt++){
+				if(racklessPosition != string::npos){
+					//the first element in pInputChains corresponds to a trackless tuple
+					//the second element corresponds to a tracked tuple
+
+					//now loop over each element in the array within the map entry
+					//inputBranchArrayNamesAndVals[(*cutIt).getCutName()]
+					//each branch in the input tuples contains an array of floats, not just a single float, hence
+					//we must loop over all elements in each array
+					for(array<float>::const_iterator eleOne=(*inputBranchArrayNamesAndVals[(*cutIt).getCutName()]).begin(); eleOne!=(*inputBranchArrayNamesAndVals[(*cutIt).getCutName()]).end(); eleOne++){
+					
+					}//end loop over elements of an array which is stored in a branch of an input tuple 
+
+				}//end if(racklessPosition)
+				
+				else{
+					//the first element in pInputChains corresponds to a tracked tuple
+					//the second element corresponds to a trackless tuple
+
+					//now loop over each entry in the array within the map entry
+					//inputBranchArrayNamesAndVals[(*cutIt).getCutName()] 
+
+
+
+				}//end else
+			}//end loop over all cut variables
+		
+		}//end loop over all evts in input tuples (same number of entries in all input tuples)
+
+
+		
+		TFile * outTupleFile = new TFile(pathToOutputFile.c_str(),"update");
+		outTupleFile->cd();
+		outputTree->Write();
+		outputTupleFile->Close();
+		return;
+	
+	}//end if(iCut==0)
+
+	float current = cutContainer[iCut-1].getCurrentThreshold();
+	float min = cutContainer[iCut-1].getMinThreshold();
+	float max = cutContainer[iCut-1].getMaxThreshold();
+	for(float multiplier=0; (current>=min && current<=max); multiplier += 1){
+		//NOTE
+		//in the current CutVar constructor the variable threshVal is always initialized to the minimum threshold value
+		//within this loop update the threshold value to a new value, and call runScan again to move on to the next
+		//cut variable stored in cutContainer.  The number of iterations which are executed within this for loop has
+		//nothing to do with the number of CutVar objects stored in cutContainer!
+		float updatedThreshVal = cutContainer[iCut-1].getCurrentThreshold() + (cutContainer[iCut-1].getThresholdStep())*multiplier;
+		cutContainer[iCut-1].setThresholdValue(updatedThreshVal);
+		runScan(pathToOutputFile,iCut-1);
+	}//end loop over all possible values of the cut threshold for a CutVar object in cutContainer
+
 }//end runScan()

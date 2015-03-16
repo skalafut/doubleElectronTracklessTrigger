@@ -6,6 +6,7 @@
 #include "TTree.h"
 #include "TChain.h"
 
+#define NELE 400
 
 class Scan{
 	public:
@@ -31,7 +32,13 @@ class Scan{
 		//this fxn initializes the N input TChain pointers, the entries in the inputBranchNamesAndVals
 		//map (both the strings and floats), and calls SetBranchAddress using the map entries
 		//the vector<string> objects will be filled with information from two txt files which are read
-		//by scanning.cpp, and a call to identifyUniqueBranchNames() by a Scan class object 
+		//by scanning.cpp, and a call to identifyUniqueBranchNames() by a Scan class object
+		//the names of the input tuple branches and the names returned by (CutVar object).getCutName()
+		//are identical. The CutVar member variable named detectorRegion is used to distinguish
+		//tracked barrel, tracked endcap, and trackless endcap.
+		//getCutName() gives the name of a cut, and equivalently a branch name
+		//getRegion() (part of CutVar class) returns the name of a detector region in the format
+		//_tEB, _tEE, or _utEE 
 		void InitInputTuple(std::vector<std::string> pathToInputTuples,std::vector<std::string> inputTupleNames,std::vector<std::string> branchNames);
 	
 		//don't need to give branch names as an input to this fxn; the names can be obtained from
@@ -40,10 +47,11 @@ class Scan{
 		void InitOutputTuple(std::string outTupleName);
 		
 		//void setRange(std::string varName,float min,float max,float step);
-	
-		//runScan is a recursive function.  It will call itself from within the fxn.  See cell phone pics
-		//and whiteboard in building 40 office for more details.
-		void runScan(std::string pathToOutputFile);
+
+		
+		//runScan is a recursive function.  It will call itself from within the fxn. The value of iCut
+		//passed to this fxn as an input should equal the number of elements in cutContainer. 
+		void runScan(std::string pathToOutputFile, unsigned int iCut);
 
 	private:
 		const char * configFileName;
@@ -51,8 +59,8 @@ class Scan{
 		
 		std::vector<TChain*> pInputChains;
 		TTree * outputTree;
-		std::map<std::string,std::array<float>> inputBranchArrayNamesAndVals;	//branches which have arrays of floats
-		//std::map<std::string,float> inputBranchNamesAndVals;		//branches with one float per entry
+		//need a vector of maps because there is a vector of TChain pointers to input tuples 
+		std::vector<std::map<std::string,Float_t[NELE]>>> inputBranchArrayNamesAndVals;	//branches which have arrays of floats
 		
 		//outputBranch map will have at least 2 more elements than cutContainer
 		//one for the number of evts which were analyzed, and another branch which 
