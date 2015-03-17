@@ -15,7 +15,13 @@ class Scan{
 		//not the threshold corresponds to an upper bound (like relative ecal iso) or lower bound (pt), and
 		//a tag to indicate tracked barrel or endcap which will be used to define the output branch names
 		Scan(const char * configTxtFileName);
-		
+
+		/*
+		struct inputArray{
+			Float_t inArr[NELE];
+		};
+		*/
+
 		//call InitCutVars() before InitInputTree() and InitOutputTree()
 	
 		//this fxn uses member var configFileName to create CutVar objects, and adds them

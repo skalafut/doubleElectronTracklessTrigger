@@ -139,11 +139,12 @@ void Scan::InitOutputTuple(string outTupleName){
 
 	//add two additional float branches to count the number of events analyzed, and
 	//the number of evts which passed all cuts
-	float valOne=0., valTwo=0.;
+	long valOne=0.;
+	float valTwo=0.;
 	string valOneName="nEvtsAnalyzed", valTwoName="nEvtsPassing";
 	outputBranchNamesAndVals[valOneName]=valOne;
 	outputBranchNamesAndVals[valTwoName]=valTwo;
-	outputTree->Branch(valOneName.c_str(),&(outputBranchNamesAndVals[valOneName]),(valOneName + "/f" ).c_str() );
+	outputTree->Branch(valOneName.c_str(),&(outputBranchNamesAndVals[valOneName]),(valOneName + "/l" ).c_str() );
 	outputTree->Branch(valTwoName.c_str(),&(outputBranchNamesAndVals[valTwoName]),(valTwoName + "/f" ).c_str() );
 
 }//end InitOutputTuple()
@@ -178,41 +179,130 @@ void Scan::runScan(string pathToOutputFile, unsigned int iCut){
 		string firstTupleName = pInputChains[0]->GetName();
 		size_t racklessPosition = firstTupleName.find("rackless");
 		size_t bkgndPosition = firstTupleName.find("kgnd");
-		bool failedTrackedEB = false, failedTrackedEE = false, failedTracklessEE = false;
+		bool failedTrackedLeg = false, failedTracklessLeg = false;
+		
+		//save these two vars to the output tree 
+		float numEvtsAnalyzed = 0;
+		float numEvtsPassingCuts = 0;
 		
 		//loop over all entries in the two input tuples
 		for(long evt = 0; evt<pInputChains[0]->GetEntries(); evt++){
 			pInputChains[0]->GetEntry(evt);
 			pInputChains[1]->GetEntry(evt);
-	
-			//for each event in both trees, loop over all elements in cutContainer
-			for(vector<CutVar>::const_iterator cutIt=cutContainer.begin(); cutIt!=cutContainer.end(); cutIt++){
-				if(racklessPosition != string::npos){
-					//the first element in pInputChains corresponds to a trackless tuple
-					//the second element corresponds to a tracked tuple
+			numEvtsAnalyzed += 1;
 
-					//now loop over each element in the array within the map entry
-					//inputBranchArrayNamesAndVals[(*cutIt).getCutName()]
-					//each branch in the input tuples contains an array of floats, not just a single float, hence
-					//we must loop over all elements in each array
-					for(array<float>::const_iterator eleOne=(*inputBranchArrayNamesAndVals[(*cutIt).getCutName()]).begin(); eleOne!=(*inputBranchArrayNamesAndVals[(*cutIt).getCutName()]).end(); eleOne++){
+			//these four vars will only be used when scanning over matched signal evts
+			unsigned int bestIndexFirstChain = -1;
+			Float_t bestDrFirstChain=0.15;
+			unsigned int bestIndexSecondChain = -1;
+			Float_t bestDrSecondChain=0.15;
+
+			//these two vectors will only be used when scanning over bkgnd evts
+			//the trackless and tracked eta filters are applied before these vectors are filled
+			vector<unsigned int> indexesFirstChain;
+			vector<unsigned int> indexesSecondChain;
+
+			if(racklessPosition != string::npos){
+				//the first element in pInputChains corresponds to a trackless tuple
+				//the second element corresponds to a tracked tuple
+
+				//now loop over each element in the array within the vector<map> entry
+				//inputBranchArrayNamesAndVals[0][(*cutIt).getCutName()]
+				//each branch in the input tuples contains an array of floats, not just a single float, hence
+				//we must loop over all elements in each array
+				for(unsigned int ele=0; ele<(inputBranchArrayNamesAndVals[0].find(cutContainer[0].getCutName()))->second.size(); ele++){
+					Float_t eta = inputBranchArrayNamesAndVals[0].find("etaHltEle")->second.at(ele);
+					Float_t dR = inputBranchArrayNamesAndVals[0].find("deltaRHltEle")->second.at(ele);
+					if(fabs(eta) <= 3.0 && fabs(eta) >= 2.5){
+						if(bkgndPosition == string::npos){
+							//this chain corresponds to matched signal. look at the candidate with the smallest
+							//dR value less than 0.15
+							if(dR < bestDrFirstChain){
+								bestIndexFirstChain = ele;
+								bestDrFirstChain = dR;
+							}
+						}//end signal filter
+						else{
+							//use this for bkgnd evts where dR matching is not required
+							indexesFirstChain.push_back(ele);
+						}//end else
+					}//end trackless eta filter
+				}//end loop over elements of an array which is stored in a branch of an input tuple
+
+				for(unsigned int ele=0; ele<(inputBranchArrayNamesAndVals[1].find(cutContainer[0].getCutName()))->second.size(); ele++){
+					Float_t eta = inputBranchArrayNamesAndVals[1].find("etaHltEle")->second.at(ele);
+					Float_t dR = inputBranchArrayNamesAndVals[1].find("deltaRHltEle")->second.at(ele);
+					if(fabs(eta) < 2.5){
+						if(bkgndPosition == string::npos){
+							//this chain corresponds to matched signal. look at the candidate with the smallest
+							//dR value less than 0.15
+							if(dR < bestDrSecondChain){
+								bestIndexSecondChain = ele;
+								bestDrSecondChain = dR;
+							}
+						}//end signal filter
+						else{
+							//use this for bkgnd evts (dR matching is not applied) 
+							indexesSecondChain.push_back(ele);
+						}//end else
+					}//end tracked eta filter
+				}//end loop over elements of an array which is stored in a branch of an input tuple
+
+				//now we know of any matched signal or bkgnd reco objects in the evt which passed the tracker
+				//and trackless EE eta requirements (and dR matching for signal)
+				if(bkgndPosition == string::npos && (bestIndexFirstChain==-1 || bestIndexSecondChain==-1)) continue;	//go to next evt
+				if(bkgndPosition != string::npos && (indexesFirstChain.size()==0 || indexesSecondChain.size()==0) ) continue;
+
+				for(vector<CutVar>::const_iterator cutIt=cutContainer.begin(); cutIt!=cutContainer.end(); cutIt++){
+					if(bkgndPosition == string::npos){
+						if((*cutIt).getRegion().compare("_utEE")==0 ){
+							if((*cutIt).isThresholdUpperBound()){
+								if(inputBranchArrayNamesAndVals[0].find((*cutIt).getCutName())->second.at(bestIndexFirstChain) > (*cutIt).getCurrentThreshold() ){
+									failedTracklessLeg = true;
+									break;	//leave loop over cutContainer elements
+								}//end if matched signal entry fails an upper bound cut
+
+							}//end check to see if cutVar is an upper bound or lower bound
+
+							else{
+								//cutIt points to a lower bound
+								if(inputBranchArrayNamesAndVals[0].find((*cutIt).getCutName())->second.at(bestIndexFirstChain) < (*cutIt).getCurrentThreshold() ){
+									failedTracklessLeg = true;
+									break;	//leave loop over cutContainer elements
+								}//end if matched signal entry fails an upper bound cut
+							}//end check to see if cutVar is a lower bound 
+						}//end if(CutVar corresponds to a trackless leg threshold)
+						
+						else{
+							//CutVar corresponds to a tracked leg threshold
+							if( (*cutIt).getRegion().compare("_tEB")==0 && inputBranchArrayNamesAndVals[1].find("etaHltEle")->second.at(bestIndexSecondChain) < 1.479){
+								//cutIt points to a tracked EB cut
+							}//end if(cutIt points to a tracked EB cut and matched tracked signal entry is in tracked EB)
+							else{
+								//cutIt points to a tracked EE cut
+							}//end else (cutIt points to a tracked EE cut)
+						
+						}//end else (when cut corresponds to a tracked leg threshold) 
 					
-					}//end loop over elements of an array which is stored in a branch of an input tuple 
+					}//check if the two input chains correspond to matched signal tuples
 
-				}//end if(racklessPosition)
-				
-				else{
-					//the first element in pInputChains corresponds to a tracked tuple
-					//the second element corresponds to a trackless tuple
+				}//end loop over CutVar objects in cutContainer
+			
+			}//end if(racklessPosition)
+			
+			if(failedTrackedLeg) continue;
 
-					//now loop over each entry in the array within the map entry
-					//inputBranchArrayNamesAndVals[(*cutIt).getCutName()] 
+			else{
+				//the first element in pInputChains corresponds to a tracked tuple
+				//the second element corresponds to a trackless tuple
+
+				//now loop over each entry in the array within the map entry
+				//inputBranchArrayNamesAndVals[(*cutIt).getCutName()] 
 
 
 
-				}//end else
-			}//end loop over all cut variables
-		
+			}//end else
+
 		}//end loop over all evts in input tuples (same number of entries in all input tuples)
 
 
