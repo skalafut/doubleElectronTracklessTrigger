@@ -64,7 +64,10 @@ public:
 		
      //runScan is a recursive function.  It will call itself from within the fxn. The value of iCut
      //passed to this fxn as an input should equal the number of elements in cutContainer. 
-     void runScan(std::string pathToOutputFile, unsigned int iCut);
+     void runScan(unsigned int iCut);
+
+     void SaveOutput(std::string pathToOutputFile);
+
 
 private:
      std::string _configFileName; ///< name of the config file with name of variables to optimize, ranges and steps
@@ -73,7 +76,8 @@ private:
 
      TChain* _pInputChain; ///< only one chain, if multiple chains, they should be added as friends
      TTree *_outputTree;   ///< output tree
-
+     
+     Long64_t nEvents, nPassing;
      typedef std::map<std::string, Float_t[NELE]> floatBranchMap_t;
      
      floatBranchMap_t _inputBranches,  _outputBranches;
