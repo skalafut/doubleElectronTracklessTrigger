@@ -10,41 +10,45 @@ class CutVar {
 public:
      CutVar(std::string cutName_, std::string zone, float val, float min, float max, float step, bool setUpper):
 	  _cutName(cutName_),
-	  _detectorRegion(zone)
-	  {
-	       threshVal = val;
-	       minThresh = min;
-	       maxThresh = max;
-	       threshStep = step;
-	       isUpperBound = setUpper;
+	  _detectorRegion(zone),
+	  _threshVal(val),
+	  _minThresh(min),
+	  _maxThresh(max),
+	  _threshStep(step),
+	  _isUpperBound(setUpper){
 	  };
-     /// standard constructor
-     CutVar(std::string cutName_, std::string zone):
+
+	 CutVar(std::string cutName_, std::string zone):
 	  _cutName(cutName_),
 	  _detectorRegion(zone){
-     };
+	  };
 
-     inline void setThresholdValue(float value){ threshVal = value;};
+     inline void setThresholdValue(float value){ _threshVal = value;};
 
      void SetValuesFromString(std::string ranges_){
 	  char sign;
-	  sscanf(ranges_.c_str(), "[%f,%f,%f,%c]", &minThresh, &maxThresh, &threshStep, &sign);
-	  if(sign == '>') isUpperBound=false;
-	  else if(sign == '<') isUpperBound=true;
+	  sscanf(ranges_.c_str(), "[%f,%f,%f,%c]", &_minThresh, &_maxThresh, &_threshStep, &sign);
+	  if(sign == '>') _isUpperBound=false;
+	  else if(sign == '<') _isUpperBound=true;
 	  else exit(1); /// \todo fix launching exception with error 
      }
 
+	 /**use this fxn to check that the minimum, maximum, and step size for a CutVar are assigned reasonable
+	  * values, whether the CutVar is identified as an upper bound or lower bound, and the detector region
+	  * (EB, tracked EE, etc) in which this CutVar is relevant.
+	  * the CutVar name is printed first
+	  */
      friend std::ostream& operator << (std::ostream& os, const CutVar a){
-	  os <<  a._cutName  << "\t[" << std::setprecision(3) << a.minThresh << "," << a.maxThresh << "," << a.threshStep << ",";
-	  char c = a.isUpperBound ? '<' : '>';
+	  os <<  a._cutName  << "\t[" << std::setprecision(3) << a._minThresh << "," << a._maxThresh << "," << a._threshStep << ",";
+	  char c = a._isUpperBound ? '<' : '>';
 	  os << c << "]\t" << a._detectorRegion;
 	  return os;
      }
 
 public:
-     //detectorRegion is used to distinguish tracked EB, tracked EE, and trackless EE
+     // _detectorRegion is used to distinguish tracked EB, tracked EE, and trackless EE
      std::string _cutName, _detectorRegion;
-     float threshVal, minThresh, maxThresh, threshStep;
-     bool isUpperBound;	//indicates if this cut will be used as an upper bound (someVal < threshVal)
+     float _threshVal, _minThresh, _maxThresh, _threshStep;
+     bool _isUpperBound;	//indicates if this cut will be used as an upper bound (someVal < _threshVal)
 };//end class cutVar
 

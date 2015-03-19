@@ -1125,30 +1125,31 @@ void testMacro(){
 
 
 	////tracked and trackless leg cuts for playing around
-	TCut trialTrackedPt = "ptHltEle>27.";
-	TCut trialTrackedEESigmaIEIE = "clusterShapeHltEle<0.041";
-	TCut trialTrackedEEHE = "hadEmHltEle<0.125";
-	TCut trialTrackedEEEcalIso = "ecalIsoHltEle<0.16";
-	TCut trialTrackedEEHcalIso = "hcalIsoHltEle<0.16";
+	TCut trialTrackedPt = "ptHltEle>10.";
+
+	TCut trialTrackedEBSigmaIEIE = "clusterShapeHltEle<0.019";
+	TCut trialTrackedEBHE = "hadEmHltEle<0.21";
+	TCut trialTrackedEBEcalIso = "ecalIsoHltEle<0.38";
+	TCut trialTrackedEBHcalIso = "hcalIsoHltEle<0.38";
+	TCut trialTrackedEBEp = "epHltEle<0.0064";
+	TCut trialTrackedEBDeta = "dEtaHltEle<0.0029";
+	TCut trialTrackedEBDphi = "dPhiHltEle<0.034";
+	TCut trialTrackedEBTrackIso = "trackIsoHltEle<0.148";
 	
-	TCut trialTrackedEEEp = "epHltEle<0.015";
-	TCut trialTrackedEEDeta = "dEtaHltEle<0.015";
-	TCut trialTrackedEEDphi = "dPhiHltEle<0.04";
-	TCut trialTrackedEETrackIso = "trackIsoHltEle<0.185";
-	TCut trialTrackedEBSigmaIEIE = "clusterShapeHltEle<0.016";
-	TCut trialTrackedEBHE = "hadEmHltEle<0.17";
-	TCut trialTrackedEBEcalIso = "ecalIsoHltEle<0.21";
-	TCut trialTrackedEBHcalIso = "hcalIsoHltEle<0.16";
-	TCut trialTrackedEBEp = "epHltEle<0.018";
-	TCut trialTrackedEBDeta = "dEtaHltEle<0.008";
-	TCut trialTrackedEBDphi = "dPhiHltEle<0.04";
-	TCut trialTrackedEBTrackIso = "trackIsoHltEle<0.185";
-	
-	TCut trialTracklessPt = "ptHltEle>18.";
-	TCut trialTracklessEESigmaIEIE = "clusterShapeHltEle<0.047";
-	TCut trialTracklessEEHE = "hadEmHltEle<0.23";
-	TCut trialTracklessEEEcalIso = "ecalIsoHltEle<0.14";
-	TCut trialTracklessEEHcalIso = "hcalIsoHltEle<0.57";
+	TCut trialTrackedEESigmaIEIE = "clusterShapeHltEle<0.04";
+	TCut trialTrackedEEHE = "hadEmHltEle<0.21";
+	TCut trialTrackedEEEcalIso = "ecalIsoHltEle<0.425";
+	TCut trialTrackedEEHcalIso = "hcalIsoHltEle<0.39";
+	TCut trialTrackedEEEp = "epHltEle<0.014";
+	TCut trialTrackedEEDeta = "dEtaHltEle<0.012";
+	TCut trialTrackedEEDphi = "dPhiHltEle<0.034";
+	TCut trialTrackedEETrackIso = "trackIsoHltEle<0.148";
+
+	TCut trialTracklessPt = "ptHltEle>10.";
+	TCut trialTracklessEESigmaIEIE = "clusterShapeHltEle<0.046";
+	TCut trialTracklessEEHE = "hadEmHltEle<0.45";
+	TCut trialTracklessEEEcalIso = "ecalIsoHltEle<0.38";
+	TCut trialTracklessEEHcalIso = "hcalIsoHltEle<0.86";
 
 
 

@@ -28,8 +28,8 @@ SRCDIR=./src
 BUILDDIR=./bin
 OBJ_DIR=./lib
 
-EoPDir:=../EOverPCalibration
-EoPNtupleDir:=../NtuplePackage
+#EoPDir:=../EOverPCalibration
+#EoPNtupleDir:=../NtuplePackage
 
 #################
 INCLUDE=-I$(INCLUDEDIR) -I$(INCLUDEEPDIR) -isystem$(ROOT_INCLUDE) -I$(ROOT_INCLUDE)  -I$(ROOFIT_INCLUDE) -I$(BOOST)/include
@@ -71,6 +71,17 @@ lib/%.o: $(SRCDIR)/%.cc
 # 	@echo "---> Making ZFitter $(COMPILE.exe)"
 # 	@g++ $(CXXFLAGS) $(INCLUDE) $(MAKEDEPEND) -o $@ $< $(MODULES) $(MODULESEoP) $(MODULESEoPNtuples) $(LIB) $(ROOT_LIB) $(ROOFIT_LIB) $(ROOSTAT_LIB) $(ROOT_FLAGS) \
 # 	-lboost_program_options -lTreePlayer CXXFLAGS=-Wall # -pedantic -ansi  #-std=c++0x
+
+
+#build Scan.exe from the files listed to the right of the colon
+#Scan.exe: $(BUILDDIR)/Scan.cpp
+#	$(BUILDDIR)/Scan.exe:  $(BUILDDIR)/Scan.cpp \
+# 	cd $(EoPDir) && make
+# 	cd $(EoPNtupleDir) && make
+# 	@echo "---> Making Scan $(COMPILE.exe)"
+# 	@g++ $(CXXFLAGS) $(INCLUDE) $(MAKEDEPEND) -o $@ $< $(MODULES) $(LIB) $(ROOT_LIB) $(ROOFIT_LIB) $(ROOSTAT_LIB) $(ROOT_FLAGS) \
+ 	-lboost_program_options -lTreePlayer CXXFLAGS=-Wall # -pedantic -ansi  #-std=c++0x
+
 
 
 
