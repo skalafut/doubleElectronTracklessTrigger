@@ -18,17 +18,11 @@ public:
      inline Scan(std::string configTxtFileName): 
 	  _configFileName(configTxtFileName){};
 
-     /*
-       struct inputArray{
-       Float_t inArr[NELE];
-       };
-     */
-
      //call InitCutVars() before InitInputTree() and InitOutputTree()
 	
      /** initialize the _cutContainer using information from file configFileName_
       */
-     void InitCutContainer(std::string configFileName_);
+     void InitCutContainer();
 
      //this fxn returns the number of CutVar objects in the cutContainer vector 
      inline unsigned int numCutVars(void){
@@ -50,14 +44,14 @@ public:
      //getRegion() (part of CutVar class) returns the name of a detector region in the format
      //_tEB, _tEE, or _utEE 
      //void InitInputTuple(std::vector<std::string> pathToInputTuples,std::vector<std::string> inputTupleNames,std::vector<std::string> branchNames);
-     void InitInputNtuple(TChain *tree); /// \todo add branches specific for input
+     void InitInputNtuple(TChain *chain); /// \todo add branches specific for input
      
-     void InitOutputNtuple(TChain *tree); /// \todo add branches specific for output
+     void InitOutputNtuple(TTree *tree); /// \todo add branches specific for output
 	
      //don't need to give branch names as an input to this fxn; the names can be obtained from
      //the objects in cutContainer
      //the two input string args will be specified in scanning.cpp
-     void InitOutputTuple(std::string outTupleName);
+     //void InitOutputTuple(std::string outTupleName);
 		
      //void setRange(std::string varName,float min,float max,float step);
 
@@ -76,8 +70,9 @@ private:
 
      TChain* _pInputChain; ///< only one chain, if multiple chains, they should be added as friends
      TTree *_outputTree;   ///< output tree
-     
-     Long64_t nEvents, nPassing;
+    
+	 unsigned int _numEles;	///< number of reco objects in the event
+     Long64_t _nEvents, _nPassing;
      typedef std::map<std::string, Float_t[NELE]> floatBranchMap_t;
      
      floatBranchMap_t _inputBranches,  _outputBranches;

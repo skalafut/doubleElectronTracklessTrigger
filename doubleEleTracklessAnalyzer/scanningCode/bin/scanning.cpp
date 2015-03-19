@@ -94,12 +94,20 @@ int main(int argc, char **argv){
 	//call InitCutVars() first, then InitInputTree(), then InitOutputTree() in scanning.cpp file
 	
 
-	char testFileName[] = "/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/scanningCode/doc/trial.txt";
+	char testFileName[] = "/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/scanningCode/doc/thresholdValues.txt";
 	//testReadFxns(testFileName);
 	Scan testScan(testFileName);
-	testScan.InitCutVars();
+	testScan.InitCutContainer();
 	cout<<"there are "<< testScan.numCutVars() <<" CutVar objects in the cutContainer vector"<<endl;
-
+	TChain * inputChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
+	inputChain->Add();
+	TChain * inputFriendChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
+	inputFriendChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+	inputChain->AddFriend("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal");
+	testScan.InitInputNtuple(inputChain);
+	TTree * outTree = new TTree("testOutTree","");
+	testScan.InitOutputNtuple(outTree);
+	cout<<"successfully called Init Input and Output Ntuple methods"<<endl;
 	
 	return 0;
 
