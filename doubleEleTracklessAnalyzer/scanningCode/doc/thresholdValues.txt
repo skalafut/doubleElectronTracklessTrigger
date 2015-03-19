@@ -1,9 +1,9 @@
 # tracked barrel
 # [ min, max, step, upper/lowerBound]: max excluded, min included
 # treeName.branchName -> I hope it works
-recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.ptHltEle		[10,30,1,>]	EB  # comment
+recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.ptHltEle		[10,30,1,>]	EB 
 #recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.ptHltEle		[10,33,1,>]	EE
-#recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.clusterShapeHltEle			[0.009,0.019,0.001,<]	EB
+recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.clusterShapeHltEle			[0.009,0.019,0.001,<]	EB
 #recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.hadEmHltEle				[0.08,0.21,0.01,<]	EB
 #recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.ecalIsoHltEle	[0.1,0.4,0.01,<]	EB
 #recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.hcalIsoHltEle	[0.09,0.4,0.01,<]	EB

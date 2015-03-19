@@ -15,6 +15,7 @@
 #include <map>
 #include <set>
 
+//#define DEBUG true
 #define NELE 400
 #define ETABRANCHNAME "etaHltEle"
 #define PHIBRANCHNAME "phiHltEle"
@@ -27,24 +28,29 @@ using namespace std;
 void Scan::InitCutContainer(){
 	ifstream confStrm(_configFileName);
 
-	string branchName, ranges, region;
 	while(confStrm.peek() != EOF && confStrm.good()){ /// \todo check if the file is valid
 		if(confStrm.peek() == 35){ // 35 = #
-			confStrm.ignore(1000,10); // ignore the rest of the line until \n
+			confStrm.ignore(1000,'\n'); // ignore the rest of the line until \n
 			continue;
 		}
+		string branchName, ranges, region;
 
 		///this works much better than getLine()
 		confStrm >> branchName >> ranges >> region; // read and put into strings
+		if(branchName.empty()) break;
 
+		//cout<<"about to add a branchName to the set of strings named _branchName"<<endl;
 		_branchNames.insert(branchName);
 
+		//cout<<"about to make a CutVar object"<<endl;
 		CutVar cutObject(branchName,region);
 		cutObject.SetValuesFromString(ranges); // the parsing of the string is implemented in CutVar
+/*
 #ifdef DEBUG
 		//use this to check the range of values assigned to each cut variable, and its status as an upper or lower bound
 		cout << cutObject << endl;
 #endif
+*/
 		_cutContainer.push_back(cutObject);
 		for(unsigned int i=0; i < NELE; i++){
 			_inputBranches[branchName][i]=0;
@@ -52,6 +58,7 @@ void Scan::InitCutContainer(){
 		}
 
 	}//end while
+	return;
 }//end InitCutContainer()
 
 
@@ -84,6 +91,7 @@ void Scan::InitInputNtuple(TChain *chain){
 	// additional branches
 	// nHltEle 
 	_pInputChain->SetBranchAddress((chainName + "."+NUMELEBRANCHNAME).c_str(),&_numEles);
+	return;
 }
 
 void Scan::InitOutputNtuple(TTree *tree){
@@ -97,6 +105,7 @@ void Scan::InitOutputNtuple(TTree *tree){
 	//the number of evts which passed all cuts
 	_outputTree->Branch("_nEvents", &_nEvents, "_nEvents/l");
 	_outputTree->Branch("_nPassing", &_nPassing, "_nPassing/l");
+	return;
 }
 
 void Scan::SaveOutput(string pathToOutputFile){

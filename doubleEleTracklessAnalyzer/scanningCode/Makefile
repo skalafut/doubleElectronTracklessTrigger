@@ -6,7 +6,8 @@ ROOT_INCLUDE:=`root-config --incdir`
 
 # Boost
 BOOST = /afs/cern.ch/cms/slc5_amd64_gcc434/external/boost/1.47.0
-#BOOST=/afs/cern.ch/cms/slc5_amd64_gcc472/external/boost/1.50.0
+#secondary BOOST=/afs/cern.ch/cms/slc5_amd64_gcc472/external/boost/1.50.0
+#trial BOOST = /afs/cern.ch/cms/slc6_amd64_gcc481/external/boost/1.51.0
 SCRAMTOOL=$(shell which scram &>/dev/null || echo 1)
 
 ifeq ($(SCRAMTOOL),1)
@@ -78,8 +79,8 @@ scanning.exe: $(BUILDDIR)/scanning.cpp
 
 $(BUILDDIR)/scanning.exe:  $(BUILDDIR)/scanning.cpp 
 	@echo "---> Making scanning $(COMPILE.exe)"
-	@g++ $(CXXFLAGS) $(INCLUDE) $(MAKEDEPEND) -o $@ $< $(MODULES) $(LIB) $(ROOT_LIB) $(ROOFIT_LIB) $(ROOSTAT_LIB) $(ROOT_FLAGS) \
-		-lboost_program_options -lTreePlayer 
+	@g++ $(CXXFLAGS) $(INCLUDE) $(MAKEDEPEND) -o $@ $< $(MODULES) $(LIB) $(ROOT_LIB) $(ROOFIT_LIB) $(ROOSTAT_LIB) $(ROOT_FLAGS) #\
+		#-lboost_program_options -lTreePlayer 
 
 
 

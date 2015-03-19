@@ -15,7 +15,7 @@ public:
      //the ranges and step sizes of the threshold cut values, a single character which indicates whether or
      //not the threshold corresponds to an upper bound (like relative ecal iso) or lower bound (pt), and
      //a tag to indicate tracked barrel or endcap which will be used to define the output branch names
-     inline Scan(std::string configTxtFileName): 
+     Scan(std::string configTxtFileName): 
 	  _configFileName(configTxtFileName){};
 
      //call InitCutVars() before InitInputTree() and InitOutputTree()
@@ -25,7 +25,7 @@ public:
      void InitCutContainer();
 
      //this fxn returns the number of CutVar objects in the cutContainer vector 
-     inline unsigned int numCutVars(void){
+     unsigned int numCutVars(void){
 	  return _cutContainer.size();
      }
 

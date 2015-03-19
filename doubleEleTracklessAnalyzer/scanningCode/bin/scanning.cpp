@@ -1,7 +1,7 @@
 //#include "TStopwatch.h"
 //#include "TString.h"
-//#include "TTree.h"
-//#include "TChain.h"
+#include "TTree.h"
+#include "TChain.h"
 #include "../interface/Scan.h"
 #include <cstdlib>
 #include <stdio.h>
@@ -12,6 +12,7 @@
 
 using namespace std;
 
+/*
 //use this fxn for testing operations to read text in from a file
 void testReadFxns(const char * fName){
 	FILE * pF = fopen(fName,"r");
@@ -78,6 +79,7 @@ vector<string> getFileOutNames(const char * fileName){
 	return outPaths;
 
 }//end getFileOutNames()
+*/
 
 int main(int argc, char **argv){
 	//TStopwatch myClock, globalClock;
@@ -92,12 +94,14 @@ int main(int argc, char **argv){
 	*/
 	
 	//call InitCutVars() first, then InitInputTree(), then InitOutputTree() in scanning.cpp file
-	
 
-	char testFileName[] = "/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/scanningCode/doc/thresholdValues.txt";
-	//testReadFxns(testFileName);
+	cout<<"in main"<<endl;
+
+	string testFileName = "/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/scanningCode/doc/trial.txt";
 	Scan testScan(testFileName);
+	cout<<"made a Scan class object"<<endl;
 	testScan.InitCutContainer();
+	cout<<"called InitCutContainer()"<<endl;
 	cout<<"there are "<< testScan.numCutVars() <<" CutVar objects in the cutContainer vector"<<endl;
 	TChain * inputChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
 	inputChain->Add("file.root"); // hard code here the files, you can use wildcards!
