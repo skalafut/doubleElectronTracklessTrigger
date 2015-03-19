@@ -42,7 +42,7 @@ MODULESEoP=$(shell ls $(EoPDir)/$(SRCDIR)/*.cc | sed "s|.cc|.o|;s|$(SRCDIR)|$(OB
 MODULESEoPNtuples=$(shell ls $(EoPNtupleDir)/$(SRCDIR)/*.cc | sed "s|.cc|.o|;s|$(SRCDIR)|$(OBJ_DIR)|g")
 #### Make the list of dependencies for a particular module
 
-default: $(MODULES)  
+default: $(MODULES)  $(BUILDDIR)/scanning.exe
 
 #------------------------------ MODULES (static libraries)
 
@@ -74,13 +74,12 @@ lib/%.o: $(SRCDIR)/%.cc
 
 
 #build Scan.exe from the files listed to the right of the colon
-#Scan.exe: $(BUILDDIR)/Scan.cpp
-#	$(BUILDDIR)/Scan.exe:  $(BUILDDIR)/Scan.cpp \
-# 	cd $(EoPDir) && make
-# 	cd $(EoPNtupleDir) && make
-# 	@echo "---> Making Scan $(COMPILE.exe)"
-# 	@g++ $(CXXFLAGS) $(INCLUDE) $(MAKEDEPEND) -o $@ $< $(MODULES) $(LIB) $(ROOT_LIB) $(ROOFIT_LIB) $(ROOSTAT_LIB) $(ROOT_FLAGS) \
- 	-lboost_program_options -lTreePlayer CXXFLAGS=-Wall # -pedantic -ansi  #-std=c++0x
+scanning.exe: $(BUILDDIR)/scanning.cpp
+
+$(BUILDDIR)/scanning.exe:  $(BUILDDIR)/scanning.cpp 
+	@echo "---> Making scanning $(COMPILE.exe)"
+	@g++ $(CXXFLAGS) $(INCLUDE) $(MAKEDEPEND) -o $@ $< $(MODULES) $(LIB) $(ROOT_LIB) $(ROOFIT_LIB) $(ROOSTAT_LIB) $(ROOT_FLAGS) \
+		-lboost_program_options -lTreePlayer 
 
 
 

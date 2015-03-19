@@ -2,7 +2,7 @@
 //#include "TString.h"
 //#include "TTree.h"
 //#include "TChain.h"
-#include "../src/Scan.cc"
+#include "../interface/Scan.h"
 #include <cstdlib>
 #include <stdio.h>
 #include <vector>
@@ -100,7 +100,7 @@ int main(int argc, char **argv){
 	testScan.InitCutContainer();
 	cout<<"there are "<< testScan.numCutVars() <<" CutVar objects in the cutContainer vector"<<endl;
 	TChain * inputChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
-	inputChain->Add();
+	inputChain->Add("file.root"); // hard code here the files, you can use wildcards!
 	TChain * inputFriendChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
 	inputFriendChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
 	inputChain->AddFriend("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal");
