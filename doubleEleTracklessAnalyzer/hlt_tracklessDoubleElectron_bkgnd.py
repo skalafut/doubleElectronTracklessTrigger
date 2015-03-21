@@ -4954,11 +4954,22 @@ process.HLTriggerFirstPath = cms.Path(
 
 #######################################################################################################
 #reco selectors, filters and producers
+process.noTrackerCandidates = cms.EDFilter( "CandViewSelector",
+    src = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
+	cut = cms.string('pt>15 && ( (eta > -2.5 && eta < -3.0 ) || ( eta > 2.5 && eta < 3.0 ) )')
+	#cut = cms.string('')
+)
+
+process.trackerCandidates = cms.EDFilter( "CandViewSelector",
+    src = cms.InputTag( "hltEgammaCandidates" ),
+	cut = cms.string('pt>27 && eta < 2.5 && eta > -2.5')
+	#cut = cms.string('')
+)
+
 process.combRecoEle = cms.EDProducer("CandViewShallowCloneCombiner",
-		decay = cms.string("hltEgammaCandidatesUnseeded hltEgammaCandidates"),
+		decay = cms.string("noTrackerCandidates trackerCandidates"),
 		#checkCharge = cms.bool(False),
-		#cut = cms.string("mass > 60 && mass < 120"),
-		cut = cms.string(''),
+		cut = cms.string("mass > 50 && mass < 130"),
 		#this name is tied to the CompositeCandidate object
 		#name = cms.string('zedToElEl'),
 		#roles are relevant to the daughters
@@ -5171,22 +5182,22 @@ process.genTracklessFilter = cms.EDFilter("CandViewCountFilter",
 		minNumber = cms.uint32(1)
 		)
 
-process.quickGenStudyOneTrackedOneTrackless = cms.Path(
-		process.genEle
-		*process.twoGenFilter
-		*process.genTracked
-		*process.genTrackedFilter
-		*process.genTrackless
-		*process.genTracklessFilter
-		)
+#process.quickGenStudyOneTrackedOneTrackless = cms.Path(
+#		process.genEle
+#		*process.twoGenFilter
+#		*process.genTracked
+#		*process.genTrackedFilter
+#		*process.genTrackless
+#		*process.genTracklessFilter
+#		)
 
 
 process.HLTriggerFinalPath = cms.Path( process.hltGtDigis + process.hltScalersRawToDigi + process.hltFEDSelector + process.hltTriggerSummaryAOD + process.hltTriggerSummaryRAW )
 
-process.schedule = cms.Schedule(process.quickGenStudyOneTrackedOneTrackless)
+#process.schedule = cms.Schedule(process.quickGenStudyOneTrackedOneTrackless)
 
 process.TFileService = cms.Service("TFileService",
-		fileName = cms.string('bkgnd_analyzer_trees.root')
+		fileName = cms.string('bkgnd_analyzer_trees_check_for_duplicates.root')
 )
 
 
@@ -5252,30 +5263,30 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 
 #this is a standalone module to save the output from cmsRun hlt_tracklessDoubleElectron.py into a .root file
 #This .root file can then be analyzed by the trigger optimization script
-process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
-    #fileName = cms.untracked.string( "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_low_thresholds_oneFile.root" ),
-    fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/bkgnd_sample_high_pt_with_HLT_objects_no_filter_refs.root"),
-	fastCloning = cms.untracked.bool( False ),
-    dataset = cms.untracked.PSet(
-        dataTier = cms.untracked.string( 'RECO' ),
-        filterName = cms.untracked.string( '' )
-    ),
-    #Drop l1extra* collections 
-	outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop l1extra*_*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
-    
-	#l1extra* collections are not dropped
-	#outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
-    
-	#keep all collections
-	#outputCommands = cms.untracked.vstring( 'keep *' ) 
-
-	)
-process.FULLOutput = cms.EndPath( process.hltOutputFULL )
+#process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
+#    #fileName = cms.untracked.string( "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/outputFULL_DYtoEE_13TeV_25ns_40PU_RAW_to_HLTObjects_low_thresholds_oneFile.root" ),
+#    fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/bkgnd_sample_high_pt_with_HLT_objects_no_filter_refs.root"),
+#	fastCloning = cms.untracked.bool( False ),
+#    dataset = cms.untracked.PSet(
+#        dataTier = cms.untracked.string( 'RECO' ),
+#        filterName = cms.untracked.string( '' )
+#    ),
+#    #Drop l1extra* collections 
+#	outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop l1extra*_*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
+#    
+#	#l1extra* collections are not dropped
+#	#outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
+#    
+#	#keep all collections
+#	#outputCommands = cms.untracked.vstring( 'keep *' ) 
+#
+#	)
+#process.FULLOutput = cms.EndPath( process.hltOutputFULL )
 
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(150)
 )
 
 # enable the TrigReport and TimeReport
@@ -5332,12 +5343,12 @@ if 'MessageLogger' in process.__dict__:
     process.MessageLogger.categories.append('FastReport')
 
 # load the DQMStore and DQMRootOutputModule
-process.load( "DQMServices.Core.DQMStore_cfi" )
-process.DQMStore.enableMultiThread = True
-
-process.dqmOutput = cms.OutputModule("DQMRootOutputModule",
-    fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/DQMIO_bkgnd_test.root")
-)
-
-process.DQMOutput = cms.EndPath( process.dqmOutput )
+#process.load( "DQMServices.Core.DQMStore_cfi" )
+#process.DQMStore.enableMultiThread = True
+#
+#process.dqmOutput = cms.OutputModule("DQMRootOutputModule",
+#    fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/DQMIO_bkgnd_test.root")
+#)
+#
+#process.DQMOutput = cms.EndPath( process.dqmOutput )
 

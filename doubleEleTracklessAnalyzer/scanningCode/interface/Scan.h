@@ -7,6 +7,7 @@
 #include <TTree.h>
 #include <TChain.h>
 
+#define OUTPUTNELE 1
 #define NELE 400
 
 class Scan{
@@ -71,19 +72,20 @@ private:
      TChain* _pInputChain; ///< only one chain, if multiple chains, they should be added as friends
      TTree *_outputTree;   ///< output tree
     
-	 unsigned int _numEles;	///< number of reco objects in the event
      Long64_t _nEvents, _nPassing;
      typedef std::map<std::string, Float_t[NELE]> floatBranchMap_t;
      typedef std::map<std::string, Int_t[NELE]> intBranchMap_t;
+     typedef std::map<std::string, Float_t[OUTPUTNELE]> altFloatBranchMap_t;
      
-     floatBranchMap_t _inputBranches,  _outputBranches;
-     intBranchMap_t _inputBranchesInt;
+     floatBranchMap_t _inputBranches;
+	 intBranchMap_t _inputBranchesInt;
 
-
-     //outputBranch map will have at least 2 more elements than cutContainer
-     //one for the number of evts which were analyzed, and another branch which 
-     //saves the number of evts passing a set of tracked and trackless leg
-     //cut values. The latter branch will have to be hard coded into this map.
-
+	 //the number of unique keys in _outputBranches will be at least 2 larger than
+	 //the number of elements in _cutContainer.
+     //one additional key for the number of evts which were analyzed, and another key which 
+     //saves the number of evts passing a set of cut values. 
+     //These keys will have to be hard coded into this map.
+     altFloatBranchMap_t _outputBranches;
+	
 
 };//end class scan

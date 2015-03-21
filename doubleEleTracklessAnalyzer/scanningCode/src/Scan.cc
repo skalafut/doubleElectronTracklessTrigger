@@ -18,15 +18,16 @@
 
 
 #define NELE 400
+#define OUTPUTNELE 1
 #define ETABRANCHNAME "etaHltEle"
 #define PHIBRANCHNAME "phiHltEle"
 #define PTBRANCHNAME "ptHltEle"
-#define DRBRANCHNAME "deltaRHltEle"
 #define NUMELEBRANCHNAME "nHltEle"
+//#define DEBUG
+
 
 using namespace std;
 
-#define DEBUG
 void Scan::InitCutContainer(){
 	ifstream confStrm(_configFileName);
 
@@ -44,9 +45,7 @@ void Scan::InitCutContainer(){
 		//cout<<"about to add a branchName to the set of strings named _branchName"<<endl;
 		_branchNames.insert(branchName);
 		string outputBranchName = branchName.substr(branchName.find(".")+1)+region;
-		//cout<<"outputBranchName = "<< outputBranchName <<endl;
 
-		//cout<<"about to make a CutVar object"<<endl;
 		CutVar cutObject(branchName,region,outputBranchName);
 		cutObject.SetValuesFromString(ranges); // the parsing of the string is implemented in CutVar
 
@@ -57,8 +56,11 @@ void Scan::InitCutContainer(){
 		_cutContainer.push_back(cutObject);
 		for(unsigned int i=0; i < NELE; i++){
 			_inputBranches[branchName][i]=0;
+		}
+		for(unsigned int i=0; i < OUTPUTNELE; i++){
 			_outputBranches[outputBranchName][i]=0;
 		}
+
 
 	}//end while
 	return;
@@ -67,88 +69,106 @@ void Scan::InitCutContainer(){
 
 
 void Scan::InitInputNtuple(TChain *chain){
-	//cout<<"in InitInputNtuple() fxn"<<endl;
+#ifdef DEBUG
+	cout<<"in InitInputNtuple() fxn"<<endl;
+#endif
 	_pInputChain = chain;
 	string chainName = chain->GetName();
-	
-	  for(unsigned int h=0;h<NELE;h++){
-	    _inputBranches[chainName+"."+PHIBRANCHNAME][h]=-1;
-	    _inputBranches[chainName+"."+ETABRANCHNAME][h]=100;
-	    _inputBranchesInt[chainName+"."+NUMELEBRANCHNAME][h]=-1;
-	  }//end loop which initializes array values in additional input branches
+
+	for(unsigned int h=0;h<NELE;h++){
+		//add phi,eta, and nHltEle tree.branch names from _pInputChain to _inputBranches and _inputBranchesInt maps 
+		_inputBranches[chainName+"."+PHIBRANCHNAME][h]=-1;
+		_inputBranches[chainName+"."+ETABRANCHNAME][h]=100;
+		_inputBranchesInt[chainName+"."+NUMELEBRANCHNAME][h]=-1;
+	}//end loop which initializes array values in additional input branches
 
 	TList *friends = chain->GetListOfFriends();
 	TIter newfriend_itr(friends);
 	for(TFriendElement *friendElement = (TFriendElement*) newfriend_itr.Next();
-	    friendElement != NULL; friendElement = (TFriendElement*) newfriend_itr.Next()){
-	  std::string treeName=friendElement->GetTreeName();
-	  //add elements to _inputBranches for phi and eta
-	  
-	  for(unsigned int h=0;h<NELE;h++){
-	    _inputBranches[treeName+"."+PHIBRANCHNAME][h]=-1;
-	    _inputBranches[treeName+"."+ETABRANCHNAME][h]=100;
-	    _inputBranchesInt[treeName+"."+NUMELEBRANCHNAME][h]=-1;
-	  }//end loop which initializes array values in additional input branches
-	  
-	  
-	}
+			friendElement != NULL; friendElement = (TFriendElement*) newfriend_itr.Next()){
+		std::string treeName=friendElement->GetTreeName();
+		//add phi,eta, and nHltEle tree.branch names from friends of _pInputChain
+		//to _inputBranches and _inputBranchesInt maps 
 	
+		for(unsigned int h=0;h<NELE;h++){
+			_inputBranches[treeName+"."+PHIBRANCHNAME][h]=-1;
+			_inputBranches[treeName+"."+ETABRANCHNAME][h]=100;
+			_inputBranchesInt[treeName+"."+NUMELEBRANCHNAME][h]=-1;
+		}//end loop which initializes array values to additional input branches tied to friend chains
+
+	}//end loop over TFriendElements
+
 	for(intBranchMap_t::iterator mapIt = _inputBranchesInt.begin(); mapIt!=_inputBranchesInt.end(); mapIt++){
-	  string brName = mapIt->first;
-	  if(brName.find(chainName)) brName.substr((brName).find(".")+1);
-	  
-	  int iRead=_pInputChain->SetBranchAddress(brName.c_str(),&(mapIt->second));
-	  if(iRead!=0) cout<<"branch named "<< brName<<" is no good"<<" exit status = "<< iRead <<endl;
+		string brName = mapIt->first;
+		if(brName.find(chainName)!=string::npos) brName = brName.substr(brName.find(".")+1);
+#ifdef DEBUG
+		if(brName.compare(mapIt->first)!=0) cout<<"brName has been shortened to"<<"\t"<<brName<<endl;
+#endif
+		//now brName will access the correct branch (of the main tree, or one of its friends), and the
+		//variable assigned to this branch comes from _inputBranchesInt 
+		int iRead=_pInputChain->SetBranchAddress(brName.c_str(),&(mapIt->second));
+#ifdef DEBUG
+		if(iRead!=0) cout<<"branch named"<<"\t"<<brName<<"\t"<<"is no good"<<"\t"<<"exit status ="<<"\t"<< iRead <<endl;
+#endif
 	}
+
+#ifdef DEBUG
+	cout<<"initialized Int_t array branches to main input chain and its friends"<<endl;
+#endif
 
 	for(floatBranchMap_t::iterator mapIt = _inputBranches.begin(); mapIt!=_inputBranches.end(); mapIt++){
-		string brName = (mapIt->first).substr((mapIt->first).find(".")+1);
+		string brName = mapIt->first;
+		if(brName.find(chainName)!=string::npos) brName = brName.substr((brName).find(".")+1);
+#ifdef DEBUG
+		if(brName.compare(mapIt->first)!=0) cout<<"brName has been shortened to"<<"\t"<<brName<<endl;
+#endif
 		_pInputChain->SetBranchAddress(brName.c_str(),&(mapIt->second));
-		// useful code related to TFriendElement manipulation
-		// assuming the same branch name in all the friend trees, you can loop over the friends
-		// loop over friends
 	}//end loop over map elements
 
-	// additional branches
-	// nHltEle 
-	//original _pInputChain->SetBranchAddress((chainName + "."+NUMELEBRANCHNAME).c_str(),&_numEles);
-	//_pInputChain->SetBranchAddress(NUMELEBRANCHNAME,&_numEles);
-	cout<<"initialized branches to input chain"<<endl;
-	cout<<" "<<endl;
+#ifdef DEBUG
+	cout<<"initialized Float_t array branches to main input chain and its friends"<<endl;
+	cout<<"\t"<<endl;
+#endif
 	return;
 }
 
 void Scan::InitOutputNtuple(TTree *tree){
-	//cout<<" "<<endl;
-	//cout<<"in InitOutputNtuple() method"<<endl;
+#ifdef DEBUG
+	cout<<"\t"<<endl;
+	cout<<"in InitOutputNtuple() method"<<endl;
+#endif
 	_outputTree = tree;
-	
+
 	//use _detectorRegion
-	for(floatBranchMap_t::iterator mapIt = _outputBranches.begin(); mapIt!=_outputBranches.end(); mapIt++){
-		//cout<<"adding a branch with this name to the output tree: "<< mapIt->first << endl;
-		//cout<<"third arg in Branch() is: "<< (mapIt->first+"["+to_string(NELE)+"]/F").c_str() <<endl;
-		_outputTree->Branch((mapIt->first).c_str(),&(mapIt->second), (mapIt->first+"["+to_string(NELE)+"]/F").c_str());
-	}//end loop over map elements
+	for(altFloatBranchMap_t::iterator mapIt = _outputBranches.begin(); mapIt!=_outputBranches.end(); mapIt++){
+		_outputTree->Branch((mapIt->first).c_str(),&(mapIt->second), (mapIt->first+"["+to_string(OUTPUTNELE)+"]/F").c_str());
+	}//end loop over _outputBranches map elements
 
 	// set additional branches
 	//add two additional float branches to count the number of events analyzed, and
 	//the number of evts which passed all cuts
 	_outputTree->Branch("_nEvents", &_nEvents, "_nEvents/l");
 	_outputTree->Branch("_nPassing", &_nPassing, "_nPassing/l");
-	//cout<<"initialized branches to output tree"<<endl;
-	//cout<<" "<<endl;
+#ifdef DEBUG	
+	cout<<"initialized all branches to output tree"<<endl;
+	cout<<"\t"<<endl;
+#endif
 	return;
 }
 
 void Scan::SaveOutput(string pathToOutputFile){
-	cout<<" "<<endl;
+#ifdef DEBUG
+	cout<<"\t"<<endl;
 	cout<<"in SaveOutput() method"<<endl;
+#endif
 	TFile * outTupleFile = new TFile(pathToOutputFile.c_str(),"recreate");
 	outTupleFile->cd();
 	_outputTree->Write();
 	outTupleFile->Close();
+#ifdef DEBUG
 	cout<<"wrote output tree to file"<<endl;
-	cout<<" "<<endl;
+	cout<<"\t"<<endl;
+#endif
 	return;
 }
 
@@ -161,11 +181,6 @@ void Scan::runScan(unsigned int iCut){
 	//values of the threshold.  For each variable threshold value, loop over all input events
 	//and count how many pass the current threshold values of all variables in _cutContainer.
 
-	//cout<<" "<<endl;
-	//cout<<"in runScan() method"<<endl;
-	//cout<<"input integer parameter = "<< iCut <<endl;
-	//cout<<" "<<endl;
-	
 	//once iCut equals zero all of the cut thresholds have been set to new values
 	//using these new threshold values I should loop over all events in the input tuple
 	//and count how many pass the set of cuts.  This event count, the values of
@@ -174,42 +189,63 @@ void Scan::runScan(unsigned int iCut){
 	//to the output file by calling outputTree->Write().  Finally, I should return control
 	//to the main program.
 	if(iCut==0){
-		cout<<" "<<endl;
+#ifdef DEBUG
+		cout<<"\t"<<endl;
 		cout<<"in iCut==0 portion of runScan() method"<<endl;
-		cout<<" "<<endl;
-
+		cout<<"\t"<<endl;
 		cout<<"about to call GetEntries() on main input chain"<<endl;
+#endif
 		_nEvents=_pInputChain->GetEntries(); // this is slow, do it once
+
+#ifdef DEBUG
 		cout<<"called GetEntries() on main input chain"<<endl;
+#endif
+
 		_nPassing=0;
 		//loop over all entries
-		for(Long64_t evt = 0; evt<_pInputChain->GetEntriesFast(); evt++){
-			if(evt==0) cout<<"about to call GetEntry() on main input chain"<<endl;
+		//replace 50 with _pInputChain->GetEntriesFast()
+		for(Long64_t evt = 0; evt<50; evt++){
+#ifdef DEBUG
+			if(evt>=0) cout<<"about to call GetEntry() on main input chain"<<endl;
+			if(evt>=0) cout<<"on Tree entry number"<<"\t"<<evt<<endl;
+#endif
+
 			_pInputChain->GetEntry(evt);
-			if(evt==0) cout<<"called GetEntry() on main input chain"<<endl;
+	
+#ifdef DEBUG
+			if(evt>=0) cout<<"called GetEntry() on main input chain"<<endl;
+#endif
 	
 			bool passing=true;
 
 			map<string, set<int> > passingEleTree;
 			TList *friends = _pInputChain->GetListOfFriends();
 			TIter newfriend_itr(friends);
-			if(evt==0) cout<<"called GetListOfFriends() on main input chain"<<endl;
+#ifdef DEBUG
+			if(evt>=0) cout<<"called GetListOfFriends() on main input chain"<<endl;
+#endif
 
-			// string mainChainName = _pInputChain->GetName();
-			// //count number of reco objects made in this evt in the primary input chain
-			// set<int> mainPassingEle;
-			// for(unsigned int q=0; q <_inputBranchesInt[mainChainName+".nHltEle"][0]; q++){
-			// 	mainPassingEle.insert(q);
-			// }
-			// passingEleTree[mainChainName] = mainPassingEle;
-			if(evt==0) cout<<"added a set<int> object to passingEleTree map"<<endl;
-	
-			// loop over friends and count the total number of reco objects made in this evt
+			string mainChainName = _pInputChain->GetName();
+			//count number of reco objects made in this evt in the primary input chain
+			set<int> mainPassingEle;
+			for(unsigned int q=0; q <_inputBranchesInt[mainChainName+".nHltEle"][0]; q++){
+				mainPassingEle.insert(q);
+			}
+			passingEleTree[mainChainName] = mainPassingEle;
+#ifdef DEBUG
+			if(evt>=0) cout<<"mainChainName="<<"\t"<<mainChainName<<endl;
+			if(evt>=0) cout<<"num reco eles in main chain="<<"\t"<<_inputBranchesInt[mainChainName+".nHltEle"][0]<<endl;
+#endif
+
+			// loop over friends and count the total number of reco objects made in TTree entry number evt
 			for(TFriendElement *friendElement = (TFriendElement*) newfriend_itr.Next();
 					friendElement != NULL; friendElement = (TFriendElement*) newfriend_itr.Next()){
 				string treeName=friendElement->GetTreeName();
-				if(evt==0) cout<<"friendElement treeName = "<< treeName <<endl;
-				if(evt==0) cout<<"_numEles = "<< _inputBranchesInt[treeName+".nHltEle"][0]<<endl;
+#ifdef DEBUG
+				if(evt>=0) cout<<"friendElement treeName = "<< treeName <<endl;
+				if(evt>=0) cout<<"num reco eles in friend="<<"\t"<< _inputBranchesInt[treeName+".nHltEle"][0]<<endl;
+#endif
+
 				set<int> passingEle;
 				for(unsigned int iEle =0; iEle < _inputBranchesInt[treeName+".nHltEle"][0]; iEle++){
 					passingEle.insert(iEle);
@@ -217,60 +253,104 @@ void Scan::runScan(unsigned int iCut){
 				passingEleTree[treeName]=passingEle;
 			}
 
-			// now you have the map passingEleTree filled with all passible electrons (indexes) from both legs
+			// now you have the map passingEleTree filled with all possible electrons (indexes) from both legs
 
 			for(vector<CutVar>::const_iterator cut_itr = _cutContainer.begin();
 					cut_itr != _cutContainer.end(); cut_itr++){
-			  	if(evt==0) cout<<*cut_itr;
+
+#ifdef DEBUG
+			  	if(evt>=0) cout<<"\t"<<endl;
+				if(evt>=0) cout<<"about to apply cut"<<"\t"<<*cut_itr<<endl;
+#endif
 				string cutName= cut_itr->_cutName;	//here _cutName = treeName.branchName
 				size_t dotPos = cutName.find(".");
 
 				string treeName = cutName.substr(0,dotPos);	//treeName listed before dot in cutName
 				string branchName = cutName.substr(dotPos+1); 	//branchName listed after dot in cutName
-				if(evt==0) cout<<"treeName = "<<treeName<<endl;
-				if(evt==0) cout<<"branchName = "<<branchName<<endl;
+#ifdef DEBUG
+				if(evt>=0) cout<<"treeName="<<"\t"<<treeName<<endl;
+				if(evt>=0) cout<<"branchName="<<"\t"<<branchName<<endl;
+#endif
 
 				set<int>& passingEle = passingEleTree[treeName];
-				if(evt==0) cout<<"size of passingEleTree with key "<< treeName <<" = "<< passingEle.size() <<endl;
-				if(evt==0) cout<<"about to start looping over a set of ints store in passingEleTree"<<endl;
 
-				for(set<int>::iterator iEle_itr=passingEle.begin(); iEle_itr!= passingEle.end(); ){
+#ifdef DEBUG
+				if(evt>=0) cout<<"size of passingEleTree with key \t"<< treeName <<"\t=\t"<< passingEle.size() <<endl;
+				if(evt>=0) cout<<"about to start looping over a set of ints store in passingEleTree"<<endl;
+				if(evt>=0) cout<<"passingEleTree[treeName] has this many elements:"<<"\t"<<passingEleTree[treeName].size()<<endl;
+#endif
+	
+				for(set<int>::iterator iEle_itr=passingEle.begin(); iEle_itr!= passingEle.end() && !passingEle.empty(); ){
 					// there is no CutVar tied to the eta branch (we are not optimizing the eta range of the selection)
 					// so the treeName + eta branch name must be used to access eta values in _inputBranches
-					//if(evt==0) cout<<"looping over a set of ints stored in passingEleTree"<<endl;
+
+#ifdef DEBUG
+					if(evt>=0) cout<<"\t"<<endl;
+					if(evt>=0) cout<<"in loop over passingEle elements"<<endl;
+#endif
 					string fullEtaBrName = treeName;
 					fullEtaBrName.append(".");
 					fullEtaBrName.append(ETABRANCHNAME);
-					if(evt==0) cout<<"reco eta = "<< _inputBranches[fullEtaBrName][*iEle_itr] <<endl;
-					if(fabs(_inputBranches[fullEtaBrName][*iEle_itr]) < 1.479 && ((cut_itr->_detectorRegion).compare("tEE")==0 || (cut_itr->_detectorRegion).compare("utEE")==0) ){
+#ifdef DEBUG
+					if(evt>=0) cout<<"reco eta =\t"<< _inputBranches[fullEtaBrName][*iEle_itr] <<endl;
+#endif
+
+					//leave this loop over passingEle elements once the eta value in _inputBranches[fullEtaBrName][*iEle_itr]
+					//is greater than 5.0 or less than -5.0
+					//this will happen because the array of Float_t values at _inputBranches[fullEtaBrName] has 400 entries
+					//or whatever NELE is set to
+					if(fabs(_inputBranches[fullEtaBrName][*iEle_itr]) > 5.0) break;
+
+					if(fabs(_inputBranches[fullEtaBrName][*iEle_itr]) < 2.5 && (cut_itr->_detectorRegion).compare("utEE")==0){
 						iEle_itr++;
 						continue;
-					}
+					}//end trackless eta filter
+					if( (fabs(_inputBranches[fullEtaBrName][*iEle_itr]) < 1.479 || fabs(_inputBranches[fullEtaBrName][*iEle_itr]) >= 2.5) && (cut_itr->_detectorRegion).compare("tEE")==0 ){
+						iEle_itr++;
+						continue;
+					}//end tracked EE eta filter
 					if(fabs(_inputBranches[fullEtaBrName][*iEle_itr]) > 1.479 && (cut_itr->_detectorRegion).compare("EB")==0){
 						iEle_itr++;
 						continue;
-					}
+					}//end tracked EB eta filter
 					// here you have one electron matching the _detectorRegion
-					//for debugging
 
-					// now test if the electron is passing the selection
+#ifdef DEBUG
+					if(evt>=0) cout<<"have an electron which passes eta requirement"<<endl;
+					if(evt>=0) cout<<"about to apply this cut:"<<endl;
+					if(evt>=0) cout<<*cut_itr<<endl;
+					if(evt>=0) cout<<"\t"<<endl;
+#endif
+
+					// now test if the electron passes the cut 
 					bool p=true;
-					//this if used to contain currentCut._isUpperBound
 					if(cut_itr->_isUpperBound){ 
-						if(evt==0) cout<<"cut is upper bound"<<endl;
 						if(_inputBranches[cutName][*iEle_itr]>cut_itr->_threshVal) p=false;
 					} else{
-						if(evt==0) cout<<"cut is lower bound"<<endl;
 						if(_inputBranches[cutName][*iEle_itr]<cut_itr->_threshVal) p=false;
 					}
-					if(evt==0) cout<<"p is (true or false): "<<p<<endl;
+
+#ifdef DEBUG
+					if((evt>=0) && p) cout<<"reco electron passed cut"<<endl;
+					if((evt>=0) && !p) cout<<"reco electron failed cut"<<endl;
+#endif
 
 					if(p) iEle_itr++; 
 					else{
 						passingEle.erase(iEle_itr);	//remove this element if it fails the cut
 					}
+				}//end loop over integers in passingEle set
+				//now reassign the set passingEle to the map element passingEleTree[treeName]
+				//passingEleTree[treeName] = ;
+#ifdef DEBUG
+				if(evt>=0){
+					cout<<"left loop over integers in passingEle set"<<endl;
+					cout<<"after applying a cut"<<endl;
+					cout<<"passingEleTree[treeName] has this many elements:"<<"\t"<<passingEleTree[treeName].size()<<endl;
+				   	cout<<"\t"<<endl;
 				}
-			}
+#endif
+			}//end loop over CutVar objects in _cutContainer
 
 			// now loop over the passingEleTree to make Zee candidates
 			// this can lead to segmentation violation, there is no control on the number of trees
@@ -299,6 +379,10 @@ void Scan::runScan(unsigned int iCut){
 					secondPhi = _inputBranches[(map2_itr->first)+"."+PHIBRANCHNAME][*iEle2_itr];
 					mSqd = 2*firstPt*secondPt*(cosh(firstEta-secondEta) - cos(firstPhi-secondPhi));
 					if(mSqd > 0) mass = sqrt(mSqd);
+#ifdef DEBUG
+					if(evt>=0) cout<<"mass="<<"\t"<<mass<<endl;
+#endif
+
 					if(mass > 40 && mass < 140) passing = true;
 					if(passing) break;
 				}//end loop over iEle2_itr
@@ -313,7 +397,7 @@ void Scan::runScan(unsigned int iCut){
 	}//end if(iCut==0)
 
 #ifdef DEBUG
-	std::cout << _cutContainer.size() << "\t" << iCut << std::endl;
+	std::cout << _cutContainer.size() << "\t" <<"elements in _cutContainer"<<"\t"<< iCut << std::endl;
 #endif
 	// if iCut!=0 call this method varying the cut value
 	CutVar& currentCut = _cutContainer[iCut-1];

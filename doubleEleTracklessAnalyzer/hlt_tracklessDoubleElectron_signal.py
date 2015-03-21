@@ -5092,7 +5092,7 @@ process.genAnalyzerFour = cms.EDAnalyzer('specificGenAnalyzer',
 		genCollectionOne = cms.InputTag("genEle","","TEST"),
 		)
 
-
+print 'line 5096'
 process.HLTriggerFirstPath = cms.Path( 
 		process.genEle
 		*process.twoGenFilter
@@ -5119,23 +5119,22 @@ process.HLTriggerFirstPath = cms.Path(
 
 #######################################################################################################
 #reco selectors, filters and producers
-#process.noTrackerCandidates = cms.EDFilter( "CandViewSelector",
-#    src = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
-#	#cut = cms.string('pt>15 && ( (eta > -2.5 && eta < -3.0 ) || ( eta > 2.5 && eta < 3.0 ) )')
-#	cut = cms.string('')
-#)
+process.noTrackerCandidates = cms.EDFilter( "CandViewSelector",
+    src = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
+	cut = cms.string('pt>15 && ( (eta > -2.5 && eta < -3.0 ) || ( eta > 2.5 && eta < 3.0 ) )')
+	#cut = cms.string('')
+)
 
-#process.trackerCandidates = cms.EDFilter( "CandViewSelector",
-#    src = cms.InputTag( "hltEgammaCandidates" ),
-#	#cut = cms.string('pt>27 && eta < 2.5 && eta > -2.5')
-#	cut = cms.string('')
-#)
+process.trackerCandidates = cms.EDFilter( "CandViewSelector",
+    src = cms.InputTag( "hltEgammaCandidates" ),
+	cut = cms.string('pt>27 && eta < 2.5 && eta > -2.5')
+	#cut = cms.string('')
+)
 
 process.combRecoEle = cms.EDProducer("CandViewShallowCloneCombiner",
-		decay = cms.string("hltEgammaCandidatesUnseeded hltEgammaCandidates"),
+		decay = cms.string("noTrackerCandidates trackerCandidates"),
 		#checkCharge = cms.bool(False),
-		#cut = cms.string("mass > 60 && mass < 120"),
-		cut = cms.string(''),
+		cut = cms.string("mass > 50 && mass < 130"),
 		#this name is tied to the CompositeCandidate object
 		#name = cms.string('zedToElEl'),
 		#roles are relevant to the daughters
@@ -5213,7 +5212,7 @@ process.recoAnalyzerMatchedTracked = cms.EDAnalyzer('recoAnalyzerGeneric',
 		recoElectronCollection = cms.InputTag("recoDaughterProducer","trackedDaughters","TEST"),
 		doAnalysisOfTracked = cms.bool(True),
 		genCollection = cms.InputTag("genEleTrack","","TEST"),
-		dRMatch = cms.double(0.5),
+		dRMatch = cms.double(0.1),
 		recoZedCollection = cms.InputTag("combRecoEle","","TEST"),
 		genZedCollection = cms.InputTag("combEle","","TEST")
 	
@@ -5233,7 +5232,7 @@ process.recoAnalyzerMatchedTrackless = cms.EDAnalyzer('recoAnalyzerGeneric',
 		recoElectronCollection = cms.InputTag("recoDaughterProducer","tracklessDaughters","TEST"),
 		doAnalysisOfTracked = cms.bool(False),
 		genCollection = cms.InputTag("genUntrack","","TEST"),
-		dRMatch = cms.double(0.5),
+		dRMatch = cms.double(0.1),
 		recoZedCollection = cms.InputTag("combRecoEle","","TEST"),
 		genZedCollection = cms.InputTag("combEle","","TEST")
 	
@@ -5299,7 +5298,7 @@ process.TFileService = cms.Service("TFileService",
 		#fileName = cms.string('genAnalyzerTree.root')
 		#fileName = cms.string('gen_and_reco_signal_analyzer_trees.root')
 		#fileName = cms.string('genCheckup.root')
-		fileName = cms.string('signal_analyzer_trees_with_rescaledEvtNumber.root')
+		fileName = cms.string('signal_analyzer_trees_with_no_duplicate_daughters.root')
 
 )
 
@@ -5365,26 +5364,26 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 
 #this is a standalone module to save the output from cmsRun hlt_tracklessDoubleElectron.py into a .root file
 #This .root file can then be analyzed by the trigger optimization script
-process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
-	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects.root"),
-	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects_no_filter_refs.root"),
-	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signalTuples_with_gen_and_reco_diObjectMass_Febr27.root"),
-	fastCloning = cms.untracked.bool( False ),
-    dataset = cms.untracked.PSet(
-        dataTier = cms.untracked.string( 'RECO' ),
-        filterName = cms.untracked.string( '' )
-    ),
-    #Drop l1extra* collections 
-	outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop l1extra*_*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
-    
-	#l1extra* collections are not dropped
-	#outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
-    
-	#keep all collections
-	#outputCommands = cms.untracked.vstring( 'keep *' ) 
-
-	)
-process.FULLOutput = cms.EndPath( process.hltOutputFULL )
+#process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
+#	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects.root"),
+#	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects_no_filter_refs.root"),
+#	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signalTuples_with_gen_and_reco_diObjectMass_Febr27.root"),
+#	fastCloning = cms.untracked.bool( False ),
+#    dataset = cms.untracked.PSet(
+#        dataTier = cms.untracked.string( 'RECO' ),
+#        filterName = cms.untracked.string( '' )
+#    ),
+#    #Drop l1extra* collections 
+#	outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop l1extra*_*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
+#    
+#	#l1extra* collections are not dropped
+#	#outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
+#    
+#	#keep all collections
+#	#outputCommands = cms.untracked.vstring( 'keep *' ) 
+#
+#	)
+#process.FULLOutput = cms.EndPath( process.hltOutputFULL )
 
 
 # limit the number of events to be processed
@@ -5446,12 +5445,12 @@ if 'MessageLogger' in process.__dict__:
     process.MessageLogger.categories.append('FastReport')
 
 # load the DQMStore and DQMRootOutputModule
-process.load( "DQMServices.Core.DQMStore_cfi" )
-process.DQMStore.enableMultiThread = True
-
-process.dqmOutput = cms.OutputModule("DQMRootOutputModule",
-    fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/DQMIO_signal_test.root")
-)
-
-process.DQMOutput = cms.EndPath( process.dqmOutput )
+#process.load( "DQMServices.Core.DQMStore_cfi" )
+#process.DQMStore.enableMultiThread = True
+#
+#process.dqmOutput = cms.OutputModule("DQMRootOutputModule",
+#    fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/DQMIO_signal_test.root")
+#)
+#
+#process.DQMOutput = cms.EndPath( process.dqmOutput )
 

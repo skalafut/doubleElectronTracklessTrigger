@@ -108,6 +108,7 @@
 #include <TROOT.h>
 #include "TTree.h"
 
+//#define DEBUG
 
 //
 // class declaration
@@ -119,7 +120,27 @@ class SeparateCombCandidate : public edm::EDProducer {
       ~SeparateCombCandidate();
 
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+	  
+	  //check if a Ref with pt, eta, and phi already exists in a collection of Ref objects
+	  //return false if the Ref object does not exist in the collection
+	  //return true if the Ref object does exist in the collection of Ref objects
+	  bool isDuplicateRef(reco::CandidateBaseRef& refObject,std::auto_ptr<reco::RecoEcalCandidateRefVector>& ptrToRefColl){
+#ifdef DEBUG
+		  std::cout<<"in isDuplicateRef()"<<std::endl;
+		  std::cout<<"about to check if RefVector size = 0"<<std::endl;
+#endif
+		  if(ptrToRefColl->size()==0) return false;
+		  for(unsigned int i=0; i<ptrToRefColl->size(); i++){
+#ifdef DEBUG
+			  std::cout<<"about to check if refObject is a duplicate"<<std::endl;
+			  std::cout<<"RefVector size="<<"\t"<< ptrToRefColl->size() <<std::endl;
+#endif
+			  if(refObject->pt()==(ptrToRefColl->at(i))->pt() || refObject->eta()==(ptrToRefColl->at(i))->eta() || refObject->phi()==(ptrToRefColl->at(i))->phi() ) return true;
+		  }//end loop over all elements in RecoEcalCandidateRefVector
+		  return false;
+	  }//end isDuplicateRef() 
 
+	
    private:
       virtual void beginJob() override;
       virtual void produce(edm::Event&, const edm::EventSetup&) override;
@@ -218,12 +239,6 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
    std::auto_ptr<reco::RecoEcalCandidateRefVector> daughterOneRefColl(new reco::RecoEcalCandidateRefVector );	//trackless collection
    std::auto_ptr<reco::RecoEcalCandidateRefVector> daughterTwoRefColl(new reco::RecoEcalCandidateRefVector );	//tracked collection
 
-
-   //std::cout<<"made ptrs to output daughter collections"<<std::endl;
-
-   /**/
-   //int numDauOne = 0;
-   //int numDauTwo = 0;
    
    for(std::vector<reco::CompositeCandidate>::const_iterator momIt = momIn->begin(); momIt != momIn->end(); momIt++){
 	   //get a Ref to a daughter via momIt->daughter()->masterClone()
@@ -239,8 +254,9 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 			   if(dauOneRef->pt() == (getRef(momParentOneIn, h))->pt() ){
 				   if(dauOneRef->eta() == (getRef(momParentOneIn, h))->eta() ){
 					   if(dauOneRef->phi() == (getRef(momParentOneIn, h))->phi() ){
-						   daughterOneRefColl->push_back( getRef(momParentOneIn, h) );
-						   //numDauOne +=1;
+						   if(!isDuplicateRef(dauOneRef,daughterOneRefColl) ){
+							   daughterOneRefColl->push_back( getRef(momParentOneIn, h) );
+						   }//end duplicate check
 					   }//end filter on phi
 
 				   }//end filter on eta
@@ -258,8 +274,9 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 			   if(dauTwoRef->pt() == (getRef(momParentTwoIn, m))->pt() ){
 				   if(dauTwoRef->eta() == (getRef(momParentTwoIn, m))->eta() ){
 					   if(dauTwoRef->phi() == (getRef(momParentTwoIn, m))->phi() ){
-						   daughterTwoRefColl->push_back( getRef(momParentTwoIn, m) );
-						   //numDauTwo += 1;
+						   if(!isDuplicateRef(dauTwoRef,daughterTwoRefColl) ){
+							   daughterTwoRefColl->push_back( getRef(momParentTwoIn, m) );
+						   }//end duplicate check
 					   }//end filter on phi
 
 				   }//end filter on eta
@@ -272,11 +289,6 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	
    }//end loop over all CompositeCandidate objects in the event
 
-   //std::cout<<" "<<std::endl;
-   //std::cout<<"added "<<numDauOne<<" refs to daughterOneRefColl"<<std::endl;
-   //std::cout<<"added "<<numDauTwo<<" refs to daughterTwoRefColl"<<std::endl;
-   //std::cout<<" "<<std::endl;
-   /**/
 
    //std::cout<<"about to put daughter collections into root file"<<std::endl;
    //now put the two collections of Refs to daughter particles into the event
