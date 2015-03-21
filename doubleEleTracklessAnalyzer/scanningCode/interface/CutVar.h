@@ -40,12 +40,21 @@ public:
 	  * the CutVar name is printed first
 	  */
      friend std::ostream& operator << (std::ostream& os, const CutVar a){
-	  os <<  a._cutName  << "\t[" << std::setprecision(3) << a._minThresh << "," << a._maxThresh << "," << a._threshStep << ",";
-	  char c = a._isUpperBound ? '<' : '>';
-	  os << c << "]\t" << a._detectorRegion;
-	  return os;
+       
+       os <<  a._cutName;
+       os << "\t[" << std::setprecision(3) << a._minThresh << "," << a._maxThresh << "," << a._threshStep << ",";
+       char c = a._isUpperBound ? '<' : '>';
+       os << c << "]\t" << a._detectorRegion;
+     
+       return os;
      }
 
+     inline std::string printNameVal() const{
+       char line[250];
+       sprintf(line, "%s\t%.2f", _cutName.c_str(), _threshVal);
+       return std::string(line);
+     }
+       
 public:
      // _detectorRegion is used to distinguish tracked EB, tracked EE, and trackless EE
 	 // _shortCutName contains a string similar to an input branch name, like ecalIsoHltEle, plus

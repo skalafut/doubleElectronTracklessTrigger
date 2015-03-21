@@ -15,7 +15,7 @@
 #include <map>
 #include <array>
 #include <set>
-
+#include <cassert>
 
 #define NELE 400
 #define OUTPUTNELE 1
@@ -24,7 +24,7 @@
 #define PTBRANCHNAME "ptHltEle"
 #define NUMELEBRANCHNAME "nHltEle"
 //#define DEBUG
-
+//#define DEBUG2
 
 using namespace std;
 
@@ -163,6 +163,7 @@ void Scan::SaveOutput(string pathToOutputFile){
 #endif
 	TFile * outTupleFile = new TFile(pathToOutputFile.c_str(),"recreate");
 	outTupleFile->cd();
+	_outputTree->Scan("","","",10);
 	_outputTree->Write();
 	outTupleFile->Close();
 #ifdef DEBUG
@@ -195,16 +196,12 @@ void Scan::runScan(unsigned int iCut){
 		cout<<"\t"<<endl;
 		cout<<"about to call GetEntries() on main input chain"<<endl;
 #endif
-		_nEvents=_pInputChain->GetEntries(); // this is slow, do it once
-
-#ifdef DEBUG
-		cout<<"called GetEntries() on main input chain"<<endl;
-#endif
 
 		_nPassing=0;
+		_nEvents=0;
 		//loop over all entries
 		//replace 50 with _pInputChain->GetEntriesFast()
-		for(Long64_t evt = 0; evt<50; evt++){
+		for(Long64_t evt = 0; evt<_pInputChain->GetEntriesFast(); evt++){
 #ifdef DEBUG
 			if(evt>=0) cout<<"about to call GetEntry() on main input chain"<<endl;
 			if(evt>=0) cout<<"on Tree entry number"<<"\t"<<evt<<endl;
@@ -252,7 +249,19 @@ void Scan::runScan(unsigned int iCut){
 				}
 				passingEleTree[treeName]=passingEle;
 			}
-
+			bool recoOk=true;
+			for(map<string,set<int> >::const_iterator mapIt=passingEleTree.begin(); mapIt!=passingEleTree.end(); mapIt++){
+				if(mapIt->second.size()==0){
+#ifdef DEBUG2
+					cout<<mapIt->first<<"\t"<<mapIt->second.size()<<endl;
+#endif
+					recoOk=false;
+				}	
+			}
+			if(recoOk) _nEvents++;
+#ifdef DEBUG2
+			cout<<"-----------------------------------------------------"<<endl;
+#endif	
 			// now you have the map passingEleTree filled with all possible electrons (indexes) from both legs
 
 			for(vector<CutVar>::const_iterator cut_itr = _cutContainer.begin();
@@ -299,7 +308,7 @@ void Scan::runScan(unsigned int iCut){
 					//is greater than 5.0 or less than -5.0
 					//this will happen because the array of Float_t values at _inputBranches[fullEtaBrName] has 400 entries
 					//or whatever NELE is set to
-					if(fabs(_inputBranches[fullEtaBrName][*iEle_itr]) > 5.0) break;
+					assert(fabs(_inputBranches[fullEtaBrName][*iEle_itr]) < 5.0);
 
 					if(fabs(_inputBranches[fullEtaBrName][*iEle_itr]) < 2.5 && (cut_itr->_detectorRegion).compare("utEE")==0){
 						iEle_itr++;
@@ -383,7 +392,8 @@ void Scan::runScan(unsigned int iCut){
 					if(evt>=0) cout<<"mass="<<"\t"<<mass<<endl;
 #endif
 
-					if(mass > 40 && mass < 140) passing = true;
+					//if(mass > 40 && mass < 140)
+					passing = true;
 					if(passing) break;
 				}//end loop over iEle2_itr
 				if(passing) break;
@@ -391,8 +401,13 @@ void Scan::runScan(unsigned int iCut){
 
 			if(passing) _nPassing++;
 		}//end loop over entries in TChain
+
+		for(vector<CutVar>::const_iterator cut_itr = _cutContainer.begin();
+		    cut_itr != _cutContainer.end(); cut_itr++){
+		  cout << cut_itr->printNameVal() << endl;
+		}
 		_outputTree->Fill();
-		cout<<"filled _outputTree, leaving runScan() method"<<endl;
+		//cout<<"filled _outputTree, leaving runScan() method"<<endl;
 		return;
 	}//end if(iCut==0)
 
