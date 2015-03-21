@@ -1,7 +1,9 @@
 //#include "TStopwatch.h"
 //#include "TString.h"
+#include "TList.h"
 #include "TTree.h"
 #include "TChain.h"
+#include "TFriendElement.h"
 #include "../interface/Scan.h"
 #include <cstdlib>
 #include <stdio.h>
@@ -95,23 +97,47 @@ int main(int argc, char **argv){
 	
 	//call InitCutVars() first, then InitInputTree(), then InitOutputTree() in scanning.cpp file
 
-	cout<<"in main"<<endl;
 
 	string testFileName = "/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/scanningCode/doc/trial.txt";
 	Scan testScan(testFileName);
-	cout<<"made a Scan class object"<<endl;
 	testScan.InitCutContainer();
-	cout<<"called InitCutContainer()"<<endl;
+	cout<<" "<<endl;
 	cout<<"there are "<< testScan.numCutVars() <<" CutVar objects in the cutContainer vector"<<endl;
+	cout<<" "<<endl;
+	//declare the primary input chain
 	TChain * inputChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
-	inputChain->Add("file.root"); // hard code here the files, you can use wildcards!
+	inputChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal_analyzer_trees_2.root");
+	//inputChain->AddFriend(inputChain, inputChain->GetName());
+	//declare a second input chain which will be added as a friend to the primary input chain
 	TChain * inputFriendChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
-	inputFriendChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
-	inputChain->AddFriend("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal");
+	inputFriendChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal_analyzer_trees_2.root");
+	
+	//inputChain->AddFriend(inputFriendChain->GetName(),"");
+	string friendName = inputFriendChain->GetName();
+	cout<<"friend name = " << friendName<<endl;
+	string friendTreeName = friendName.substr(friendName.find("/")+1);
+	inputChain->AddFriend(inputFriendChain,friendName.c_str());
+	inputChain->GetListOfFriends()->Print();
+
+	//inputChain->Scan((friendName+".nHltEle:nHltEle").c_str(),"","",10);
+	// Int_t nHltEleFriend, nHltEle;
+	// std::cout << inputChain->SetBranchAddress((friendName+".nHltEle").c_str(), &nHltEleFriend);
+	// std::cout << "\t" << inputChain->SetBranchAddress((std::string(inputChain->GetName())+".nHltEle").c_str(), &nHltEle); 
+	// std::cout << std::endl;
+	// inputChain->GetEntry(10);
+	// std::cout << nHltEle << "\t" << nHltEleFriend << std::endl;
 	testScan.InitInputNtuple(inputChain);
 	TTree * outTree = new TTree("testOutTree","");
 	testScan.InitOutputNtuple(outTree);
+	cout<<" "<<endl;
 	cout<<"successfully called Init Input and Output Ntuple methods"<<endl;
+	cout<<" "<<endl;
+
+	testScan.runScan(testScan.numCutVars());
+	cout<<"successfully called runScan() method"<<endl;
+
+	testScan.SaveOutput("testScanTreeOutput.root");
+
 	
 	return 0;
 

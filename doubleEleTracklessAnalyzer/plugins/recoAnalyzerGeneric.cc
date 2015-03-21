@@ -300,15 +300,19 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 		//declare const_iterators to maps outside for loop
 		forMapIt::const_iterator SigmaIEIEIt, HadEmIt, HcalIsoIt, EcalIsoIt, TrackIsoIt, DphiIt, DetaIt, EpIt;
 		unsigned int j=0;
+		double minDR = maxDeltaR;
 		for(reco::RecoEcalCandidateRefVector::const_iterator refIt=hltObjectsHandle->begin(); refIt != hltObjectsHandle->end(); refIt++){
 			Float_t hltEta = (*refIt)->eta();
 			Float_t hltPhi = (*refIt)->phi();
 			
-			if(deltaR(hltEta, hltPhi, etaGenEle, phiGenEle) <= maxDeltaR){
-				etaHltEle[j] = (*refIt)->eta();
-				ptHltEle[j] = (*refIt)->pt();
-				phiHltEle[j] = (*refIt)->phi();
-				deltaRHltEle[j] = deltaR(etaHltEle[j], phiHltEle[j], etaGenEle, phiGenEle);
+			if(deltaR(hltEta, hltPhi, etaGenEle, phiGenEle) < minDR){
+				//overwrite the old kinematic and isolation info when a new REC object is found which is closer to the GEN electron
+				//thus there will only be one entry in each array per event
+				minDR = deltaR(hltEta, hltPhi, etaGenEle, phiGenEle);
+				etaHltEle[0] = (*refIt)->eta();
+				ptHltEle[0] = (*refIt)->pt();
+				phiHltEle[0] = (*refIt)->phi();
+				deltaRHltEle[0] = deltaR(etaHltEle[0], phiHltEle[0], etaGenEle, phiGenEle);
 
 				//now that I have the eta, pt, and phi of a tracked leg RecoEcalCandidate, I should look for the OBJECTSS 
 				//in hltZedMomObjectsHandle which have a tracked leg daughter particle with matching eta, pt, and phi.
@@ -317,36 +321,36 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 				for(std::vector<reco::CompositeCandidate>::const_iterator momIt=hltZedMomObjectsHandle->begin(); momIt != hltZedMomObjectsHandle->end();momIt++){
 					if((momIt->daughter("trackedRecoEle"))->hasMasterClone() ){
 						reco::CandidateBaseRef dauRef = (momIt->daughter("trackedRecoEle"))->masterClone();
-						if(dauRef->pt()==ptHltEle[j] && dauRef->eta()==etaHltEle[j] && dauRef->phi()==phiHltEle[j]){
+						if(dauRef->pt()==ptHltEle[0] && dauRef->eta()==etaHltEle[0] && dauRef->phi()==phiHltEle[0]){
 							if(momIt->mass() > maxMass) maxMass = momIt->mass();
 						}//end requirement that pt, eta, and phi are identical 
 
 					}//end filter to select tracked leg RecoEcalCandidate obj daughters
 
 				}//end loop over mother reco Z boson objects
-				diObjectMassHltEle[j] = maxMass;
+				diObjectMassHltEle[0] = maxMass;
 
 
 				//initialize const_iterators to maps inside for loop using find(edm::Ref)
 				SigmaIEIEIt = (*SigmaIEIEHandle).find(*refIt);
-				clusterShapeHltEle[j] = SigmaIEIEIt->val;
+				clusterShapeHltEle[0] = SigmaIEIEIt->val;
 				HadEmIt = (*HadEmHandle).find(*refIt);
-				hadEmHltEle[j] = (HadEmIt->val)/(ptHltEle[j]*(TMath::CosH(etaHltEle[j]) ));
+				hadEmHltEle[0] = (HadEmIt->val)/(ptHltEle[0]*(TMath::CosH(etaHltEle[0]) ));
 				HcalIsoIt = (*HcalIsoHandle).find(*refIt);
-				hcalIsoHltEle[j] = (HcalIsoIt->val)/ptHltEle[j];
+				hcalIsoHltEle[0] = (HcalIsoIt->val)/ptHltEle[0];
 				EcalIsoIt = (*EcalIsoHandle).find(*refIt);
-				ecalIsoHltEle[j] = (EcalIsoIt->val)/ptHltEle[j];
+				ecalIsoHltEle[0] = (EcalIsoIt->val)/ptHltEle[0];
 
 				TrackIsoIt = (*TrackIsoHandle).find(*refIt);
-				trackIsoHltEle[j] = (TrackIsoIt->val)/ptHltEle[j];
+				trackIsoHltEle[0] = (TrackIsoIt->val)/ptHltEle[0];
 				DphiIt = (*DphiHandle).find(*refIt);
-				dPhiHltEle[j] = DphiIt->val;
+				dPhiHltEle[0] = DphiIt->val;
 				DetaIt = (*DetaHandle).find(*refIt);
-				dEtaHltEle[j] = DetaIt->val;
+				dEtaHltEle[0] = DetaIt->val;
 				EpIt = (*EpHandle).find(*refIt);
-				epHltEle[j] = EpIt->val;
+				epHltEle[0] = EpIt->val;
 				j += 1;
-				nHltEle += 1;
+				nHltEle = 1;
 
 			}//end deltaR filter
 		
@@ -387,15 +391,17 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 		//declare const_iterators to maps outside for loop
 		forMapIt::const_iterator SigmaIEIEIt, HadEmIt, HcalIsoIt, EcalIsoIt;
 		unsigned int j=0;
+		double minDR = maxDeltaR;
 		for(reco::RecoEcalCandidateRefVector::const_iterator refIt=hltObjectsHandle->begin(); refIt != hltObjectsHandle->end(); refIt++){
 			Float_t hltEta = (*refIt)->eta();
 			Float_t hltPhi = (*refIt)->phi();
 
-			if(deltaR(hltEta, hltPhi, etaGenEle, phiGenEle) <= maxDeltaR){
-				etaHltEle[j] = (*refIt)->eta();
-				ptHltEle[j] = (*refIt)->pt();
-				phiHltEle[j] = (*refIt)->phi();
-				deltaRHltEle[j] = deltaR(etaHltEle[j], phiHltEle[j], etaGenEle, phiGenEle);
+			if(deltaR(hltEta, hltPhi, etaGenEle, phiGenEle) < minDR){
+				minDR = deltaR(hltEta, hltPhi, etaGenEle, phiGenEle);
+				etaHltEle[0] = (*refIt)->eta();
+				ptHltEle[0] = (*refIt)->pt();
+				phiHltEle[0] = (*refIt)->phi();
+				deltaRHltEle[0] = deltaR(etaHltEle[0], phiHltEle[0], etaGenEle, phiGenEle);
 
 				//now that I have the eta, pt, and phi of a trackless leg RecoEcalCandidate, I should look for the OBJECTSSS 
 				//in hltZedMomObjectsHandle which have a trackless leg daughter particle with matching eta, pt, and phi.
@@ -404,26 +410,26 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 				for(std::vector<reco::CompositeCandidate>::const_iterator momIt=hltZedMomObjectsHandle->begin(); momIt != hltZedMomObjectsHandle->end();momIt++){
 					if((momIt->daughter("tracklessRecoEle"))->hasMasterClone() ){
 						reco::CandidateBaseRef dauRef = (momIt->daughter("tracklessRecoEle"))->masterClone();
-						if(dauRef->pt()==ptHltEle[j] && dauRef->eta()==etaHltEle[j] && dauRef->phi()==phiHltEle[j]){
+						if(dauRef->pt()==ptHltEle[0] && dauRef->eta()==etaHltEle[0] && dauRef->phi()==phiHltEle[0]){
 							if(momIt->mass() > maxMass) maxMass = momIt->mass();
 						}//end requirement that pt, eta, and phi are identical 
 
 					}//end filter to select trackless leg RecoEcalCandidate obj daughters
 
 				}//end loop over mother reco Z boson objects
-				diObjectMassHltEle[j] = maxMass;
+				diObjectMassHltEle[0] = maxMass;
 
 				//initialize const_iterators to maps inside for loop using find(edm::Ref)
 				SigmaIEIEIt = (*SigmaIEIEHandle).find(*refIt);
-				clusterShapeHltEle[j] = SigmaIEIEIt->val;
+				clusterShapeHltEle[0] = SigmaIEIEIt->val;
 				HadEmIt = (*HadEmHandle).find(*refIt);
-				hadEmHltEle[j] = (HadEmIt->val)/(ptHltEle[j]*(TMath::CosH(etaHltEle[j]) ));
+				hadEmHltEle[0] = (HadEmIt->val)/(ptHltEle[0]*(TMath::CosH(etaHltEle[0]) ));
 				HcalIsoIt = (*HcalIsoHandle).find(*refIt);
-				hcalIsoHltEle[j] = (HcalIsoIt->val)/ptHltEle[j];
+				hcalIsoHltEle[0] = (HcalIsoIt->val)/ptHltEle[0];
 				EcalIsoIt = (*EcalIsoHandle).find(*refIt);
-				ecalIsoHltEle[j] = (EcalIsoIt->val)/ptHltEle[j];
+				ecalIsoHltEle[0] = (EcalIsoIt->val)/ptHltEle[0];
 				j += 1;
-				nHltEle += 1;
+				nHltEle = 1;
 			}//end deltaR filter
 
 		}//end loop over all entries in hltObjectsHandle

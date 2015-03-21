@@ -18,9 +18,10 @@ public:
 	  _isUpperBound(setUpper){
 	  };
 
-	 CutVar(std::string cutName_, std::string zone):
+	 CutVar(std::string cutName_, std::string zone, std::string shortName_):
 	  _cutName(cutName_),
-	  _detectorRegion(zone){
+	  _detectorRegion(zone),
+	  _shortCutName(shortName_){
 	  };
 
      inline void setThresholdValue(float value){ _threshVal = value;};
@@ -47,7 +48,9 @@ public:
 
 public:
      // _detectorRegion is used to distinguish tracked EB, tracked EE, and trackless EE
-     std::string _cutName, _detectorRegion;
+	 // _shortCutName contains a string similar to an input branch name, like ecalIsoHltEle, plus
+	 // the _detectorRegion. For example, _shortCutName could be ptHltEleutEE (pt in trackless EE) 
+     std::string _cutName, _detectorRegion, _shortCutName;
      float _threshVal, _minThresh, _maxThresh, _threshStep;
      bool _isUpperBound;	//indicates if this cut will be used as an upper bound (someVal < _threshVal)
 };//end class cutVar

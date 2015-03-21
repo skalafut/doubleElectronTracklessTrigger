@@ -2,8 +2,9 @@
 # [ min, max, step, upper/lowerBound]: max excluded, min included
 # treeName.branchName -> I hope it works
 recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.ptHltEle		[10,30,1,>]	EB 
-#recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.ptHltEle		[10,33,1,>]	EE
+#recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.ptHltEle		[10,33,1,>]	tEE
 recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.clusterShapeHltEle			[0.009,0.019,0.001,<]	EB
+
 #recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.hadEmHltEle				[0.08,0.21,0.01,<]	EB
 #recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.ecalIsoHltEle	[0.1,0.4,0.01,<]	EB
 #recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.hcalIsoHltEle	[0.09,0.4,0.01,<]	EB
@@ -13,17 +14,18 @@ recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.clus
 #recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.epHltEle	[0.002,0.014,0.001,<]	EB 
 #tracked endcap
 #
-#clusterShapeHltEle	[0.027,0.04,0.0005,<]	EE
-#hadEmHltEle	[0.06,0.21,0.015,<]	EE
-#ecalIsoHltEle	[0.08,0.455,0.015,<]	EE
-#hcalIsoHltEle	[0.09,0.41,0.02,<]	EE
-#trackIsoHltEle	[0.01,0.148,0.0115,<]	EE
-#dEtaHltEle	[0.001,0.012,0.001,<]	EE 
-#dPhiHltEle	[0.006,0.034,0.002,<]	EE
-#epHltEle	[0.002,0.012,0.001,<]	EE 
+#clusterShapeHltEle	[0.027,0.04,0.0005,<]	tEE
+#hadEmHltEle	[0.06,0.21,0.015,<]	tEE
+#ecalIsoHltEle	[0.08,0.455,0.015,<]	tEE
+#hcalIsoHltEle	[0.09,0.41,0.02,<]	tEE
+#trackIsoHltEle	[0.01,0.148,0.0115,<]	tEE
+#dEtaHltEle	[0.001,0.012,0.001,<]	tEE 
+#dPhiHltEle	[0.006,0.034,0.002,<]	tEE
+#epHltEle	[0.002,0.012,0.001,<]	tEE 
 #trackless endcap
-#ptHltEle	[10,28,1,n]	EE
-#clusterShapeHltEle	[0.028,0.046,0.001,<]	EE
-#hadEmHltEle	[0.06,0.48,0.015,<]	EE
-#ecalIsoHltEle	[0.08,0.4,0.02,<]	EE
-#hcalIsoHltEle	[0.14,0.92,0.03,<]	EE
+#ptHltEle	[10,28,1,>]	utEE
+#clusterShapeHltEle	[0.028,0.046,0.001,<]	utEE
+#hadEmHltEle	[0.06,0.48,0.015,<]	utEE
+#ecalIsoHltEle	[0.08,0.4,0.02,<]	utEE
+#hcalIsoHltEle	[0.14,0.92,0.03,<]	utEE
+

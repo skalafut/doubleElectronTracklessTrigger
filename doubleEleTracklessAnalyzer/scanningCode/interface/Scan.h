@@ -74,9 +74,12 @@ private:
 	 unsigned int _numEles;	///< number of reco objects in the event
      Long64_t _nEvents, _nPassing;
      typedef std::map<std::string, Float_t[NELE]> floatBranchMap_t;
+     typedef std::map<std::string, Int_t[NELE]> intBranchMap_t;
      
      floatBranchMap_t _inputBranches,  _outputBranches;
-		
+     intBranchMap_t _inputBranchesInt;
+
+
      //outputBranch map will have at least 2 more elements than cutContainer
      //one for the number of evts which were analyzed, and another branch which 
      //saves the number of evts passing a set of tracked and trackless leg
