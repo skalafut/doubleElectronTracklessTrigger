@@ -140,6 +140,46 @@ class SeparateCombCandidate : public edm::EDProducer {
 		  return false;
 	  }//end isDuplicateRef() 
 
+	  void findAndSaveRef(edm::Handle<std::vector<reco::RecoEcalCandidate> >& inputParentHandle, edm::Handle<std::vector<reco::CompositeCandidate> >& inputMomHandle, std::auto_ptr<reco::RecoEcalCandidateRefVector>& ptrToOutputColl, std::string& dauRole){
+
+		  for(std::vector<reco::CompositeCandidate>::const_iterator momIt = inputMomHandle->begin(); momIt != inputMomHandle->end(); momIt++){
+			  //get a Ref to a daughter via momIt->daughter()->masterClone()
+			  //then find the matching (pt, eta, phi) object in inputParentHandle, and
+			  //save a reference to the object into the appropriate output collection via
+			  //getRef(inputParentHandle, index number) 
+#ifdef DEBUG
+			  std::cout<<"looping over CompositeCandidate objects"<<std::endl;
+#endif
+			  if((momIt->daughter(dauRole.c_str()))->hasMasterClone() ){
+#ifdef DEBUG
+				  std::cout<<"found "<< dauRole <<" daughter with a master clone"<<std::endl;
+#endif
+				  reco::CandidateBaseRef dauRef = (momIt->daughter(dauRole.c_str()))->masterClone();
+#ifdef DEBUG
+				  std::cout<<"made a reference obj to a "<< dauRole << " daughter"<<std::endl;
+#endif
+				  for(unsigned int h=0; h<inputParentHandle->size(); h++){
+					  if(dauRef->pt() == (getRef(inputParentHandle, h))->pt() ){
+						  if(dauRef->eta() == (getRef(inputParentHandle, h))->eta() ){
+							  if(dauRef->phi() == (getRef(inputParentHandle, h))->phi() ){
+								  if(!isDuplicateRef(dauRef,ptrToOutputColl) ){
+									  ptrToOutputColl->push_back( getRef(inputParentHandle, h) );
+								  }//end duplicate check
+							  }//end filter on phi
+
+						  }//end filter on eta
+
+					  }//end filter on pt
+
+				  }//end loop over objects in inputParentHandle
+
+			  }//end requirement that a master clone exists
+
+		  }//end loop over objects in inputMomHandle
+
+
+	  }//end findAndSaveRef()
+
 	
    private:
       virtual void beginJob() override;
@@ -221,7 +261,9 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 {
    using namespace edm;
 
-   //std::cout<<"entered daughter producer code"<<std::endl;
+#ifdef DEBUG
+   std::cout<<"entered daughter producer code"<<std::endl;
+#endif
 
    //read collection of reco::CompositeCandidate objects from iEvent
    Handle<std::vector<reco::CompositeCandidate> > momIn;
@@ -233,64 +275,23 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
    Handle<std::vector<reco::RecoEcalCandidate> > momParentTwoIn;	//for tracked leg RECs
    iEvent.getByToken(momParentTwoToken, momParentTwoIn);
 
-   //std::cout<<"made handles to input collections"<<std::endl;
+#ifdef DEBUG
+   std::cout<<"made handles to input collections"<<std::endl;
+#endif
 
    //create empty output collections, one for each daughter, and pointers to each collection
    std::auto_ptr<reco::RecoEcalCandidateRefVector> daughterOneRefColl(new reco::RecoEcalCandidateRefVector );	//trackless collection
    std::auto_ptr<reco::RecoEcalCandidateRefVector> daughterTwoRefColl(new reco::RecoEcalCandidateRefVector );	//tracked collection
 
-   
-   for(std::vector<reco::CompositeCandidate>::const_iterator momIt = momIn->begin(); momIt != momIn->end(); momIt++){
-	   //get a Ref to a daughter via momIt->daughter()->masterClone()
-	   //then find the matching (pt, eta, phi) object in momParent(One or Two)In handles, and
-	   //save a reference to the object into the appropriate output collection via
-	   //getRef(momParent(One or Two)In, index number) 
-	   //std::cout<<"looping over CompositeCandidate objects"<<std::endl;
-	   if((momIt->daughter("tracklessRecoEle"))->hasMasterClone() ){
-		   //std::cout<<"found tracklessRecoEle daughter with a master clone"<<std::endl;
-		   reco::CandidateBaseRef dauOneRef = (momIt->daughter("tracklessRecoEle"))->masterClone();
-		   //std::cout<<"made a reference obj to a trackless daughter"<<std::endl;
-		   for(unsigned int h=0; h<momParentOneIn->size(); h++){
-			   if(dauOneRef->pt() == (getRef(momParentOneIn, h))->pt() ){
-				   if(dauOneRef->eta() == (getRef(momParentOneIn, h))->eta() ){
-					   if(dauOneRef->phi() == (getRef(momParentOneIn, h))->phi() ){
-						   if(!isDuplicateRef(dauOneRef,daughterOneRefColl) ){
-							   daughterOneRefColl->push_back( getRef(momParentOneIn, h) );
-						   }//end duplicate check
-					   }//end filter on phi
+   std::string roleOne = "tracklessRecoEle";
+   std::string roleTwo = "trackedRecoEle";
+   findAndSaveRef(momParentOneIn, momIn, daughterOneRefColl, roleOne); 
+   findAndSaveRef(momParentTwoIn, momIn, daughterTwoRefColl, roleTwo); 
+  
 
-				   }//end filter on eta
-
-			   }//end filter on pt
-
-		   }//end loop over objects in momParentOneIn
-
-	   }//end requirement that a master clone exists
-
-	   if((momIt->daughter("trackedRecoEle"))->hasMasterClone() ){
-		   //std::cout<<"found trackedRecoEle daughter with a master clone"<<std::endl;
-		   reco::CandidateBaseRef dauTwoRef = (momIt->daughter("trackedRecoEle"))->masterClone();
-		   for(unsigned int m=0; m<momParentTwoIn->size(); m++){
-			   if(dauTwoRef->pt() == (getRef(momParentTwoIn, m))->pt() ){
-				   if(dauTwoRef->eta() == (getRef(momParentTwoIn, m))->eta() ){
-					   if(dauTwoRef->phi() == (getRef(momParentTwoIn, m))->phi() ){
-						   if(!isDuplicateRef(dauTwoRef,daughterTwoRefColl) ){
-							   daughterTwoRefColl->push_back( getRef(momParentTwoIn, m) );
-						   }//end duplicate check
-					   }//end filter on phi
-
-				   }//end filter on eta
-
-			   }//end filter on pt
-
-		   }//end loop over objects in momParentTwoIn
-
-	   }//end requirement that a master clone exists
-	
-   }//end loop over all CompositeCandidate objects in the event
-
-
-   //std::cout<<"about to put daughter collections into root file"<<std::endl;
+#ifdef DEBUG
+   std::cout<<"about to put daughter collections into root file"<<std::endl;
+#endif
    //now put the two collections of Refs to daughter particles into the event
    iEvent.put(daughterOneRefColl, daughterOneCollection);
    iEvent.put(daughterTwoRefColl, daughterTwoCollection);
