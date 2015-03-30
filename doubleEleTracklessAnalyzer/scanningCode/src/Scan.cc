@@ -25,6 +25,8 @@
 #define NUMELEBRANCHNAME "nHltEle"
 //#define DEBUG
 //#define DEBUG2
+#define DEBUG3
+#define SHORTTEST
 
 using namespace std;
 
@@ -49,7 +51,7 @@ void Scan::InitCutContainer(){
 		CutVar cutObject(branchName,region,outputBranchName);
 		cutObject.SetValuesFromString(ranges); // the parsing of the string is implemented in CutVar
 
-#ifdef DEBUG
+#ifdef DEBUG3
 		//use this to check the range of values assigned to each cut variable, and its status as an upper or lower bound
 		cout << cutObject << endl;
 #endif
@@ -63,6 +65,9 @@ void Scan::InitCutContainer(){
 
 
 	}//end while
+	cout<<"\t"<<endl;
+	cout<<"------------------------------------------------------------------------"<<endl;
+	cout<<"\t"<<endl;
 	return;
 }//end InitCutContainer()
 
@@ -199,9 +204,14 @@ void Scan::runScan(unsigned int iCut){
 
 		_nPassing=0;
 		_nEvents=0;
-		//loop over all entries
-		//replace 50 with _pInputChain->GetEntriesFast()
-		for(Long64_t evt = 0; evt<_pInputChain->GetEntriesFast(); evt++){
+		//loop over entries in tuple
+		Long64_t maxEntries = _pInputChain->GetEntriesFast();
+#ifdef SHORTTEST
+		maxEntries = 5;
+		cout<<"running short test, scanning over "<< maxEntries<<" entries in tuple"<<endl;
+#endif
+
+		for(Long64_t evt = 0; evt<maxEntries; evt++){
 #ifdef DEBUG
 			if(evt>=0) cout<<"about to call GetEntry() on main input chain"<<endl;
 			if(evt>=0) cout<<"on Tree entry number"<<"\t"<<evt<<endl;
@@ -258,6 +268,7 @@ void Scan::runScan(unsigned int iCut){
 					recoOk=false;
 				}	
 			}
+			if(!recoOk) continue;	//go to the next evt if no particle is reconstructed
 			if(recoOk) _nEvents++;
 #ifdef DEBUG2
 			cout<<"-----------------------------------------------------"<<endl;
@@ -282,6 +293,7 @@ void Scan::runScan(unsigned int iCut){
 #endif
 
 				set<int>& passingEle = passingEleTree[treeName];
+				unsigned int initialSize = passingEleTree[treeName].size();
 
 #ifdef DEBUG
 				if(evt>=0) cout<<"size of passingEleTree with key \t"<< treeName <<"\t=\t"<< passingEle.size() <<endl;
@@ -289,7 +301,7 @@ void Scan::runScan(unsigned int iCut){
 				if(evt>=0) cout<<"passingEleTree[treeName] has this many elements:"<<"\t"<<passingEleTree[treeName].size()<<endl;
 #endif
 	
-				for(set<int>::iterator iEle_itr=passingEle.begin(); iEle_itr!= passingEle.end() && !passingEle.empty(); ){
+				for(set<int>::iterator iEle_itr=passingEle.begin(); (iEle_itr!= passingEle.end() ) && !passingEle.empty(); ){
 					// there is no CutVar tied to the eta branch (we are not optimizing the eta range of the selection)
 					// so the treeName + eta branch name must be used to access eta values in _inputBranches
 
@@ -304,11 +316,12 @@ void Scan::runScan(unsigned int iCut){
 					if(evt>=0) cout<<"reco eta =\t"<< _inputBranches[fullEtaBrName][*iEle_itr] <<endl;
 #endif
 
+					//if(_inputBranches[fullEtaBrName][*iEle_itr] == 100) continue;
 					//leave this loop over passingEle elements once the eta value in _inputBranches[fullEtaBrName][*iEle_itr]
 					//is greater than 5.0 or less than -5.0
 					//this will happen because the array of Float_t values at _inputBranches[fullEtaBrName] has 400 entries
 					//or whatever NELE is set to
-					assert(fabs(_inputBranches[fullEtaBrName][*iEle_itr]) < 5.0);
+					//assert(fabs(_inputBranches[fullEtaBrName][*iEle_itr]) < 5.0);
 
 					if(fabs(_inputBranches[fullEtaBrName][*iEle_itr]) < 2.5 && (cut_itr->_detectorRegion).compare("utEE")==0){
 						iEle_itr++;
@@ -346,7 +359,16 @@ void Scan::runScan(unsigned int iCut){
 
 					if(p) iEle_itr++; 
 					else{
+#ifdef DEBUG
+						cout<<"an element should be erased from passingEleTree"<<endl;
+#endif
 						passingEle.erase(iEle_itr);	//remove this element if it fails the cut
+						iEle_itr++;
+#ifdef DEBUG
+						if(iEle_itr != passingEle.end() ){
+							cout<<"after calling erase, iEle_itr points to an element with eta= "<< _inputBranches[fullEtaBrName][*iEle_itr] <<endl;
+						}
+#endif
 					}
 				}//end loop over integers in passingEle set
 				//now reassign the set passingEle to the map element passingEleTree[treeName]
@@ -359,6 +381,10 @@ void Scan::runScan(unsigned int iCut){
 				   	cout<<"\t"<<endl;
 				}
 #endif
+				if(initialSize > 0 && passingEleTree[treeName].size() == 0){
+					passing = false;
+					break;	//leave loop over CutVar objects in _cutContainer
+				}
 			}//end loop over CutVar objects in _cutContainer
 
 			// now loop over the passingEleTree to make Zee candidates
@@ -367,6 +393,8 @@ void Scan::runScan(unsigned int iCut){
 			// each key is tied to a set (an ordered vector which can be searched)
 			// map1_itr is linked to the first unique key (here tracked leg or trackless leg) in passingEleTree
 			// map2_itr is linked to the second unique key (the leg which is not represented by the first key) in passingEleTree
+			/*
+			 * this is no longer needed. A dilepton mass cut is applied at reco lvl when the tuples are made.
 			map<string, set<int> >::const_iterator map1_itr=passingEleTree.begin();
 			map<string, set<int> >::const_iterator map2_itr=map1_itr; map2_itr++;
 
@@ -398,9 +426,10 @@ void Scan::runScan(unsigned int iCut){
 				}//end loop over iEle2_itr
 				if(passing) break;
 			}//end loop over iEle1_itr
+			*/
 
 			if(passing) _nPassing++;
-		}//end loop over entries in TChain
+		}//end loop over evts in TChain
 
 		for(vector<CutVar>::const_iterator cut_itr = _cutContainer.begin();
 		    cut_itr != _cutContainer.end(); cut_itr++){
@@ -418,7 +447,7 @@ void Scan::runScan(unsigned int iCut){
 	CutVar& currentCut = _cutContainer[iCut-1];
 
 	for(currentCut._threshVal = currentCut._minThresh; 
-			currentCut._threshVal<currentCut._maxThresh; 
+			currentCut._threshVal<=currentCut._maxThresh; 
 			currentCut._threshVal+=currentCut._threshStep){
 		// all CutVar member vars (like _threshVal and _threshStep) are public
 		// in this loop _threshVal is initialized to _minThresh, then incremented by _threshStep

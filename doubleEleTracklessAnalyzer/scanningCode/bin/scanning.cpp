@@ -1,4 +1,4 @@
-//#include "TStopwatch.h"
+#include "TStopwatch.h"
 //#include "TString.h"
 #include "TList.h"
 #include "TTree.h"
@@ -12,17 +12,26 @@
 #include <iostream>
 #include <fstream>
 
-#define DEBUG
+//#define DEBUG
+//#define BKGND
+#define SIGNAL
 
 using namespace std;
 
 int main(int argc, char **argv){
-	//TStopwatch myClock, globalClock;
+	//TStopwatch globalClock;
 	//globalClock.Start();
 
 	//call InitCutVars() first, then InitInputTree(), then InitOutputTree() in scanning.cpp file
 
-	string testFileName = "/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/scanningCode/doc/trial.txt";
+#ifdef BKGND
+	string testFileName = "/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/scanningCode/doc/trial_bkgnd.txt";
+#endif
+
+#ifdef SIGNAL
+	string testFileName = "/afs/cern.ch/user/s/skalafut/DoubleElectronHLT_2014/CMSSW_7_3_1_patch2/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/scanningCode/doc/trial_signal.txt";
+#endif
+	
 	Scan testScan(testFileName);
 	testScan.InitCutContainer();
 #ifdef DEBUG
@@ -32,13 +41,27 @@ int main(int argc, char **argv){
 #endif
 	
 	//declare the primary input chain
-	TChain * inputChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
-	inputChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal_analyzer_trees_2.root");
+	TChain * inputChain;
+	TChain * inputFriendChain;
+
+#ifdef BKGND
+	inputChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
+	inputChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_305.root");
 	
 	//declare a second input chain which will be added as a friend to the primary input chain
-	TChain * inputFriendChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
-	inputFriendChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal_analyzer_trees_2.root");
+	inputFriendChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
+	inputFriendChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_305.root");
+#endif
+
+#ifdef SIGNAL
+	inputChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
+	inputChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/signal_analyzer_trees_1.root");
 	
+	//declare a second input chain which will be added as a friend to the primary input chain
+	inputFriendChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
+	inputFriendChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/signal_analyzer_trees_1.root");
+#endif
+
 	string friendName = inputFriendChain->GetName();
 
 #ifdef DEBUG
@@ -49,24 +72,22 @@ int main(int argc, char **argv){
 	inputChain->AddFriend(inputFriendChain,friendName.c_str());
 	inputChain->GetListOfFriends()->Print();
 
-	//inputChain->Scan((friendName+".nHltEle:nHltEle").c_str(),"","",10);
-	// Int_t nHltEleFriend, nHltEle;
-	// std::cout << inputChain->SetBranchAddress((friendName+".nHltEle").c_str(), &nHltEleFriend);
-	// std::cout << "\t" << inputChain->SetBranchAddress((std::string(inputChain->GetName())+".nHltEle").c_str(), &nHltEle); 
-	// std::cout << std::endl;
-	// inputChain->GetEntry(10);
-	// std::cout << nHltEle << "\t" << nHltEleFriend << std::endl;
 	testScan.InitInputNtuple(inputChain);
-	TTree * outTree = new TTree("testOutTree","");
+	TTree * outTree = new TTree("scanned_tree","");
 	testScan.InitOutputNtuple(outTree);
-	cout<<"\t"<<endl;
-	cout<<"successfully called Init Input and Output Ntuple methods"<<endl;
-	cout<<"\t"<<endl;
 
 	testScan.runScan(testScan.numCutVars());
-	cout<<"successfully called runScan() method"<<endl;
 
-	testScan.SaveOutput("testScanTreeOutput.root");
+#ifdef BKGND
+	testScan.SaveOutput("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/scanned_tuples/scanned_high_pt_bkgnd_tree_305.root");
+#endif
+
+#ifdef SIGNAL
+	testScan.SaveOutput("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/scanned_tuples/scanned_signal_tree_1.root");
+#endif
+	
+	//globalClock.Stop();
+	//globalClock.Print("m");
 
 	
 	return 0;

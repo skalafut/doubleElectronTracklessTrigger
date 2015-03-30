@@ -1,6 +1,3 @@
-# tracked barrel
-# [ min, max, step, upper/lowerBound]: max excluded, min included
-# treeName.branchName
 recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.ptHltEle		[27,30,3,>]	EB
 recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.clusterShapeHltEle			[0.011,0.021,0.005,<]	EB
 recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.hadEmHltEle				[0.04,0.16,0.06,<]	EB
@@ -10,7 +7,6 @@ recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.trac
 recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.dEtaHltEle	[0.005,0.006,0.002,<]	EB 
 recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.dPhiHltEle	[0.03,0.034,0.02,<]	EB
 recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.epHltEle	[0.012,0.013,0.01,<]	EB 
-
 recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.ptHltEle		[27,33,6,>]	tEE
 recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.clusterShapeHltEle	[0.025,0.037,0.006,<]	tEE
 recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.hadEmHltEle	[0.075,0.195,0.06,<]	tEE
@@ -20,7 +16,6 @@ recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.trac
 recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.dEtaHltEle	[0.01,0.012,0.01,<]	tEE 
 recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.dPhiHltEle	[0.03,0.034,0.02,<]	tEE
 recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal.epHltEle	[0.009,0.01,0.01,<]	tEE 
-
 recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal.ptHltEle		[10,15,5,>]	utEE
 recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal.clusterShapeHltEle	[0.025,0.037,0.006,<]	utEE
 recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal.hadEmHltEle	[0.075,0.375,0.15,<]	utEE
