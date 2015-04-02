@@ -398,7 +398,13 @@ process.HLTPSetPvClusterComparerForBTag = cms.PSet(
 )
 process.HLTSeedFromConsecutiveHitsTripletOnlyCreator = cms.PSet( 
   ComponentName = cms.string( "SeedFromConsecutiveHitsTripletOnlyCreator" ),
-  propagator = cms.string( "PropagatorWithMaterialParabolicMf" )
+  propagator = cms.string( "PropagatorWithMaterialParabolicMf" ),
+  SeedMomentumForBOFF = cms.double( 5.0 ),
+  OriginTransverseErrorMultiplier = cms.double( 1.0 ),
+  MinOneOverPtError = cms.double( 1.0 ),
+  magneticField = cms.string( "ParabolicMf" ),
+  TTRHBuilder = cms.string( "hltESPTTRHBWithTrackAngle" ),
+  forceKinematicWithRegionDirection = cms.bool( False )
 )
 process.HLTSeedFromConsecutiveHitsCreator = cms.PSet( 
   ComponentName = cms.string( "SeedFromConsecutiveHitsCreator" ),
@@ -406,8 +412,9 @@ process.HLTSeedFromConsecutiveHitsCreator = cms.PSet(
   SeedMomentumForBOFF = cms.double( 5.0 ),
   OriginTransverseErrorMultiplier = cms.double( 1.0 ),
   MinOneOverPtError = cms.double( 1.0 ),
-  SimpleMagneticField = cms.string( "ParabolicMf" ),
-  TTRHBuilder = cms.string( "hltESPTTRHBWithTrackAngle" )
+  magneticField = cms.string( "ParabolicMf" ),
+  TTRHBuilder = cms.string( "hltESPTTRHBWithTrackAngle" ),
+  forceKinematicWithRegionDirection = cms.bool( False )
 )
 process.HLTIter0HighPtTkMuPSetTrajectoryBuilderIT = cms.PSet( 
   propagatorAlong = cms.string( "PropagatorWithMaterialParabolicMf" ),
@@ -532,7 +539,145 @@ process.magfield = cms.ESSource( "XMLIdealGeometryESSource",
     rootNodeName = cms.string( "cmsMagneticField:MAGF" )
 )
 
-process.trackerTopologyConstants = cms.ESProducer( "TrackerTopologyEP",
+#process.trackerTopologyConstants = cms.ESProducer( "TrackerTopologyEP",
+#  pxb_layerMask = cms.uint32( 15 ),
+#  tib_str_int_extStartBit = cms.uint32( 10 ),
+#  tib_layerMask = cms.uint32( 7 ),
+#  tib_str_fw_bwStartBit = cms.uint32( 12 ),
+#  pxf_bladeMask = cms.uint32( 63 ),
+#  pxb_moduleStartBit = cms.uint32( 2 ),
+#  pxb_ladderStartBit = cms.uint32( 8 ),
+#  pxb_layerStartBit = cms.uint32( 16 ),
+#  tec_wheelStartBit = cms.uint32( 14 ),
+#  tib_str_fw_bwMask = cms.uint32( 3 ),
+#  tec_ringStartBit = cms.uint32( 5 ),
+#  tib_moduleStartBit = cms.uint32( 2 ),
+#  tib_sterMask = cms.uint32( 3 ),
+#  tid_sideStartBit = cms.uint32( 13 ),
+#  tid_wheelStartBit = cms.uint32( 11 ),
+#  tid_ringMask = cms.uint32( 3 ),
+#  tid_sterMask = cms.uint32( 3 ),
+#  tec_petal_fw_bwStartBit = cms.uint32( 12 ),
+#  tec_ringMask = cms.uint32( 7 ),
+#  tib_strMask = cms.uint32( 63 ),
+#  tec_sterMask = cms.uint32( 3 ),
+#  tec_sideStartBit = cms.uint32( 18 ),
+#  pxb_moduleMask = cms.uint32( 63 ),
+#  pxf_panelStartBit = cms.uint32( 8 ),
+#  tid_sideMask = cms.uint32( 3 ),
+#  tob_moduleMask = cms.uint32( 7 ),
+#  tid_ringStartBit = cms.uint32( 9 ),
+#  pxf_sideMask = cms.uint32( 3 ),
+#  appendToDataLabel = cms.string( "" ),
+#  pxf_diskStartBit = cms.uint32( 16 ),
+#  tib_str_int_extMask = cms.uint32( 3 ),
+#  tec_moduleMask = cms.uint32( 7 ),
+#  tob_sterMask = cms.uint32( 3 ),
+#  tob_rod_fw_bwMask = cms.uint32( 3 ),
+#  tob_layerStartBit = cms.uint32( 14 ),
+#  tec_petal_fw_bwMask = cms.uint32( 3 ),
+#  tib_layerStartBit = cms.uint32( 14 ),
+#  tec_sterStartBit = cms.uint32( 0 ),
+#  tid_moduleMask = cms.uint32( 31 ),
+#  tib_sterStartBit = cms.uint32( 0 ),
+#  tid_sterStartBit = cms.uint32( 0 ),
+#  pxf_moduleStartBit = cms.uint32( 2 ),
+#  pxf_diskMask = cms.uint32( 15 ),
+#  pxf_sideStartBit = cms.uint32( 23 ),
+#  tid_module_fw_bwStartBit = cms.uint32( 7 ),
+#  tob_layerMask = cms.uint32( 7 ),
+#  tid_module_fw_bwMask = cms.uint32( 3 ),
+#  tob_rod_fw_bwStartBit = cms.uint32( 12 ),
+#  tec_petalMask = cms.uint32( 15 ),
+#  pxb_ladderMask = cms.uint32( 255 ),
+#  tec_moduleStartBit = cms.uint32( 2 ),
+#  tec_sideMask = cms.uint32( 3 ),
+#  tob_rodMask = cms.uint32( 127 ),
+#  tib_strStartBit = cms.uint32( 4 ),
+#  tec_wheelMask = cms.uint32( 15 ),
+#  tob_rodStartBit = cms.uint32( 5 ),
+#  pxf_panelMask = cms.uint32( 3 ),
+#  tib_moduleMask = cms.uint32( 3 ),
+#  pxf_bladeStartBit = cms.uint32( 10 ),
+#  tid_wheelMask = cms.uint32( 3 ),
+#  tob_sterStartBit = cms.uint32( 0 ),
+#  tid_moduleStartBit = cms.uint32( 2 ),
+#  tec_petalStartBit = cms.uint32( 8 ),
+#  tob_moduleStartBit = cms.uint32( 2 ),
+#  pxf_moduleMask = cms.uint32( 63 )
+#)
+
+#copy of module above with the module name changed to trackerTopology
+#process.trackerTopology = cms.ESProducer( "TrackerTopologyEP",
+#  pxb_layerMask = cms.uint32( 15 ),
+#  tib_str_int_extStartBit = cms.uint32( 10 ),
+#  tib_layerMask = cms.uint32( 7 ),
+#  tib_str_fw_bwStartBit = cms.uint32( 12 ),
+#  pxf_bladeMask = cms.uint32( 63 ),
+#  pxb_moduleStartBit = cms.uint32( 2 ),
+#  pxb_ladderStartBit = cms.uint32( 8 ),
+#  pxb_layerStartBit = cms.uint32( 16 ),
+#  tec_wheelStartBit = cms.uint32( 14 ),
+#  tib_str_fw_bwMask = cms.uint32( 3 ),
+#  tec_ringStartBit = cms.uint32( 5 ),
+#  tib_moduleStartBit = cms.uint32( 2 ),
+#  tib_sterMask = cms.uint32( 3 ),
+#  tid_sideStartBit = cms.uint32( 13 ),
+#  tid_wheelStartBit = cms.uint32( 11 ),
+#  tid_ringMask = cms.uint32( 3 ),
+#  tid_sterMask = cms.uint32( 3 ),
+#  tec_petal_fw_bwStartBit = cms.uint32( 12 ),
+#  tec_ringMask = cms.uint32( 7 ),
+#  tib_strMask = cms.uint32( 63 ),
+#  tec_sterMask = cms.uint32( 3 ),
+#  tec_sideStartBit = cms.uint32( 18 ),
+#  pxb_moduleMask = cms.uint32( 63 ),
+#  pxf_panelStartBit = cms.uint32( 8 ),
+#  tid_sideMask = cms.uint32( 3 ),
+#  tob_moduleMask = cms.uint32( 7 ),
+#  tid_ringStartBit = cms.uint32( 9 ),
+#  pxf_sideMask = cms.uint32( 3 ),
+#  appendToDataLabel = cms.string( "" ),
+#  pxf_diskStartBit = cms.uint32( 16 ),
+#  tib_str_int_extMask = cms.uint32( 3 ),
+#  tec_moduleMask = cms.uint32( 7 ),
+#  tob_sterMask = cms.uint32( 3 ),
+#  tob_rod_fw_bwMask = cms.uint32( 3 ),
+#  tob_layerStartBit = cms.uint32( 14 ),
+#  tec_petal_fw_bwMask = cms.uint32( 3 ),
+#  tib_layerStartBit = cms.uint32( 14 ),
+#  tec_sterStartBit = cms.uint32( 0 ),
+#  tid_moduleMask = cms.uint32( 31 ),
+#  tib_sterStartBit = cms.uint32( 0 ),
+#  tid_sterStartBit = cms.uint32( 0 ),
+#  pxf_moduleStartBit = cms.uint32( 2 ),
+#  pxf_diskMask = cms.uint32( 15 ),
+#  pxf_sideStartBit = cms.uint32( 23 ),
+#  tid_module_fw_bwStartBit = cms.uint32( 7 ),
+#  tob_layerMask = cms.uint32( 7 ),
+#  tid_module_fw_bwMask = cms.uint32( 3 ),
+#  tob_rod_fw_bwStartBit = cms.uint32( 12 ),
+#  tec_petalMask = cms.uint32( 15 ),
+#  pxb_ladderMask = cms.uint32( 255 ),
+#  tec_moduleStartBit = cms.uint32( 2 ),
+#  tec_sideMask = cms.uint32( 3 ),
+#  tob_rodMask = cms.uint32( 127 ),
+#  tib_strStartBit = cms.uint32( 4 ),
+#  tec_wheelMask = cms.uint32( 15 ),
+#  tob_rodStartBit = cms.uint32( 5 ),
+#  pxf_panelMask = cms.uint32( 3 ),
+#  tib_moduleMask = cms.uint32( 3 ),
+#  pxf_bladeStartBit = cms.uint32( 10 ),
+#  tid_wheelMask = cms.uint32( 3 ),
+#  tob_sterStartBit = cms.uint32( 0 ),
+#  tid_moduleStartBit = cms.uint32( 2 ),
+#  tec_petalStartBit = cms.uint32( 8 ),
+#  tob_moduleStartBit = cms.uint32( 2 ),
+#  pxf_moduleMask = cms.uint32( 63 )
+#)
+
+#from under_development hlt .py file
+process.trackerTopology = cms.ESProducer( "TrackerTopologyEP",
   pxb_layerMask = cms.uint32( 15 ),
   tib_str_int_extStartBit = cms.uint32( 10 ),
   tib_layerMask = cms.uint32( 7 ),
@@ -599,6 +744,9 @@ process.trackerTopologyConstants = cms.ESProducer( "TrackerTopologyEP",
   tob_moduleStartBit = cms.uint32( 2 ),
   pxf_moduleMask = cms.uint32( 63 )
 )
+
+
+
 process.sistripconn = cms.ESProducer( "SiStripConnectivity" )
 process.siStripLorentzAngleDepESProducer = cms.ESProducer( "SiStripLorentzAngleDepESProducer",
   LatencyRecord = cms.PSet( 
@@ -1590,8 +1738,8 @@ process.TransientTrackBuilderESProducer = cms.ESProducer( "TransientTrackBuilder
 process.TrackerGeometricDetESModule = cms.ESProducer( "TrackerGeometricDetESModule",
   appendToDataLabel = cms.string( "" ),
   fromDDD = cms.bool( False ),
-  layerNumberPXB = cms.uint32( 16 ),
-  totalBlade = cms.uint32( 24 )
+  #layerNumberPXB = cms.uint32( 16 ),
+  #totalBlade = cms.uint32( 24 )
 )
 process.TrackerDigiGeometryESModule = cms.ESProducer( "TrackerDigiGeometryESModule",
   appendToDataLabel = cms.string( "" ),
@@ -1741,18 +1889,21 @@ process.HcalGeometryFromDBEP = cms.ESProducer( "HcalGeometryFromDBEP",
   )
 )
 process.hltESPChi2ChargeMeasurementEstimator16 = cms.ESProducer( "Chi2ChargeMeasurementEstimatorESProducer",
-  minGoodStripCharge = cms.double( 1724.0 ),
+  #clusterChargeCut replaced minGoodStripCharge
+  #minGoodStripCharge = cms.double( 1724.0 ),
   ComponentName = cms.string( "hltESPChi2ChargeMeasurementEstimator16" ),
   pTChargeCutThreshold = cms.double( -1.0 ),
   nSigma = cms.double( 3.0 ),
-  MaxChi2 = cms.double( 16.0 )
+  MaxChi2 = cms.double( 16.0 ),
+  clusterChargeCut = cms.PSet(  refToPSet_ = cms.string( "HLTSiStripClusterChargeCutLoose" ) ),
 )
 process.hltESPChi2ChargeMeasurementEstimator9 = cms.ESProducer( "Chi2ChargeMeasurementEstimatorESProducer",
-  minGoodStripCharge = cms.double( 1724.0 ),
+  #minGoodStripCharge = cms.double( 1724.0 ),
   ComponentName = cms.string( "hltESPChi2ChargeMeasurementEstimator9" ),
   pTChargeCutThreshold = cms.double( 15.0 ),
   nSigma = cms.double( 3.0 ),
-  MaxChi2 = cms.double( 9.0 )
+  MaxChi2 = cms.double( 9.0 ),
+  clusterChargeCut = cms.PSet(  refToPSet_ = cms.string( "HLTSiStripClusterChargeCutLoose" ) ),
 )
 process.EcalPreshowerGeometryFromDBEP = cms.ESProducer( "EcalPreshowerGeometryFromDBEP",
   applyAlignment = cms.bool( True )
@@ -1773,7 +1924,8 @@ process.DTGeometryESModule = cms.ESProducer( "DTGeometryESModule",
 )
 process.ClusterShapeHitFilterESProducer = cms.ESProducer( "ClusterShapeHitFilterESProducer",
   ComponentName = cms.string( "ClusterShapeHitFilter" ),
-  PixelShapeFile = cms.string( "RecoPixelVertexing/PixelLowPtUtilities/data/pixelShape.par" )
+  clusterChargeCut = cms.PSet(  refToPSet_ = cms.string( "HLTSiStripClusterChargeCutNone" ) ),
+  PixelShapeFile = cms.string( "RecoPixelVertexing/PixelLowPtUtilities/data/pixelShape.par" ),
 )
 process.CastorDbProducer = cms.ESProducer( "CastorDbProducer",
   appendToDataLabel = cms.string( "" )
@@ -2169,19 +2321,64 @@ process.hltEcalDigis = cms.EDProducer( "EcalRawToDigi",
     memUnpacking = cms.bool( True )
 )
 process.hltEcalUncalibRecHit = cms.EDProducer( "EcalUncalibRecHitProducer",
+    #OLD code, most of which doesn't work in 7_4_0_pre9
+	#EEdigiCollection = cms.InputTag( 'hltEcalDigis','eeDigis' ),
+    ##alphaEB = cms.double( 1.138 ),
+    ##alphaEE = cms.double( 1.89 ),
+    #EBdigiCollection = cms.InputTag( 'hltEcalDigis','ebDigis' ),
+    #EEhitCollection = cms.string( "EcalUncalibRecHitsEE" ),
+    ##AlphaBetaFilename = cms.untracked.string( "NOFILE" ),
+    ##betaEB = cms.double( 1.655 ),
+    ##MinAmplEndcap = cms.double( 14.0 ),
+    ##MinAmplBarrel = cms.double( 8.0 ),
+    #algo = cms.string( "EcalUncalibRecHitWorkerWeights" ),
+    ##betaEE = cms.double( 1.4 ),
+    ##UseDynamicPedestal = cms.bool( True ),
+    #EBhitCollection = cms.string( "EcalUncalibRecHitsEB" )
+	##
+	#NEW code which should work in 7_4_0_pre9
     EEdigiCollection = cms.InputTag( 'hltEcalDigis','eeDigis' ),
-    alphaEB = cms.double( 1.138 ),
-    alphaEE = cms.double( 1.89 ),
     EBdigiCollection = cms.InputTag( 'hltEcalDigis','ebDigis' ),
     EEhitCollection = cms.string( "EcalUncalibRecHitsEE" ),
-    AlphaBetaFilename = cms.untracked.string( "NOFILE" ),
-    betaEB = cms.double( 1.655 ),
-    MinAmplEndcap = cms.double( 14.0 ),
-    MinAmplBarrel = cms.double( 8.0 ),
-    algo = cms.string( "EcalUncalibRecHitWorkerWeights" ),
-    betaEE = cms.double( 1.4 ),
-    UseDynamicPedestal = cms.bool( True ),
-    EBhitCollection = cms.string( "EcalUncalibRecHitsEB" )
+    EBhitCollection = cms.string( "EcalUncalibRecHitsEB" ),
+    algo = cms.string( "EcalUncalibRecHitWorkerMultiFit" ),
+    algoPSet = cms.PSet( 
+      outOfTimeThresholdGain61pEB = cms.double( 5.0 ),
+      EBtimeFitParameters = cms.vdouble( -2.015452, 3.130702, -12.3473, 41.88921, -82.83944, 91.01147, -50.35761, 11.05621 ),
+      activeBXs = cms.vint32( -5, -4, -3, -2, -1, 0, 1, 2, 3, 4 ),
+      amplitudeThresholdEE = cms.double( 10.0 ),
+      EBtimeConstantTerm = cms.double( 0.6 ),
+      EEtimeFitLimits_Lower = cms.double( 0.2 ),
+      outOfTimeThresholdGain61pEE = cms.double( 1000.0 ),
+      ebSpikeThreshold = cms.double( 1.042 ),
+      EBtimeNconst = cms.double( 28.5 ),
+      ampErrorCalculation = cms.bool( False ),
+      kPoorRecoFlagEB = cms.bool( True ),
+      EBtimeFitLimits_Lower = cms.double( 0.2 ),
+      kPoorRecoFlagEE = cms.bool( False ),
+      chi2ThreshEB_ = cms.double( 65.0 ),
+      EEtimeFitParameters = cms.vdouble( -2.390548, 3.553628, -17.62341, 67.67538, -133.213, 140.7432, -75.41106, 16.20277 ),
+      useLumiInfoRunHeader = cms.bool( False ),
+      outOfTimeThresholdGain12mEE = cms.double( 1000.0 ),
+      outOfTimeThresholdGain12mEB = cms.double( 5.0 ),
+      EEtimeFitLimits_Upper = cms.double( 1.4 ),
+      prefitMaxChiSqEB = cms.double( 100.0 ),
+      EEamplitudeFitParameters = cms.vdouble( 1.89, 1.4 ),
+      prefitMaxChiSqEE = cms.double( 10.0 ),
+      EBamplitudeFitParameters = cms.vdouble( 1.138, 1.652 ),
+      EBtimeFitLimits_Upper = cms.double( 1.4 ),
+      timealgo = cms.string( "None" ),
+      amplitudeThresholdEB = cms.double( 10.0 ),
+      outOfTimeThresholdGain12pEE = cms.double( 1000.0 ),
+      outOfTimeThresholdGain12pEB = cms.double( 5.0 ),
+      EEtimeNconst = cms.double( 31.8 ),
+      outOfTimeThresholdGain61mEB = cms.double( 5.0 ),
+      outOfTimeThresholdGain61mEE = cms.double( 1000.0 ),
+      EEtimeConstantTerm = cms.double( 1.0 ),
+      chi2ThreshEE_ = cms.double( 50.0 ),
+      doPrefitEE = cms.bool( True ),
+      doPrefitEB = cms.bool( True )
+    )
 )
 process.hltEcalDetIdToBeRecovered = cms.EDProducer( "EcalDetIdToBeRecoveredProducer",
     ebIntegrityChIdErrors = cms.InputTag( 'hltEcalDigis','EcalIntegrityChIdErrors' ),
@@ -3219,7 +3416,8 @@ process.hltSiStripRawToClustersFacility = cms.EDProducer( "SiStripClusterizerFro
       SeedThreshold = cms.double( 3.0 ),
       ClusterThreshold = cms.double( 5.0 ),
       setDetId = cms.bool( True ),
-      RemoveApvShots = cms.bool( True )
+      RemoveApvShots = cms.bool( True ),
+      clusterChargeCut = cms.PSet(  refToPSet_ = cms.string( "HLTSiStripClusterChargeCutNone" ) )
     ),
     onDemand = cms.bool( True )
 )
@@ -3259,7 +3457,8 @@ process.hltMixedLayerPairs = cms.EDProducer( "SeedingLayersEDProducer",
       useRingSlector = cms.bool( True ),
       TTRHBuilder = cms.string( "hltESPTTRHBWithTrackAngle" ),
       minRing = cms.int32( 1 ),
-      maxRing = cms.int32( 1 )
+      maxRing = cms.int32( 1 ),
+      clusterChargeCut = cms.PSet(  refToPSet_ = cms.string( "HLTSiStripClusterChargeCutNone" ) )
     ),
     MTID = cms.PSet(  ),
     FPix = cms.PSet( 
@@ -3297,7 +3496,7 @@ process.hltEgammaElectronPixelSeeds = cms.EDProducer( "ElectronSeedProducer",
       DeltaPhi1Low = cms.double( 0.23 ),
       DeltaPhi1High = cms.double( 0.08 ),
       ePhiMin1 = cms.double( -0.08 ),
-      PhiMin2 = cms.double( -0.004 ),
+      #PhiMin2 = cms.double( -0.004 ),
       LowPtThreshold = cms.double( 3.0 ),
       RegionPSet = cms.PSet( 
         deltaPhiRegion = cms.double( 0.4 ),
@@ -3308,34 +3507,42 @@ process.hltEgammaElectronPixelSeeds = cms.EDProducer( "ElectronSeedProducer",
         originRadius = cms.double( 0.2 ),
         VertexProducer = cms.InputTag( "dummyVertices" )
       ),
-      maxHOverE = cms.double( 999999.0 ),
+      #maxHOverE = cms.double( 999999.0 ),
       dynamicPhiRoad = cms.bool( False ),
       ePhiMax1 = cms.double( 0.04 ),
-      DeltaPhi2 = cms.double( 0.004 ),
+      #DeltaPhi2 = cms.double( 0.004 ),
       measurementTrackerName = cms.string( "hltESPMeasurementTracker" ),
       SizeWindowENeg = cms.double( 0.675 ),
       nSigmasDeltaZ1 = cms.double( 5.0 ),
       rMaxI = cms.double( 0.2 ),
-      PhiMax2 = cms.double( 0.004 ),
+      #PhiMax2 = cms.double( 0.004 ),
       preFilteredSeeds = cms.bool( True ),
       r2MaxF = cms.double( 0.15 ),
       pPhiMin1 = cms.double( -0.04 ),
       initialSeeds = cms.InputTag( "noSeedsHere" ),
       pPhiMax1 = cms.double( 0.08 ),
-      hbheModule = cms.string( "hbhereco" ),
+      #hbheModule = cms.string( "hbhereco" ),
       SCEtCut = cms.double( 3.0 ),
       z2MaxB = cms.double( 0.09 ),
       fromTrackerSeeds = cms.bool( True ),
       hcalRecHits = cms.InputTag( "hltHbhereco" ),
       z2MinB = cms.double( -0.09 ),
-      hbheInstance = cms.string( "" ),
+      #hbheInstance = cms.string( "" ),
       rMinI = cms.double( -0.2 ),
       hOverEConeSize = cms.double( 0.0 ),
       hOverEHBMinE = cms.double( 999999.0 ),
       beamSpot = cms.InputTag( "hltOnlineBeamSpot" ),
       applyHOverECut = cms.bool( False ),
       hOverEHFMinE = cms.double( 999999.0 ),
-      measurementTrackerEvent = cms.InputTag( "hltSiStripClusters" )
+      measurementTrackerEvent = cms.InputTag( "hltSiStripClusters" ),
+      #new additions are PhiMin2B to SeedCreatorPSet
+	  PhiMin2B = cms.double( -0.004 ),
+      PhiMin2F = cms.double( -0.004 ),
+      PhiMax2B = cms.double( 0.004 ),
+      PhiMax2F = cms.double( 0.004 ),
+      DeltaPhi2B = cms.double( 0.004 ),
+      DeltaPhi2F = cms.double( 0.004 ),
+      SeedCreatorPSet = cms.PSet(  refToPSet_ = cms.string( "HLTSeedFromConsecutiveHitsCreator" ) )
     ),
     barrelSuperClusters = cms.InputTag( 'hltParticleFlowSuperClusterECALL1Seeded','hltParticleFlowSuperClusterECALBarrel' )
 )
@@ -3581,12 +3788,25 @@ process.hltPixelVerticesElectrons = cms.EDProducer( "PixelVertexProducer",
     Finder = cms.string( "DivisiveVertexFinder" ),
     ZSeparation = cms.double( 0.05 )
 )
+#HLTSeedFromProtoTracks is a new addition
+process.HLTSeedFromProtoTracks = cms.PSet( 
+  ComponentName = cms.string( "SeedFromConsecutiveHitsCreator" ),
+  propagator = cms.string( "PropagatorWithMaterialParabolicMf" ),
+  SeedMomentumForBOFF = cms.double( 5.0 ),
+  MinOneOverPtError = cms.double( 1.0 ),
+  magneticField = cms.string( "ParabolicMf" ),
+  TTRHBuilder = cms.string( "hltESPTTRHBuilderPixelOnly" ),
+  OriginTransverseErrorMultiplier = cms.double( 1.0 ),
+  forceKinematicWithRegionDirection = cms.bool( False )
+)
 process.hltIter0ElectronsPixelSeedsFromPixelTracks = cms.EDProducer( "SeedGeneratorFromProtoTracksEDProducer",
     useEventsWithNoVertex = cms.bool( True ),
     originHalfLength = cms.double( 0.3 ),
     useProtoTrackKinematics = cms.bool( False ),
     usePV = cms.bool( True ),
-    InputVertexCollection = cms.InputTag( "hltPixelVerticesElectrons" ),
+	#SeedCreatorPSet is a new addition
+	SeedCreatorPSet = cms.PSet(  refToPSet_ = cms.string( "HLTSeedFromProtoTracks" ) ),
+	InputVertexCollection = cms.InputTag( "hltPixelVerticesElectrons" ),
     TTRHBuilder = cms.string( "hltESPTTRHBuilderPixelOnly" ),
     InputCollection = cms.InputTag( "hltPixelTracksElectrons" ),
     originRadius = cms.double( 0.1 )
@@ -3757,11 +3977,12 @@ process.hltIter1ElectronsPixelSeeds = cms.EDProducer( "SeedGeneratorFromRegionHi
       ),
       SeedingLayers = cms.InputTag( "hltIter1ElectronsPixelLayerTriplets" )
     ),
-    SeedCreatorPSet = cms.PSet( 
-      ComponentName = cms.string( "SeedFromConsecutiveHitsTripletOnlyCreator" ),
-      propagator = cms.string( "PropagatorWithMaterialParabolicMf" )
-    ),
-    TTRHBuilder = cms.string( "hltESPTTRHBWithTrackAngle" )
+    #SeedCreatorPSet = cms.PSet( 
+    #  ComponentName = cms.string( "SeedFromConsecutiveHitsTripletOnlyCreator" ),
+    #  propagator = cms.string( "PropagatorWithMaterialParabolicMf" )
+    #),
+    SeedCreatorPSet = cms.PSet(  refToPSet_ = cms.string( "HLTSeedFromConsecutiveHitsTripletOnlyCreator" ) ),
+    #TTRHBuilder = cms.string( "hltESPTTRHBWithTrackAngle" )
 )
 process.hltIter1ElectronsCkfTrackCandidates = cms.EDProducer( "CkfTrackCandidateMaker",
     src = cms.InputTag( "hltIter1ElectronsPixelSeeds" ),
@@ -3997,11 +4218,12 @@ process.hltIter2ElectronsPixelSeeds = cms.EDProducer( "SeedGeneratorFromRegionHi
       ),
       SeedingLayers = cms.InputTag( "hltIter2ElectronsPixelLayerPairs" )
     ),
-    SeedCreatorPSet = cms.PSet( 
-      ComponentName = cms.string( "SeedFromConsecutiveHitsCreator" ),
-      propagator = cms.string( "PropagatorWithMaterialParabolicMf" )
-    ),
-    TTRHBuilder = cms.string( "hltESPTTRHBWithTrackAngle" )
+    #SeedCreatorPSet = cms.PSet( 
+    #  ComponentName = cms.string( "SeedFromConsecutiveHitsCreator" ),
+    #  propagator = cms.string( "PropagatorWithMaterialParabolicMf" )
+    #),
+    #TTRHBuilder = cms.string( "hltESPTTRHBWithTrackAngle" )
+    SeedCreatorPSet = cms.PSet(  refToPSet_ = cms.string( "HLTSeedFromConsecutiveHitsCreator" ) )
 )
 process.hltIter2ElectronsCkfTrackCandidates = cms.EDProducer( "CkfTrackCandidateMaker",
     src = cms.InputTag( "hltIter2ElectronsPixelSeeds" ),
@@ -5288,6 +5510,24 @@ process.recoAnalyzerTrackedNoCuts = cms.EDAnalyzer('recoAnalyzerGeneric',
 	
 		)
 
+process.recoAnalyzerTrackedNoCutsWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+		Ep=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+		Deta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+		Dphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+		TrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersTrackedSignalNoCutsWithL1Filter"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducerNoCuts","trackedDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(True),
+		genCollection = cms.InputTag("","",""),
+		dRMatch = cms.double(-1),
+		recoZedCollection = cms.InputTag("combRecoEleNoCuts","","TEST"),
+		genZedCollection = cms.InputTag("","","")
+	
+		)
 
 process.recoAnalyzerTrackedWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
 		SigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
@@ -5347,6 +5587,24 @@ process.recoAnalyzerTracklessNoCuts = cms.EDAnalyzer('recoAnalyzerGeneric',
 	
 		)
 
+process.recoAnalyzerTracklessNoCutsWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+		Ep=cms.InputTag("","",""),
+		Deta=cms.InputTag("","",""),
+		Dphi=cms.InputTag("","",""),
+		TrackIso=cms.InputTag("","",""),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersTracklessSignalNoCutsWithL1Filter"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducerNoCuts","tracklessDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(False),
+		genCollection = cms.InputTag("","",""),
+		dRMatch = cms.double(-1),
+		recoZedCollection = cms.InputTag("combRecoEleNoCuts","","TEST"),
+		genZedCollection = cms.InputTag("","","")
+	
+		)
 
 process.recoAnalyzerTracklessWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
 		SigmaIEIE = cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
@@ -5398,6 +5656,25 @@ process.recoAnalyzerMatchedTrackedNoCuts = cms.EDAnalyzer('recoAnalyzerGeneric',
 		Dphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
 		TrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
 		treeName = cms.string("recoTreeBeforeTriggerFiltersMatchedTrackedSignalNoCuts"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducerNoCuts","trackedDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(True),
+		genCollection = cms.InputTag("genEleTrack","","TEST"),
+		dRMatch = cms.double(0.1),
+		recoZedCollection = cms.InputTag("combRecoEleNoCuts","","TEST"),
+		genZedCollection = cms.InputTag("combEle","","TEST")
+	
+		)
+
+process.recoAnalyzerMatchedTrackedNoCutsWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+		Ep=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+		Deta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+		Dphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+		TrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersMatchedTrackedSignalNoCutsWithL1Filter"),
 		recoElectronCollection = cms.InputTag("recoDaughterProducerNoCuts","trackedDaughters","TEST"),
 		doAnalysisOfTracked = cms.bool(True),
 		genCollection = cms.InputTag("genEleTrack","","TEST"),
@@ -5464,6 +5741,26 @@ process.recoAnalyzerMatchedTracklessNoCuts = cms.EDAnalyzer('recoAnalyzerGeneric
 		genZedCollection = cms.InputTag("combEle","","TEST")
 	
 		)
+
+process.recoAnalyzerMatchedTracklessNoCutsWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+		Ep=cms.InputTag("","",""),
+		Deta=cms.InputTag("","",""),
+		Dphi=cms.InputTag("","",""),
+		TrackIso=cms.InputTag("","",""),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersMatchedTracklessSignalNoCutsWithL1Filter"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducerNoCuts","tracklessDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(False),
+		genCollection = cms.InputTag("genUntrack","","TEST"),
+		dRMatch = cms.double(0.1),
+		recoZedCollection = cms.InputTag("combRecoEleNoCuts","","TEST"),
+		genZedCollection = cms.InputTag("combEle","","TEST")
+	
+		)
+
 
 process.recoAnalyzerMatchedTracklessWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
 		SigmaIEIE = cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
@@ -5686,6 +5983,26 @@ process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study_NoCuts = cms.Path(
 		*process.recoAnalyzerMatchedTracklessNoCuts
 		)
 
+process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study_NoCuts_WithL1Filter = cms.Path( 
+		process.HLTBeginSequence 
+		+ process.hltL1sL1SingleEG20ORL1SingleEG22 
+		+ process.hltPreEle27WPXXEle15WPYYtrackless 
+		+ process.HLTEle27WPXXSequenceStudyWithL1Filter 
+		+ process.HLTEle15WPYYtracklessSequenceStudy
+		+ process.HLTEndSequence
+		#+ process.noTrackerCandidates
+		#+ process.trackerCandidates
+		+ process.combRecoEleNoCuts
+		#*process.recoZeeFilterNoCuts
+		*process.recoDaughterProducerNoCuts
+		*process.recoAnalyzerTrackedNoCutsWithL1Filter
+		*process.recoAnalyzerTracklessNoCutsWithL1Filter
+		*process.ZeeFilter
+		*process.recoAnalyzerMatchedTrackedNoCutsWithL1Filter
+		*process.recoAnalyzerMatchedTracklessNoCutsWithL1Filter
+		)
+
+
 process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study_StageTwo = cms.Path( 
 		process.HLTBeginSequence 
 		#+ process.hltL1sL1SingleEG20ORL1SingleEG22 
@@ -5782,16 +6099,82 @@ process.HLTriggerFinalPath = cms.Path(
 
 
 process.TFileService = cms.Service("TFileService",
-		fileName = cms.string('signal_analyzer_trees_NUM_CMSSW_7_4_0_pre9.root')
+		fileName = cms.string('signal_analyzer_trees_NUM_CMSSW_7_4_0_pre9_25ns.root')
 
 )
 
 process.source = cms.Source( "PoolSource",
     fileNames = cms.untracked.vstring(
-        #'file:RelVal_Raw_GRun_MC.root',
-		'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset_1.root',
-		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset_3.root',
-		#'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset_4.root',
+	   #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/06911F9F-9899-E411-B576-001E67396ACC.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/1676BF69-8E99-E411-8544-001E673976D9.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/24BB002C-A199-E411-A815-001E67397E13.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/2CFB8725-9299-E411-BB74-001E67396DCE.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/32893EE9-9C99-E411-A6ED-001E67397CB0.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/340FA3FA-9E99-E411-AB36-002481E7451E.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/3469A594-A399-E411-B3C5-001E67396DEC.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/3A36CC7C-8A99-E411-9CE1-002590200850.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/4028711D-A299-E411-8FCD-002481E14F86.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/4A9ECB16-A699-E411-8EF6-001E6739689C.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/4E74DD7B-9B99-E411-B71A-002590A8882C.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/76B77414-9C99-E411-B2EC-002590200B78.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/7EDE5E7E-A099-E411-BC3E-001E67398CAA.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/807C3BDD-A199-E411-9CD9-0025B31E330A.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/80AAB1DB-A999-E411-BE33-001E67397747.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/80AFDE8D-9399-E411-AA79-002590200B10.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/882A30D0-9F99-E411-AFD3-001E67396E64.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/8A469B23-9699-E411-B55C-001E67398412.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/929CE4D7-8F99-E411-B056-002590200840.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/92CCDEEF-A299-E411-AEB9-002590200B34.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/98EBF4AC-A099-E411-B998-001E67396644.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/A208DDEB-9899-E411-A079-001E673976ED.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/A6DCB615-9A99-E411-B5F2-0025B3E063EA.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/AC40C7F5-9499-E411-8841-001E673986B0.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/AE7A3AD4-A799-E411-8D5B-001E67396D51.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/B0CE2BF2-A699-E411-BE79-001E67397B25.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/B230A801-AD99-E411-962C-002590FC5AC8.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/B6D04435-9D99-E411-91FB-002590A50046.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/BA32B780-9799-E411-933A-002590A831DC.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/C82A0E3A-9F99-E411-8675-002590200834.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/D8807F6E-A299-E411-8357-002590A8882A.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/DEAD7674-A499-E411-8700-002590200AC0.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/DEBB3EC0-9699-E411-9795-002590A3C95E.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/E047F315-A499-E411-95BB-002590A371AC.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/E4320E5F-9C99-E411-A2CE-0025B3E05D5C.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/E89A353D-9999-E411-9952-0025B3E0639C.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/F0EE9B2B-9899-E411-8CC3-002590200934.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/F8BFEA7A-9999-E411-99B6-002590A80DEA.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/FE68ED3F-A599-E411-95B1-001E67396DCE.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/00F38639-9F99-E411-AD88-002481E15008.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/02438FF4-9899-E411-B201-0025B3E05BB8.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/0803AFE6-A299-E411-8D4F-002481E14F86.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/08055239-A199-E411-95E9-001E67397021.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/0A4C2E1C-9E99-E411-86F2-001E673975F8.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/16719620-9C99-E411-9E55-002590200AC0.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/18253F8E-B699-E411-983F-002590A831B6.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/1ADF26F2-9A99-E411-874F-002481E14F38.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/2EE164A4-8F99-E411-92E8-002481E14FB0.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/321DADC8-9799-E411-B098-001E67397215.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/3A05EAFA-AB99-E411-9BC7-002590200A58.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/7A637208-AF99-E411-9B72-0025B3E06612.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/92AF435F-A099-E411-9F6C-001E67397238.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/92EE4F22-9299-E411-97DD-001E673974EA.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/94128FB2-9C99-E411-89DD-002590A831CC.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/A218241B-9A99-E411-99A4-001E67397CAB.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/A8D0198C-9399-E411-B58C-001E67396568.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/B0B5AF73-9799-E411-88C0-002481E14F38.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/B4C28AFD-9499-E411-8960-001E67397238.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/B61C6184-9599-E411-ADE6-001E6739692D.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/D272980F-9399-E411-950E-002590A36FA2.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/F22D22C4-A699-E411-9377-001E67396568.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/F291A53A-9999-E411-9263-001E673972E2.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/F643A854-9E99-E411-A1D7-0025902008A8.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/F8E824DC-AC99-E411-AD46-001E6739815B.root',
+       #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/10000/FED389C7-9D99-E411-8FCA-001E673970C1.root'
+
+
+
+
+
 
 
     ),
@@ -5805,8 +6188,8 @@ from HLTrigger.Configuration.customizeHLTforMC import customizeHLTforMC
 process = customizeHLTforMC(process)
 
 # add release-specific customizations
-from HLTrigger.Configuration.customizeHLTforCMSSW import customiseHLTforCMSSW
-process = customiseHLTforCMSSW(process,menuType="GRun",fastSim=False)
+#from HLTrigger.Configuration.customizeHLTforCMSSW import customiseHLTforCMSSW
+#process = customiseHLTforCMSSW(process,menuType="GRun",fastSim=False)
 
 # load 2015 Run-2 L1 Menu for 25ns (default for GRun, PIon)
 from L1Trigger.Configuration.customise_overwriteL1Menu import L1Menu_Collisions2015_25ns_v2 as loadL1menu
@@ -5860,7 +6243,7 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 #process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
 #	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects.root"),
 #	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects_no_filter_refs.root"),
-#	fileName = cms.untracked.string("signal_NUM.root"),
+#	fileName = cms.untracked.string("signal_1.root"),
 #	fastCloning = cms.untracked.bool( False ),
 #    dataset = cms.untracked.PSet(
 #        dataTier = cms.untracked.string( 'RECO' ),
@@ -5891,15 +6274,15 @@ process.options = cms.untracked.PSet(
 
 # override the GlobalTag, connection string and pfnPrefix
 if 'GlobalTag' in process.__dict__:
-    from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag as customiseGlobalTag
-    process.GlobalTag = customiseGlobalTag(process.GlobalTag, globaltag = 'PHYS14_25_V1')
-    process.GlobalTag.connect   = 'frontier://FrontierProd/CMS_CONDITIONS'
-    process.GlobalTag.pfnPrefix = cms.untracked.string('frontier://FrontierProd/')
-    for pset in process.GlobalTag.toGet.value():
-        pset.connect = pset.connect.value().replace('frontier://FrontierProd/', 'frontier://FrontierProd/')
-    # fix for multi-run processing
-    process.GlobalTag.RefreshEachRun = cms.untracked.bool( False )
-    process.GlobalTag.ReconnectEachRun = cms.untracked.bool( False )
+	from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag as customiseGlobalTag
+	process.GlobalTag = customiseGlobalTag(process.GlobalTag, globaltag = 'PHYS14_25_V1',conditions='TrackerAlignmentExtendedError_2011Realistic_v1_mc,TrackerAlignmentErrorExtendedRcd,frontier://FrontierProd/CMS_CONDITIONS+MuonDTAPEObjectsExtended_v0_mc,DTAlignmentErrorExtendedRcd,frontier://FrontierProd/CMS_CONDITIONS+MuonCSCAPEObjectsExtended_v0_mc,CSCAlignmentErrorExtendedRcd,frontier://FrontierProd/CMS_CONDITIONS+EcalSamplesCorrelation_mc,EcalSamplesCorrelationRcd,frontier://FrontierProd/CMS_CONDITIONS+EcalPulseShapes_mc,EcalPulseShapesRcd,frontier://FrontierProd/CMS_CONDITIONS+EcalPulseCovariances_mc,EcalPulseCovariancesRcd,frontier://FrontierProd/CMS_CONDITIONS')
+	process.GlobalTag.connect   = 'frontier://FrontierProd/CMS_CONDITIONS'
+	process.GlobalTag.pfnPrefix = cms.untracked.string('frontier://FrontierProd/')
+	for pset in process.GlobalTag.toGet.value():
+		pset.connect = pset.connect.value().replace('frontier://FrontierProd/', 'frontier://FrontierProd/')
+	# fix for multi-run processing
+	process.GlobalTag.RefreshEachRun = cms.untracked.bool( False )
+	process.GlobalTag.ReconnectEachRun = cms.untracked.bool( False )
 
 # override the L1 menu from an Xml file
 process.l1GtTriggerMenuXml = cms.ESProducer("L1GtTriggerMenuXmlProducer",

@@ -1,0 +1,26 @@
+ptHltEleEB	AF
+ptHltEletEE	AF
+ptHltEleutEE	AF
+clusterShapeHltEleEB	AF
+clusterShapeHltEletEE	AF
+clusterShapeHltEleutEE	AF
+hadEmHltEleEB	AF
+hadEmHltEletEE	AF
+hadEmHltEleutEE	AF
+ecalIsoHltEleEB	AF
+ecalIsoHltEletEE	AF
+ecalIsoHltEleutEE	AF
+hcalIsoHltEleEB	AF
+hcalIsoHltEletEE	AF
+hcalIsoHltEleutEE	AF
+trackIsoHltEleEB	AF
+trackIsoHltEletEE	AF
+dPhiHltEleEB	AF
+dPhiHltEletEE	AF
+dEtaHltEleEB	AF
+dEtaHltEletEE	AF
+epHltEleEB	AF
+epHltEletEE	AF
+_nEvents	L
+_nPassing	L
+

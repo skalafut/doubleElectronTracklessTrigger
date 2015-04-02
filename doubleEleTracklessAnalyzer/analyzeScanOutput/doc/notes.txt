@@ -1,0 +1,6 @@
+config.txt contains a list of the branch names which are saved in the tuples made by the scan algorithm.
+The branches could represent specific cut vars, or the number of events passing a set of cuts.
+
+The sequence of letters to the left of each branch name indicate the type of
+variable stored in the branch.  AF = array of Float_t values, L = Long64_t
+value
