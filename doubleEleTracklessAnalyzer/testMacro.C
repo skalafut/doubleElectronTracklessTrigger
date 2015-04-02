@@ -948,72 +948,72 @@ void testMacro(){
 	TChain * trackedLowPtBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
 	//trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
 	//trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
-	trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/*");
+	trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/*.root");
 	
 	TChain * trackedHighPtBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
 	//trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
 	//trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
-	trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/*");
+	trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/*.root");
 
 
 	TChain * copy_trackedLowPtBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
 	//copy_trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
 	//copy_trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
-	copy_trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/*");
+	copy_trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/*.root");
 	
 	TChain * copy_trackedHighPtBkgndChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
 	//copy_trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
 	//copy_trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
-	copy_trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/*");
+	copy_trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/*.root");
 	
 
 	TChain * tracklessLowPtBkgndChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
 	//tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
 	//tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
-	tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/*");
+	tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/*.root");
 	
 	TChain * tracklessHighPtBkgndChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
 	//tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
 	//tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
-	tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/*");
+	tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/*.root");
 
 
 	TChain * copy_tracklessLowPtBkgndChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
 	//copy_tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_4*");
 	//copy_tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/low_pt_bkgnd_analyzer_trees_5*");
-	copy_tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/*");
+	copy_tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/*.root");
 	
 	TChain * copy_tracklessHighPtBkgndChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessBkgnd","");
 	//copy_tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_15*");
 	//copy_tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_16*");
-	copy_tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/*");
+	copy_tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/*.root");
 	
 	
 	TChain * trackedSignalChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedSignal","");
-	trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+	trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
 	
 	TChain * tracklessSignalChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessSignal","");
-	tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+	tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
 
 	TChain * copy_trackedSignalChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedSignal","");
-	copy_trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+	copy_trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
 	
 	TChain * copy_tracklessSignalChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessSignal","");
-	copy_tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+	copy_tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
 
 	TChain * copy_two_trackedSignalChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedSignal","");
-	copy_two_trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+	copy_two_trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
 	
 	TChain * copy_two_tracklessSignalChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessSignal","");
-	copy_two_tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+	copy_two_tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
 
 
 
 	TChain * matchedTrackedSignalChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
-	matchedTrackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+	matchedTrackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
 	//
 	TChain * matchedTracklessSignalChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
-	matchedTracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+	matchedTracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
 
 
 	//TChain * copy_matchedTrackedSignalChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
@@ -1035,7 +1035,7 @@ void testMacro(){
 	TCut tracklessEEHltEta = tracklessEEHltLowEta + tracklessEEHltHighEta;
 
 	//hlt dR cuts
-	TCut hltDr = "deltaRHltEle<0.12";
+	TCut hltDr = "deltaRHltEle<0.1";
 
 	//hlt Et cuts
 	TCut hltLowEt = "ptHltEle>10";
@@ -1125,31 +1125,31 @@ void testMacro(){
 
 
 	////tracked and trackless leg cuts for playing around
-	TCut trialTrackedPt = "ptHltEle>10.";
+	TCut trialTrackedPt = "ptHltEle>27.";
 
-	TCut trialTrackedEBSigmaIEIE = "clusterShapeHltEle<0.019";
-	TCut trialTrackedEBHE = "hadEmHltEle<0.21";
-	TCut trialTrackedEBEcalIso = "ecalIsoHltEle<0.38";
-	TCut trialTrackedEBHcalIso = "hcalIsoHltEle<0.38";
-	TCut trialTrackedEBEp = "epHltEle<0.0064";
-	TCut trialTrackedEBDeta = "dEtaHltEle<0.0029";
-	TCut trialTrackedEBDphi = "dPhiHltEle<0.034";
-	TCut trialTrackedEBTrackIso = "trackIsoHltEle<0.148";
+	TCut trialTrackedEBSigmaIEIE = "clusterShapeHltEle<0.025";
+	TCut trialTrackedEBHE = "hadEmHltEle<0.17";
+	TCut trialTrackedEBEcalIso = "ecalIsoHltEle<0.48";
+	TCut trialTrackedEBHcalIso = "hcalIsoHltEle<0.43";
+	TCut trialTrackedEBEp = "epHltEle<0.012";
+	TCut trialTrackedEBDeta = "dEtaHltEle<0.005";
+	TCut trialTrackedEBDphi = "dPhiHltEle<0.03";
+	TCut trialTrackedEBTrackIso = "trackIsoHltEle<0.125";
 	
-	TCut trialTrackedEESigmaIEIE = "clusterShapeHltEle<0.04";
-	TCut trialTrackedEEHE = "hadEmHltEle<0.21";
-	TCut trialTrackedEEEcalIso = "ecalIsoHltEle<0.425";
-	TCut trialTrackedEEHcalIso = "hcalIsoHltEle<0.39";
-	TCut trialTrackedEEEp = "epHltEle<0.014";
-	TCut trialTrackedEEDeta = "dEtaHltEle<0.012";
-	TCut trialTrackedEEDphi = "dPhiHltEle<0.034";
-	TCut trialTrackedEETrackIso = "trackIsoHltEle<0.148";
+	TCut trialTrackedEESigmaIEIE = "clusterShapeHltEle<0.045";
+	TCut trialTrackedEEHE = "hadEmHltEle<0.275";
+	TCut trialTrackedEEEcalIso = "ecalIsoHltEle<0.43";
+	TCut trialTrackedEEHcalIso = "hcalIsoHltEle<0.29";
+	TCut trialTrackedEEEp = "epHltEle<0.009";
+	TCut trialTrackedEEDeta = "dEtaHltEle<0.01";
+	TCut trialTrackedEEDphi = "dPhiHltEle<0.03";
+	TCut trialTrackedEETrackIso = "trackIsoHltEle<0.125";
 
 	TCut trialTracklessPt = "ptHltEle>10.";
-	TCut trialTracklessEESigmaIEIE = "clusterShapeHltEle<0.046";
-	TCut trialTracklessEEHE = "hadEmHltEle<0.45";
-	TCut trialTracklessEEEcalIso = "ecalIsoHltEle<0.38";
-	TCut trialTracklessEEHcalIso = "hcalIsoHltEle<0.86";
+	TCut trialTracklessEESigmaIEIE = "clusterShapeHltEle<0.045";
+	TCut trialTracklessEEHE = "hadEmHltEle<0.275";
+	TCut trialTracklessEEEcalIso = "ecalIsoHltEle<0.44";
+	TCut trialTracklessEEHcalIso = "hcalIsoHltEle<0.8";
 
 
 
@@ -1215,19 +1215,22 @@ void testMacro(){
 	*/
 
 	//Float_t numEvtsPassingBothLegs(TChain * tracklessChain,TChain * trackedChain,TString tracklessListFillArgs,TString tracklessListName,TString trackedListFillArgs,TString trackedListName,TCut tracklessFilters,TCut trackedFilters )
-	numEvtsPassingBothLegs(matchedTracklessSignalChain,matchedTrackedSignalChain,">>tracklessevtNumberZeroMatchedSignalList","tracklessevtNumberZeroMatchedSignalList",">>trackedevtNumberZeroMatchedSignalList","trackedevtNumberZeroMatchedSignalList",hltDr+originalTracklessEndcapLeg,hltDr+(originalTrackedBarrelLeg || originalTrackedEndcapLeg) );
+	//numEvtsPassingBothLegs(matchedTracklessSignalChain,matchedTrackedSignalChain,">>tracklessevtNumberZeroMatchedSignalList","tracklessevtNumberZeroMatchedSignalList",">>trackedevtNumberZeroMatchedSignalList","trackedevtNumberZeroMatchedSignalList",hltDr,hltDr);
 
-	sigEvtsPassing = numEvtsPassingBothLegs(tracklessSignalChain,trackedSignalChain,">>tracklessevtNumberZeroSignalList","tracklessevtNumberZeroSignalList",">>trackedevtNumberZeroSignalList","trackedevtNumberZeroSignalList",originalTracklessEndcapLeg,(originalTrackedBarrelLeg || originalTrackedEndcapLeg) );
+	numEvtsPassingBothLegs(matchedTracklessSignalChain,matchedTrackedSignalChain,">>tracklessevtNumberOneMatchedSignalList","tracklessevtNumberOneMatchedSignalList",">>trackedevtNumberOneMatchedSignalList","trackedevtNumberOneMatchedSignalList",hltDr+trialTracklessEndcapLeg,hltDr+(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
 
 
-	bkgndLowPtEvtsPassing = numEvtsPassingBothLegs(tracklessLowPtBkgndChain,trackedLowPtBkgndChain,">>tracklessevtNumberZeroLowPtBkgndList","tracklessevtNumberZeroLowPtBkgndList",">>trackedevtNumberZeroLowPtBkgndList","trackedevtNumberZeroLowPtBkgndList",originalTracklessEndcapLeg,(originalTrackedBarrelLeg || originalTrackedEndcapLeg) );
+	//sigEvtsPassing = numEvtsPassingBothLegs(tracklessSignalChain,trackedSignalChain,">>tracklessevtNumberZeroSignalList","tracklessevtNumberZeroSignalList",">>trackedevtNumberZeroSignalList","trackedevtNumberZeroSignalList",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
 
-	bkgndHighPtEvtsPassing = numEvtsPassingBothLegs(tracklessHighPtBkgndChain,trackedHighPtBkgndChain,">>tracklessevtNumberZeroHighPtBkgndList","tracklessevtNumberZeroHighPtBkgndList",">>trackedevtNumberZeroHighPtBkgndList","trackedevtNumberZeroHighPtBkgndList",originalTracklessEndcapLeg,(originalTrackedBarrelLeg || originalTrackedEndcapLeg) );
+
+	//bkgndLowPtEvtsPassing = numEvtsPassingBothLegs(tracklessLowPtBkgndChain,trackedLowPtBkgndChain,">>tracklessevtNumberZeroLowPtBkgndList","tracklessevtNumberZeroLowPtBkgndList",">>trackedevtNumberZeroLowPtBkgndList","trackedevtNumberZeroLowPtBkgndList",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
+
+	//bkgndHighPtEvtsPassing = numEvtsPassingBothLegs(tracklessHighPtBkgndChain,trackedHighPtBkgndChain,">>tracklessevtNumberZeroHighPtBkgndList","tracklessevtNumberZeroHighPtBkgndList",">>trackedevtNumberZeroHighPtBkgndList","trackedevtNumberZeroHighPtBkgndList",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
 
 
 	//std::vector<Float_t> calcTriggerRate(Float_t nSigEvts, TChain * sigChain, Float_t nLowPtBkgndEvts, TChain * lowPtBkgndChain, Float_t nHighPtBkgndEvts, TChain * highPtBkgndChain)
 
-	calcTriggerRate(sigEvtsPassing,trackedSignalChain,bkgndLowPtEvtsPassing,trackedLowPtBkgndChain,bkgndHighPtEvtsPassing,trackedHighPtBkgndChain);
+	//calcTriggerRate(sigEvtsPassing,trackedSignalChain,bkgndLowPtEvtsPassing,trackedLowPtBkgndChain,bkgndHighPtEvtsPassing,trackedHighPtBkgndChain);
 
 
 	gStyle->SetOptStat(1111);

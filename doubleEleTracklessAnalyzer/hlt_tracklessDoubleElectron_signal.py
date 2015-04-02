@@ -4933,6 +4933,38 @@ process.HLTEle27WPXXSequenceStudy = cms.Sequence(
 		#+ process.hltEle27WPXXTrackIsoFilter
 )
 
+process.HLTEle27WPXXSequenceStudyWithL1Filter = cms.Sequence( 
+		process.HLTDoFullUnpackingEgammaEcalSequence 
+		+ process.HLTPFClusteringForEgamma 
+		+ process.hltEgammaCandidates 
+		+ process.hltEGL1SingleEG20ORL1SingleEG22Filter 
+		#+ process.hltEG27WPXXEtFilter 
+		+ process.hltEgammaClusterShape 
+		#+ process.hltEle27WPXXClusterShapeFilter 
+		+ process.HLTDoLocalHcalWithTowerSequence 
+		+ process.HLTPFHcalClusteringForEgamma 
+		+ process.HLTFastJetForEgamma 
+		+ process.hltEgammaHoverE 
+		#+ process.hltEle27WPXXHEFilter 
+		+ process.hltEgammaEcalPFClusterIso 
+		#+ process.hltEle27WPXXEcalIsoFilter 
+		+ process.hltEgammaHcalPFClusterIso 
+		#+ process.hltEle27WPXXHcalIsoFilter 
+		+ process.HLTDoLocalPixelSequence 
+		+ process.HLTDoLocalStripSequence 
+		+ process.hltMixedLayerPairs 
+		+ process.hltEgammaElectronPixelSeeds 
+		#+ process.hltEle27WPXXPixelMatchFilter 
+		+ process.HLTGsfElectronSequence 
+		#+ process.hltEle27WPXXOneOEMinusOneOPFilter 
+		#+ process.hltEle27WPXXDetaFilter 
+		#+ process.hltEle27WPXXDphiFilter 
+		+ process.HLTTrackReconstructionForIsoElectronIter02 
+		+ process.hltEgammaEleGsfTrackIso 
+		#+ process.hltEle27WPXXTrackIsoFilter
+)
+
+
 
 #similar to HLTPFClusteringForEgamma
 #all of the modules in this sequence are producers, and each has
@@ -5128,6 +5160,17 @@ process.trackerCandidates = cms.EDFilter( "CandViewSelector",
 	cut = cms.string('eta < 2.5 && eta > -2.5')
 )
 
+process.combRecoEleNoCuts = cms.EDProducer("CandViewShallowCloneCombiner",
+		decay = cms.string("hltEgammaCandidatesUnseeded hltEgammaCandidates"),
+		#checkCharge = cms.bool(False),
+		cut = cms.string(""),
+		#this name is tied to the CompositeCandidate object
+		#name = cms.string('zedToElEl'),
+		#roles are relevant to the daughters
+		roles = cms.vstring('tracklessRecoEle', 'trackedRecoEle')
+		
+		)
+
 process.combRecoEle = cms.EDProducer("CandViewShallowCloneCombiner",
 		decay = cms.string("noTrackerCandidates trackerCandidates"),
 		#checkCharge = cms.bool(False),
@@ -5144,6 +5187,11 @@ process.recoZeeFilter = cms.EDFilter("CandViewCountFilter",
 		minNumber = cms.uint32(1)
 		)
 
+process.recoZeeFilterNoCuts = cms.EDFilter("CandViewCountFilter",
+		src = cms.InputTag("combRecoEleNoCuts"),
+		minNumber = cms.uint32(1)
+		)
+
 process.recoDaughterProducer = cms.EDProducer("SeparateCombCandidate",
 		zedLabel = cms.InputTag("combRecoEle"),
 		tracklessHltEle = cms.InputTag("hltEgammaCandidatesUnseeded"),
@@ -5153,6 +5201,14 @@ process.recoDaughterProducer = cms.EDProducer("SeparateCombCandidate",
 
 		)
 
+process.recoDaughterProducerNoCuts = cms.EDProducer("SeparateCombCandidate",
+		zedLabel = cms.InputTag("combRecoEleNoCuts"),
+		tracklessHltEle = cms.InputTag("hltEgammaCandidatesUnseeded"),
+		trackedHltEle = cms.InputTag("hltEgammaCandidates"),
+		tracklessEleCollectionName = cms.string("tracklessDaughters"),
+		trackedEleCollectionName = cms.string("trackedDaughters")
+
+		)
 
 process.noTrackerCandidatesStageTwo = cms.EDFilter( "CandViewSelector",
     src = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
@@ -5213,6 +5269,45 @@ process.recoAnalyzerTracked = cms.EDAnalyzer('recoAnalyzerGeneric',
 	
 		)
 
+process.recoAnalyzerTrackedNoCuts = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+		Ep=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+		Deta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+		Dphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+		TrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersTrackedSignalNoCuts"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducerNoCuts","trackedDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(True),
+		genCollection = cms.InputTag("","",""),
+		dRMatch = cms.double(-1),
+		recoZedCollection = cms.InputTag("combRecoEleNoCuts","","TEST"),
+		genZedCollection = cms.InputTag("","","")
+	
+		)
+
+
+process.recoAnalyzerTrackedWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+		Ep=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+		Deta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+		Dphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+		TrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersTrackedSignalWithL1Filter"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducer","trackedDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(True),
+		genCollection = cms.InputTag("","",""),
+		dRMatch = cms.double(-1),
+		recoZedCollection = cms.InputTag("combRecoEle","","TEST"),
+		genZedCollection = cms.InputTag("","","")
+	
+		)
+
 
 process.recoAnalyzerTrackless = cms.EDAnalyzer('recoAnalyzerGeneric',
 		SigmaIEIE = cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
@@ -5233,7 +5328,47 @@ process.recoAnalyzerTrackless = cms.EDAnalyzer('recoAnalyzerGeneric',
 	
 		)
 
-#run these two analyzers after process.ZeeFilter
+process.recoAnalyzerTracklessNoCuts = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+		Ep=cms.InputTag("","",""),
+		Deta=cms.InputTag("","",""),
+		Dphi=cms.InputTag("","",""),
+		TrackIso=cms.InputTag("","",""),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersTracklessSignalNoCuts"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducerNoCuts","tracklessDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(False),
+		genCollection = cms.InputTag("","",""),
+		dRMatch = cms.double(-1),
+		recoZedCollection = cms.InputTag("combRecoEleNoCuts","","TEST"),
+		genZedCollection = cms.InputTag("","","")
+	
+		)
+
+
+process.recoAnalyzerTracklessWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+		Ep=cms.InputTag("","",""),
+		Deta=cms.InputTag("","",""),
+		Dphi=cms.InputTag("","",""),
+		TrackIso=cms.InputTag("","",""),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersTracklessSignalWithL1Filter"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducer","tracklessDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(False),
+		genCollection = cms.InputTag("","",""),
+		dRMatch = cms.double(-1),
+		recoZedCollection = cms.InputTag("combRecoEle","","TEST"),
+		genZedCollection = cms.InputTag("","","")
+	
+		)
+
+
+#run these analyzers after process.ZeeFilter
 process.recoAnalyzerMatchedTracked = cms.EDAnalyzer('recoAnalyzerGeneric',
 		SigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
 		HadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
@@ -5244,6 +5379,44 @@ process.recoAnalyzerMatchedTracked = cms.EDAnalyzer('recoAnalyzerGeneric',
 		Dphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
 		TrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
 		treeName = cms.string("recoTreeBeforeTriggerFiltersMatchedTrackedSignal"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducer","trackedDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(True),
+		genCollection = cms.InputTag("genEleTrack","","TEST"),
+		dRMatch = cms.double(0.1),
+		recoZedCollection = cms.InputTag("combRecoEle","","TEST"),
+		genZedCollection = cms.InputTag("combEle","","TEST")
+	
+		)
+
+process.recoAnalyzerMatchedTrackedNoCuts = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+		Ep=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+		Deta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+		Dphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+		TrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersMatchedTrackedSignalNoCuts"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducerNoCuts","trackedDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(True),
+		genCollection = cms.InputTag("genEleTrack","","TEST"),
+		dRMatch = cms.double(0.1),
+		recoZedCollection = cms.InputTag("combRecoEleNoCuts","","TEST"),
+		genZedCollection = cms.InputTag("combEle","","TEST")
+	
+		)
+
+process.recoAnalyzerMatchedTrackedWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+		Ep=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+		Deta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+		Dphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+		TrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersMatchedTrackedSignalWithL1Filter"),
 		recoElectronCollection = cms.InputTag("recoDaughterProducer","trackedDaughters","TEST"),
 		doAnalysisOfTracked = cms.bool(True),
 		genCollection = cms.InputTag("genEleTrack","","TEST"),
@@ -5264,6 +5437,44 @@ process.recoAnalyzerMatchedTrackless = cms.EDAnalyzer('recoAnalyzerGeneric',
 		Dphi=cms.InputTag("","",""),
 		TrackIso=cms.InputTag("","",""),
 		treeName = cms.string("recoTreeBeforeTriggerFiltersMatchedTracklessSignal"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducer","tracklessDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(False),
+		genCollection = cms.InputTag("genUntrack","","TEST"),
+		dRMatch = cms.double(0.1),
+		recoZedCollection = cms.InputTag("combRecoEle","","TEST"),
+		genZedCollection = cms.InputTag("combEle","","TEST")
+	
+		)
+
+process.recoAnalyzerMatchedTracklessNoCuts = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+		Ep=cms.InputTag("","",""),
+		Deta=cms.InputTag("","",""),
+		Dphi=cms.InputTag("","",""),
+		TrackIso=cms.InputTag("","",""),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersMatchedTracklessSignalNoCuts"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducerNoCuts","tracklessDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(False),
+		genCollection = cms.InputTag("genUntrack","","TEST"),
+		dRMatch = cms.double(0.1),
+		recoZedCollection = cms.InputTag("combRecoEleNoCuts","","TEST"),
+		genZedCollection = cms.InputTag("combEle","","TEST")
+	
+		)
+
+process.recoAnalyzerMatchedTracklessWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+		Ep=cms.InputTag("","",""),
+		Deta=cms.InputTag("","",""),
+		Dphi=cms.InputTag("","",""),
+		TrackIso=cms.InputTag("","",""),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersMatchedTracklessSignalWithL1Filter"),
 		recoElectronCollection = cms.InputTag("recoDaughterProducer","tracklessDaughters","TEST"),
 		doAnalysisOfTracked = cms.bool(False),
 		genCollection = cms.InputTag("genUntrack","","TEST"),
@@ -5295,6 +5506,26 @@ process.recoAnalyzerTrackedStageTwo = cms.EDAnalyzer('recoAnalyzerGeneric',
 	
 		)
 
+process.recoAnalyzerTrackedStageTwoWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+		Ep=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+		Deta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+		Dphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+		TrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersTrackedSignalStageTwoWithL1Filter"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducerStageTwo","trackedDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(True),
+		genCollection = cms.InputTag("","",""),
+		dRMatch = cms.double(-1),
+		recoZedCollection = cms.InputTag("combRecoEleStageTwo","","TEST"),
+		genZedCollection = cms.InputTag("","","")
+	
+		)
+
+
 process.recoAnalyzerTracklessStageTwo = cms.EDAnalyzer('recoAnalyzerGeneric',
 		SigmaIEIE = cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
 		HadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
@@ -5314,6 +5545,26 @@ process.recoAnalyzerTracklessStageTwo = cms.EDAnalyzer('recoAnalyzerGeneric',
 	
 		)
 
+process.recoAnalyzerTracklessStageTwoWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+		Ep=cms.InputTag("","",""),
+		Deta=cms.InputTag("","",""),
+		Dphi=cms.InputTag("","",""),
+		TrackIso=cms.InputTag("","",""),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersTracklessSignalStageTwoWithL1Filter"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducerStageTwo","tracklessDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(False),
+		genCollection = cms.InputTag("","",""),
+		dRMatch = cms.double(-1),
+		recoZedCollection = cms.InputTag("combRecoEleStageTwo","","TEST"),
+		genZedCollection = cms.InputTag("","","")
+	
+		)
+
+
 #run these two analyzers after process.ZeeFilter
 process.recoAnalyzerMatchedTrackedStageTwo = cms.EDAnalyzer('recoAnalyzerGeneric',
 		SigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
@@ -5325,6 +5576,25 @@ process.recoAnalyzerMatchedTrackedStageTwo = cms.EDAnalyzer('recoAnalyzerGeneric
 		Dphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
 		TrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
 		treeName = cms.string("recoTreeBeforeTriggerFiltersMatchedTrackedSignalStageTwo"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducerStageTwo","trackedDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(True),
+		genCollection = cms.InputTag("genEleTrack","","TEST"),
+		dRMatch = cms.double(0.1),
+		recoZedCollection = cms.InputTag("combRecoEleStageTwo","","TEST"),
+		genZedCollection = cms.InputTag("combEle","","TEST")
+	
+		)
+
+process.recoAnalyzerMatchedTrackedStageTwoWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverE","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","TEST"),
+		Ep=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","TEST"),
+		Deta=cms.InputTag("hltEgammaGsfTrackVars","Deta","TEST"),
+		Dphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","TEST"),
+		TrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","TEST"),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersMatchedTrackedSignalStageTwoWithL1Filter"),
 		recoElectronCollection = cms.InputTag("recoDaughterProducerStageTwo","trackedDaughters","TEST"),
 		doAnalysisOfTracked = cms.bool(True),
 		genCollection = cms.InputTag("genEleTrack","","TEST"),
@@ -5354,6 +5624,26 @@ process.recoAnalyzerMatchedTracklessStageTwo = cms.EDAnalyzer('recoAnalyzerGener
 	
 		)
 
+process.recoAnalyzerMatchedTracklessStageTwoWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShapeUnseeded","","TEST"),
+		HadEm=cms.InputTag("hltEgammaHoverEUnseeded","","TEST"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","TEST"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","TEST"),
+		Ep=cms.InputTag("","",""),
+		Deta=cms.InputTag("","",""),
+		Dphi=cms.InputTag("","",""),
+		TrackIso=cms.InputTag("","",""),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersMatchedTracklessSignalStageTwoWithL1Filter"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducerStageTwo","tracklessDaughters","TEST"),
+		doAnalysisOfTracked = cms.bool(False),
+		genCollection = cms.InputTag("genUntrack","","TEST"),
+		dRMatch = cms.double(0.1),
+		recoZedCollection = cms.InputTag("combRecoEleStageTwo","","TEST"),
+		genZedCollection = cms.InputTag("combEle","","TEST")
+	
+		)
+
+
 
 process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study = cms.Path( 
 		process.HLTBeginSequence 
@@ -5374,6 +5664,27 @@ process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study = cms.Path(
 		*process.recoAnalyzerMatchedTrackless
 		)
 
+#the tuples made by this path will be used to calculate the reco efficiency in matched signal evts
+#(how often is a GSF electron reconstructed near a GEN electron?) 
+#and to count the total number of signal evts before any reco eta, pt, and dilepton mass cuts are applied
+process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study_NoCuts = cms.Path( 
+		process.HLTBeginSequence 
+		#+ process.hltL1sL1SingleEG20ORL1SingleEG22 
+		+ process.hltPreEle27WPXXEle15WPYYtrackless 
+		+ process.HLTEle27WPXXSequenceStudy 
+		+ process.HLTEle15WPYYtracklessSequenceStudy
+		+ process.HLTEndSequence
+		#+ process.noTrackerCandidates
+		#+ process.trackerCandidates
+		+ process.combRecoEleNoCuts
+		#*process.recoZeeFilterNoCuts
+		*process.recoDaughterProducerNoCuts
+		*process.recoAnalyzerTrackedNoCuts
+		*process.recoAnalyzerTracklessNoCuts
+		*process.ZeeFilter
+		*process.recoAnalyzerMatchedTrackedNoCuts
+		*process.recoAnalyzerMatchedTracklessNoCuts
+		)
 
 process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study_StageTwo = cms.Path( 
 		process.HLTBeginSequence 
@@ -5393,6 +5704,46 @@ process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study_StageTwo = cms.Path(
 		*process.recoAnalyzerMatchedTrackedStageTwo
 		*process.recoAnalyzerMatchedTracklessStageTwo
 		)
+
+process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study_WithL1Filter = cms.Path( 
+		process.HLTBeginSequence 
+		+ process.hltL1sL1SingleEG20ORL1SingleEG22 
+		+ process.hltPreEle27WPXXEle15WPYYtrackless 
+		+ process.HLTEle27WPXXSequenceStudyWithL1Filter 
+		+ process.HLTEle15WPYYtracklessSequenceStudy
+		+ process.HLTEndSequence
+		+ process.noTrackerCandidates
+		+ process.trackerCandidates
+		+ process.combRecoEle
+		*process.recoZeeFilter
+		*process.recoDaughterProducer
+		*process.recoAnalyzerTrackedWithL1Filter
+		*process.recoAnalyzerTracklessWithL1Filter
+		*process.ZeeFilter
+		*process.recoAnalyzerMatchedTrackedWithL1Filter
+		*process.recoAnalyzerMatchedTracklessWithL1Filter
+		)
+
+
+process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study_StageTwo_WithL1Filter = cms.Path( 
+		process.HLTBeginSequence 
+		+ process.hltL1sL1SingleEG20ORL1SingleEG22 
+		+ process.hltPreEle27WPXXEle15WPYYtrackless 
+		+ process.HLTEle27WPXXSequenceStudyWithL1Filter 
+		+ process.HLTEle15WPYYtracklessSequenceStudy
+		+ process.HLTEndSequence
+		+ process.noTrackerCandidatesStageTwo
+		+ process.trackerCandidatesStageTwo
+		+ process.combRecoEleStageTwo
+		*process.recoZeeFilterStageTwo
+		*process.recoDaughterProducerStageTwo
+		*process.recoAnalyzerTrackedStageTwoWithL1Filter
+		*process.recoAnalyzerTracklessStageTwoWithL1Filter
+		*process.ZeeFilter
+		*process.recoAnalyzerMatchedTrackedStageTwoWithL1Filter
+		*process.recoAnalyzerMatchedTracklessStageTwoWithL1Filter
+		)
+
 
 
 #process.quickGenStudyTwoTracked = cms.Path(
@@ -5521,7 +5872,7 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10)
+    input = cms.untracked.int32(105)
 )
 
 # enable the TrigReport and TimeReport

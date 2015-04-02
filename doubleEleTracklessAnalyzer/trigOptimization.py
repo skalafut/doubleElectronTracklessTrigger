@@ -2,6 +2,10 @@ import ROOT
 import array
 import math
 
+#use this to compile and run any pyroot macro within a ROOT session:
+#TPython::LoadMacro("nameOfPyRootFileInCurrentDirectory.py");
+#
+
 def findOptimalCutValuesAndRateAndEff(desiredRate, effDenom, sortedEtCutArr, sortedSigmaIEIECutArr, sortedEcalIsoCutArr, sortedHoverECutArr, sortedHcalIsoCutArr, sortedHltMllCutArr, totalBkgndEvtsLowPt, numBkgndEvtsPassingTriggerLowPt, tupleForBkgndEvtsPassingTrigLowPt, totalBkgndEvtsHighPt, numBkgndEvtsPassingTriggerHighPt, tupleForBkgndEvtsPassingTrigHighPt, totalUnmatchedSigEvts, numUnmatchedSigEvtsPassingTrig, tupleForUnmatchedSigEvts, maxMatchedSigEvts, tupleForMatchedSigEvts):
 	#this function takes three file objects, the desired total trigger rate, and Z->ee trigger efficiency denominator, and five 1D vectors as inputs
 	#to speed up processing, this function also takes a 5D array capturing the characteristics of all bkgnd evts which fire the trigger, the number of entries in

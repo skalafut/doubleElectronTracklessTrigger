@@ -5424,7 +5424,7 @@ process.HLTriggerFinalPath = cms.Path( process.hltGtDigis + process.hltScalersRa
 #process.schedule = cms.Schedule(process.quickGenStudyOneTrackedOneTrackless)
 
 process.TFileService = cms.Service("TFileService",
-		fileName = cms.string('bkgnd_analyzer_trees_NUM.root')
+		fileName = cms.string('bkgnd_analyzer_trees_NUM_CMSSW_7_4_0_pre9.root')
 )
 
 
@@ -5444,6 +5444,15 @@ process.source = cms.Source( "PoolSource",
 # customise the HLT menu for running on MC
 from HLTrigger.Configuration.customizeHLTforMC import customizeHLTforMC
 process = customizeHLTforMC(process)
+
+# add release-specific customizations
+from HLTrigger.Configuration.customizeHLTforCMSSW import customiseHLTforCMSSW
+process = customiseHLTforCMSSW(process,menuType="GRun",fastSim=False)
+
+# load 2015 Run-2 L1 Menu for 25ns (default for GRun, PIon)
+from L1Trigger.Configuration.customise_overwriteL1Menu import L1Menu_Collisions2015_25ns_v2 as loadL1menu
+process = loadL1menu(process)
+
 
 # CMSSW version specific customizations
 import os
