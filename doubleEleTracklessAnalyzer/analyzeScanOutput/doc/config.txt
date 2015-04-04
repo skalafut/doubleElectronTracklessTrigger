@@ -1,26 +1,26 @@
-ptHltEleEB	AF
-ptHltEletEE	AF
-ptHltEleutEE	AF
-clusterShapeHltEleEB	AF
-clusterShapeHltEletEE	AF
-clusterShapeHltEleutEE	AF
-hadEmHltEleEB	AF
-hadEmHltEletEE	AF
-hadEmHltEleutEE	AF
-ecalIsoHltEleEB	AF
-ecalIsoHltEletEE	AF
-ecalIsoHltEleutEE	AF
-hcalIsoHltEleEB	AF
-hcalIsoHltEletEE	AF
-hcalIsoHltEleutEE	AF
-trackIsoHltEleEB	AF
-trackIsoHltEletEE	AF
-dPhiHltEleEB	AF
-dPhiHltEletEE	AF
-dEtaHltEleEB	AF
-dEtaHltEletEE	AF
-epHltEleEB	AF
-epHltEletEE	AF
-_nEvents	L
-_nPassing	L
+ptHltEleEB	AF	I
+ptHltEletEE	AF	I
+ptHltEleutEE	AF	I
+clusterShapeHltEleEB	AF	I
+clusterShapeHltEletEE	AF	I
+clusterShapeHltEleutEE	AF	I
+hadEmHltEleEB	AF	I
+hadEmHltEletEE	AF	I
+hadEmHltEleutEE	AF	I
+ecalIsoHltEleEB	AF	I
+ecalIsoHltEletEE	AF	I
+ecalIsoHltEleutEE	AF	I
+hcalIsoHltEleEB	AF	I
+hcalIsoHltEletEE	AF	I
+hcalIsoHltEleutEE	AF	I
+trackIsoHltEleEB	AF	I
+trackIsoHltEletEE	AF	I
+dPhiHltEleEB	AF	I
+dPhiHltEletEE	AF	I
+dEtaHltEleEB	AF	I
+dEtaHltEletEE	AF	I
+epHltEleEB	AF	I
+epHltEletEE	AF	I
+_nEvents	L	_maxPossibleNumEvtsPassing
+_nPassing	L	_numEvtsPassing
 

@@ -4,3 +4,10 @@ The branches could represent specific cut vars, or the number of events passing 
 The sequence of letters to the left of each branch name indicate the type of
 variable stored in the branch.  AF = array of Float_t values, L = Long64_t
 value
+
+There is an addition flag to the right of the variable type characters which
+is relevant only for branches which store a single value, like a Long64_t or
+Int_t.  This flag indicates the name of the private member variable in
+AnalyzeScanResults class which should be associated with this particular
+branch.
+

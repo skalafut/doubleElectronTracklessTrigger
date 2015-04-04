@@ -24,7 +24,7 @@ class AnalyzeScanResults{
 		friend std::ostream& operator << (std::ostream& os, const AnalyzeScanResults g){
 			TObjArray* branchList = g._inputChain->GetListOfBranches();
 			for(Int_t elem=0; elem<branchList->GetEntries(); elem++){
-				os<< "declared input branch named \t"<< branchList->At(elem)->GetName();
+				os<< "declared input branch named \t"<< branchList->At(elem)->GetName() << std::endl;
 			}//end loop over branches in _inputChain
 
 			return os;
