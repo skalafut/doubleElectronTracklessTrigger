@@ -1125,31 +1125,32 @@ void testMacro(){
 
 
 	////tracked and trackless leg cuts for playing around
-	TCut trialTrackedPt = "ptHltEle>27.";
+	TCut trialTrackedEBPt = "ptHltEle>=22.";
 
-	TCut trialTrackedEBSigmaIEIE = "clusterShapeHltEle<0.025";
-	TCut trialTrackedEBHE = "hadEmHltEle<0.17";
-	TCut trialTrackedEBEcalIso = "ecalIsoHltEle<0.48";
-	TCut trialTrackedEBHcalIso = "hcalIsoHltEle<0.43";
-	TCut trialTrackedEBEp = "epHltEle<0.012";
-	TCut trialTrackedEBDeta = "dEtaHltEle<0.005";
-	TCut trialTrackedEBDphi = "dPhiHltEle<0.03";
-	TCut trialTrackedEBTrackIso = "trackIsoHltEle<0.125";
-	
-	TCut trialTrackedEESigmaIEIE = "clusterShapeHltEle<0.045";
-	TCut trialTrackedEEHE = "hadEmHltEle<0.275";
-	TCut trialTrackedEEEcalIso = "ecalIsoHltEle<0.43";
-	TCut trialTrackedEEHcalIso = "hcalIsoHltEle<0.29";
-	TCut trialTrackedEEEp = "epHltEle<0.009";
-	TCut trialTrackedEEDeta = "dEtaHltEle<0.01";
-	TCut trialTrackedEEDphi = "dPhiHltEle<0.03";
-	TCut trialTrackedEETrackIso = "trackIsoHltEle<0.125";
+	TCut trialTrackedEBSigmaIEIE = "clusterShapeHltEle<=0.017";
+	TCut trialTrackedEBHE = "hadEmHltEle<=0.2";
+	TCut trialTrackedEBEcalIso = "ecalIsoHltEle<=0.35";
+	TCut trialTrackedEBHcalIso = "hcalIsoHltEle<=0.3";
+	TCut trialTrackedEBEp = "epHltEle<=0.012";
+	TCut trialTrackedEBDeta = "dEtaHltEle<=0.005";
+	TCut trialTrackedEBDphi = "dPhiHltEle<=0.03";
+	TCut trialTrackedEBTrackIso = "trackIsoHltEle<=0.125";
 
-	TCut trialTracklessPt = "ptHltEle>10.";
-	TCut trialTracklessEESigmaIEIE = "clusterShapeHltEle<0.045";
-	TCut trialTracklessEEHE = "hadEmHltEle<0.275";
-	TCut trialTracklessEEEcalIso = "ecalIsoHltEle<0.44";
-	TCut trialTracklessEEHcalIso = "hcalIsoHltEle<0.8";
+	TCut trialTrackedEEPt = "ptHltEle>=27.";
+	TCut trialTrackedEESigmaIEIE = "clusterShapeHltEle<=0.036";
+	TCut trialTrackedEEHE = "hadEmHltEle<=0.2";
+	TCut trialTrackedEEEcalIso = "ecalIsoHltEle<=0.25";
+	TCut trialTrackedEEHcalIso = "hcalIsoHltEle<=0.3";
+	TCut trialTrackedEEEp = "epHltEle<=0.009";
+	TCut trialTrackedEEDeta = "dEtaHltEle<=0.01";
+	TCut trialTrackedEEDphi = "dPhiHltEle<=0.03";
+	TCut trialTrackedEETrackIso = "trackIsoHltEle<=0.125";
+
+	TCut trialTracklessPt = "ptHltEle>=20.";
+	TCut trialTracklessEESigmaIEIE = "clusterShapeHltEle<=0.04";
+	TCut trialTracklessEEHE = "hadEmHltEle<=0.25";
+	TCut trialTracklessEEEcalIso = "ecalIsoHltEle<=0.25";
+	TCut trialTracklessEEHcalIso = "hcalIsoHltEle<=0.77";
 
 
 
@@ -1164,8 +1165,8 @@ void testMacro(){
 	TCut optimizedTrackedEndcapLeg = optimizedTrackedPt+optimizedTrackedEESigmaIEIE+optimizedTrackedEEHE+optimizedTrackedEEEcalIso+optimizedTrackedEEHcalIso+trackedEEHltEta+optimizedTrackedEEEp+optimizedTrackedEEDeta+optimizedTrackedEEDphi+optimizedTrackedEETrackIso;
 	TCut optimizedTracklessEndcapLeg = optimizedTracklessPt+optimizedTracklessEESigmaIEIE+optimizedTracklessEEHE+optimizedTracklessEEEcalIso+optimizedTracklessEEHcalIso+tracklessEEHltEta;
 
-	TCut trialTrackedBarrelLeg = trialTrackedPt+trialTrackedEBSigmaIEIE+trialTrackedEBHE+trialTrackedEBEcalIso+trialTrackedEBHcalIso+trackedEBHltEta+trialTrackedEBEp+trialTrackedEBDeta+trialTrackedEBDphi+trialTrackedEBTrackIso;
-	TCut trialTrackedEndcapLeg = trialTrackedPt+trialTrackedEESigmaIEIE+trialTrackedEEHE+trialTrackedEEEcalIso+trialTrackedEEHcalIso+trackedEEHltEta+trialTrackedEEEp+trialTrackedEEDeta+trialTrackedEEDphi+trialTrackedEETrackIso;
+	TCut trialTrackedBarrelLeg = trialTrackedEBPt+trialTrackedEBSigmaIEIE+trialTrackedEBHE+trialTrackedEBEcalIso+trialTrackedEBHcalIso+trackedEBHltEta+trialTrackedEBEp+trialTrackedEBDeta+trialTrackedEBDphi+trialTrackedEBTrackIso;
+	TCut trialTrackedEndcapLeg = trialTrackedEEPt+trialTrackedEESigmaIEIE+trialTrackedEEHE+trialTrackedEEEcalIso+trialTrackedEEHcalIso+trackedEEHltEta+trialTrackedEEEp+trialTrackedEEDeta+trialTrackedEEDphi+trialTrackedEETrackIso;
 	TCut trialTracklessEndcapLeg = trialTracklessPt+trialTracklessEESigmaIEIE+trialTracklessEEHE+trialTracklessEEEcalIso+trialTracklessEEHcalIso+tracklessEEHltEta;
 
 
@@ -1215,9 +1216,10 @@ void testMacro(){
 	*/
 
 	//Float_t numEvtsPassingBothLegs(TChain * tracklessChain,TChain * trackedChain,TString tracklessListFillArgs,TString tracklessListName,TString trackedListFillArgs,TString trackedListName,TCut tracklessFilters,TCut trackedFilters )
-	//numEvtsPassingBothLegs(matchedTracklessSignalChain,matchedTrackedSignalChain,">>tracklessevtNumberZeroMatchedSignalList","tracklessevtNumberZeroMatchedSignalList",">>trackedevtNumberZeroMatchedSignalList","trackedevtNumberZeroMatchedSignalList",hltDr,hltDr);
+	
+	numEvtsPassingBothLegs(matchedTracklessSignalChain,matchedTrackedSignalChain,">>tracklessevtNumberZeroMatchedSignalList","tracklessevtNumberZeroMatchedSignalList",">>trackedevtNumberZeroMatchedSignalList","trackedevtNumberZeroMatchedSignalList",hltDr,hltDr);
 
-	numEvtsPassingBothLegs(matchedTracklessSignalChain,matchedTrackedSignalChain,">>tracklessevtNumberOneMatchedSignalList","tracklessevtNumberOneMatchedSignalList",">>trackedevtNumberOneMatchedSignalList","trackedevtNumberOneMatchedSignalList",hltDr+trialTracklessEndcapLeg,hltDr+(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
+	//numEvtsPassingBothLegs(matchedTracklessSignalChain,matchedTrackedSignalChain,">>tracklessevtNumberOneMatchedSignalList","tracklessevtNumberOneMatchedSignalList",">>trackedevtNumberOneMatchedSignalList","trackedevtNumberOneMatchedSignalList",hltDr+trialTracklessEndcapLeg,hltDr+(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
 
 
 	//sigEvtsPassing = numEvtsPassingBothLegs(tracklessSignalChain,trackedSignalChain,">>tracklessevtNumberZeroSignalList","tracklessevtNumberZeroSignalList",">>trackedevtNumberZeroSignalList","trackedevtNumberZeroSignalList",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );

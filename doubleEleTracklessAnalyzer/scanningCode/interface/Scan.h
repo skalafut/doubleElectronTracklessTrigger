@@ -59,7 +59,7 @@ public:
 		
      //runScan is a recursive function.  It will call itself from within the fxn. The value of iCut
      //passed to this fxn as an input should equal the number of elements in cutContainer. 
-     void runScan(unsigned int iCut);
+     float runScan(unsigned int iCut);
 
      void SaveOutput(std::string pathToOutputFile);
 

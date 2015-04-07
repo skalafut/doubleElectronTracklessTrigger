@@ -19,8 +19,8 @@
 using namespace std;
 
 int main(int argc, char **argv){
-	//TStopwatch globalClock;
-	//globalClock.Start();
+	TStopwatch globalClock;
+	globalClock.Start();
 
 	//call InitCutVars() first, then InitInputTree(), then InitOutputTree() in scanning.cpp file
 
@@ -76,18 +76,18 @@ int main(int argc, char **argv){
 	TTree * outTree = new TTree("scanned_tree","");
 	testScan.InitOutputNtuple(outTree);
 
+#ifdef SIGNAL
 	testScan.runScan(testScan.numCutVars());
+	testScan.SaveOutput("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/scanned_tuples/test_scanned_signal_tree_1.root");
+#endif
 
 #ifdef BKGND
-	testScan.SaveOutput("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/scanned_tuples/scanned_high_pt_bkgnd_tree_305.root");
-#endif
-
-#ifdef SIGNAL
-	testScan.SaveOutput("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/scanned_tuples/scanned_signal_tree_1.root");
+	testScan.runScan(testScan.numCutVars());
+	testScan.SaveOutput("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/scanned_tuples/test_scanned_high_pt_bkgnd_tree_305.root");
 #endif
 	
-	//globalClock.Stop();
-	//globalClock.Print("m");
+	globalClock.Stop();
+	globalClock.Print("m");
 
 	
 	return 0;
