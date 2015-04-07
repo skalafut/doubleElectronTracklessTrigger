@@ -26,7 +26,7 @@
 //#define DEBUG
 //#define DEBUG2
 #define DEBUG3
-#define SHORTTEST
+//#define SHORTTEST
 
 using namespace std;
 
@@ -181,8 +181,10 @@ void Scan::SaveOutput(string pathToOutputFile){
 /**
    Recursive method.
    @param[in] iCut number of remaining variables to loop over. if iCut==0 then end
+   if isSignal = true, then use the Scan object member variable cutEfficiency to move to the
+   next set of cuts (looser)  
  */
-void Scan::runScan(unsigned int iCut){
+float Scan::runScan(unsigned int iCut){
 	//scan over all of the variables in _cutContainer, and for each variable loop over all possible
 	//values of the threshold.  For each variable threshold value, loop over all input events
 	//and count how many pass the current threshold values of all variables in _cutContainer.
@@ -207,7 +209,7 @@ void Scan::runScan(unsigned int iCut){
 		//loop over entries in tuple
 		Long64_t maxEntries = _pInputChain->GetEntriesFast();
 #ifdef SHORTTEST
-		maxEntries = 5;
+		maxEntries = 150;
 		cout<<"running short test, scanning over "<< maxEntries<<" entries in tuple"<<endl;
 #endif
 
@@ -387,57 +389,19 @@ void Scan::runScan(unsigned int iCut){
 				}
 			}//end loop over CutVar objects in _cutContainer
 
-			// now loop over the passingEleTree to make Zee candidates
-			// this can lead to segmentation violation, there is no control on the number of trees
-			// now there are two unique keys in passingEleTree (two tree names)
-			// each key is tied to a set (an ordered vector which can be searched)
-			// map1_itr is linked to the first unique key (here tracked leg or trackless leg) in passingEleTree
-			// map2_itr is linked to the second unique key (the leg which is not represented by the first key) in passingEleTree
-			/*
-			 * this is no longer needed. A dilepton mass cut is applied at reco lvl when the tuples are made.
-			map<string, set<int> >::const_iterator map1_itr=passingEleTree.begin();
-			map<string, set<int> >::const_iterator map2_itr=map1_itr; map2_itr++;
-
-			passing = false;
-			float mass=0, firstPt=0, firstEta=0, firstPhi=0, secondPt=0, secondEta=0, secondPhi=0, mSqd=-1;
-			for(set<int>::const_iterator iEle1_itr=map1_itr->second.begin();
-					iEle1_itr!=map1_itr->second.end();
-					iEle1_itr++){
-				for(set<int>::const_iterator iEle2_itr=map2_itr->second.begin();
-						iEle2_itr!=map2_itr->second.end();
-						iEle2_itr++){
-					// calculate invariant mass
-					// use iEle1_itr and iEle2_itr to access pt, eta, and phi in _inputBranches
-					firstPt = _inputBranches[(map1_itr->first)+"."+PTBRANCHNAME][*iEle1_itr];
-					firstEta = _inputBranches[(map1_itr->first)+"."+ETABRANCHNAME][*iEle1_itr];
-					firstPhi = _inputBranches[(map1_itr->first)+"."+PHIBRANCHNAME][*iEle1_itr];
-					secondPt = _inputBranches[(map2_itr->first)+"."+PTBRANCHNAME][*iEle2_itr];
-					secondEta = _inputBranches[(map2_itr->first)+"."+ETABRANCHNAME][*iEle2_itr];
-					secondPhi = _inputBranches[(map2_itr->first)+"."+PHIBRANCHNAME][*iEle2_itr];
-					mSqd = 2*firstPt*secondPt*(cosh(firstEta-secondEta) - cos(firstPhi-secondPhi));
-					if(mSqd > 0) mass = sqrt(mSqd);
-#ifdef DEBUG
-					if(evt>=0) cout<<"mass="<<"\t"<<mass<<endl;
-#endif
-
-					//if(mass > 40 && mass < 140)
-					passing = true;
-					if(passing) break;
-				}//end loop over iEle2_itr
-				if(passing) break;
-			}//end loop over iEle1_itr
-			*/
-
 			if(passing) _nPassing++;
 		}//end loop over evts in TChain
 
+		/*
 		for(vector<CutVar>::const_iterator cut_itr = _cutContainer.begin();
 		    cut_itr != _cutContainer.end(); cut_itr++){
 		  cout << cut_itr->printNameVal() << endl;
 		}
+		*/
+
 		_outputTree->Fill();
 		//cout<<"filled _outputTree, leaving runScan() method"<<endl;
-		return;
+		return (float)(_nPassing)/_nEvents;
 	}//end if(iCut==0)
 
 #ifdef DEBUG
@@ -446,8 +410,8 @@ void Scan::runScan(unsigned int iCut){
 	// if iCut!=0 call this method varying the cut value
 	CutVar& currentCut = _cutContainer[iCut-1];
 
-	for(currentCut._threshVal = currentCut._minThresh; 
-			currentCut._threshVal<=currentCut._maxThresh; 
+	for(currentCut._threshVal = currentCut._highEff; 
+			currentCut.inRange(); 
 			currentCut._threshVal+=currentCut._threshStep){
 		// all CutVar member vars (like _threshVal and _threshStep) are public
 		// in this loop _threshVal is initialized to _minThresh, then incremented by _threshStep
@@ -457,9 +421,12 @@ void Scan::runScan(unsigned int iCut){
 		//
 		// now set the value of the variable in _outputBranches[_shortCutName]
 		// and use some recursive magic!
+		cout<< currentCut << endl;
 		_outputBranches[currentCut._shortCutName][0] = currentCut._threshVal;
-		runScan(iCut-1);
+		if(runScan(iCut-1) < 0.5) break;
 	}//end loop over all possible values of the cut threshold for a CutVar object in _cutContainer
+
+	return 1;
 
 }//end runScan()
 
