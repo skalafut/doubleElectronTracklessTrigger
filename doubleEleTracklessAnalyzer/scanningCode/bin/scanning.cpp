@@ -44,6 +44,11 @@ int main(int argc, char **argv){
 	TChain * inputChain;
 	TChain * inputFriendChain;
 
+	///declare the chain which has already been run through float runScan() and has a constrained set of cut variables
+	///this chain will be passed as an input argument to runScanUsingTupleInput()
+	TChain * templateChain = new TChain("scanned_tree","");
+	templateChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/scanned_tuples/scanned_signal_tree_4.root");
+	
 #ifdef BKGND
 	inputChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedBkgnd","");
 	inputChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/high_pt_bkgnd_analyzer_trees_305.root");
@@ -77,7 +82,8 @@ int main(int argc, char **argv){
 	testScan.InitOutputNtuple(outTree);
 
 #ifdef SIGNAL
-	testScan.runScan(testScan.numCutVars());
+	//testScan.runScan(testScan.numCutVars());
+	testScan.runScanUsingTupleInput(templateChain);
 	testScan.SaveOutput("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/scanned_tuples/test_scanned_signal_tree_1.root");
 #endif
 

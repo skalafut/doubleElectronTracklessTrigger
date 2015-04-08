@@ -30,10 +30,6 @@ public:
 	  return _cutContainer.size();
      }
 
-     //this fxn looks at all of the objects in cutContainer and, based on the name of each
-     //object, identifies the number of unique branches to create within InitInputTuple()
-     //std::vector<std::string> identifyUniqueBranchNames();
-		
      //this fxn initializes the N input TChain pointers, the entries in the inputBranchNamesAndVals
      //map (both the strings and floats), and calls SetBranchAddress using the map entries
      //the vector<string> objects will be filled with information from two txt files which are read
@@ -49,17 +45,14 @@ public:
      
      void InitOutputNtuple(TTree *tree); /// \todo add branches specific for output
 	
-     //don't need to give branch names as an input to this fxn; the names can be obtained from
-     //the objects in cutContainer
-     //the two input string args will be specified in scanning.cpp
-     //void InitOutputTuple(std::string outTupleName);
-		
-     //void setRange(std::string varName,float min,float max,float step);
-
 		
      //runScan is a recursive function.  It will call itself from within the fxn. The value of iCut
      //passed to this fxn as an input should equal the number of elements in cutContainer. 
      float runScan(unsigned int iCut);
+
+	 void runScanUsingTupleInput(TChain * preScannedTuple);
+
+	 float countEvtsPassing();
 
      void SaveOutput(std::string pathToOutputFile);
 
