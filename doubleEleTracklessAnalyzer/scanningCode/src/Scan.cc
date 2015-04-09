@@ -23,10 +23,10 @@
 #define PHIBRANCHNAME "phiHltEle"
 #define PTBRANCHNAME "ptHltEle"
 #define NUMELEBRANCHNAME "nHltEle"
-#define DEBUG
+//#define DEBUG
 //#define DEBUG2
-#define DEBUG3
-#define SHORTTEST
+//#define DEBUG3
+//#define SHORTTEST
 
 using namespace std;
 
@@ -244,7 +244,7 @@ float Scan::countEvtsPassing(){
 	Long64_t maxEntries = _pInputChain->GetEntriesFast();
 #ifdef SHORTTEST
 	maxEntries = 10;
-	cout<<"running short test, scanning over "<< maxEntries<<" entries in tuple"<<endl;
+	//	cout<<"running short test, scanning over "<< maxEntries<<" entries in tuple"<<endl;
 #endif
 
 	for(Long64_t evt = 0; evt<maxEntries; evt++){
