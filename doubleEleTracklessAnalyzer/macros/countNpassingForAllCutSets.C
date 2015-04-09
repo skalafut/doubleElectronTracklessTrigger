@@ -20,6 +20,9 @@ using namespace std;
  * the same string keys are used in all of the maps which are passed as inputs to this fxn
  * the total rate returned by this function will only represent the rate due to bkgnd evts
  * I should use testMacro.C to calculate the total rate, including signal evts
+ *
+ * NO NEED FOR THIS
+ * use master signal and bkgnd trees which contain all sets of different cut vals, and cumulative _nPassing and _nEvents vals
  */ 
 vector<map<string,Float_t> > findOptimalCutSets(Float_t desiredRate, string signalKey, map<string,vector<ULong64_t> >& numPassingMap, 
 		map<string,vector<ULong64_t> >& maxNumPassingMap, TChain * templateChain, map<string,vector<Float_t> >& bkgndXsxnsAndLumi){
@@ -69,18 +72,28 @@ vector<map<string,Float_t> > findOptimalCutSets(Float_t desiredRate, string sign
 	}///end loop which calculates the Z->ee trigger efficiency for each unique set of cuts
 
 	///now we know the total rate and Z->ee trigger efficiency for all sets of cut values
-	///find the 5 sets of cuts which maximize Z->ee trigger efficiency and yield a trigger rate <= desiredRate
-	
+	///find the 5 sets of cuts with the 5 highest Z->ee trigger efficiency and trigger rate <= desiredRate
+	map<ULong64_t,vector<Float_t> > tempMap;	///<key is tree entry number, vector holds two elements -> rate (first) and trig efficiency (second)
+	for(ULong64_t j=0; j<rateVector.size(); j++){
+		if(rateVector[j]<0.1 || rateVector[j]>desiredRate) continue;
+		vector<Float_t> rateAndEff;
+		rateAndEff.push_back(rateVector[j]);
+		rateAndEff.push_back(efficiencyVector[j]);
+		tempMap[j]=rateAndEff;
+	}///end loop over elements in rateVector and efficiencyVector
 
 }///end findOptimalCutSets()
 
-/**use this function to fill two vectors with _nPassing and _nEvents values
+
+
+/**use this function to fill two vectors with _nPassing and _nEvents values, and save the cumulative
+ * _nPassing and _nEvents values to a new tree
  * if the first entry of _nEvents is different from the second, then reset the first element in the vector
  * of _nEvents to match the second element in the same vector
  * numPassing will be filled with values of _nPassing
  * maxNumPassing will be filled with values of _nEvents 
  */
-void iterateOverFilesAndEntries(TChain * chain, vector<ULong64_t>& numPassing, vector<ULong64_t>& maxNumPassing){
+void iterateOverFilesAndEntries(TChain * chain, vector<ULong64_t>& numPassing, vector<ULong64_t>& maxNumPassing, string outputFileName){
 	TObjArray * fileElems = chain->GetListOfFiles();
 	TIter fileItr(fileElems);
 	ULong64_t numEvtsPassing=0, maxNumEvtsPassing=0;
@@ -158,9 +171,12 @@ void countNpassingForAllCutSets(){
 	TChain * lowPtChain = new TChain("scanned_tree","");
 	lowPtChain->Add(lowPtPath.c_str());
 
-	iterateOverFilesAndEntries(sigChain,nSignalPassing,nSignalMaxPassing);
-	iterateOverFilesAndEntries(highPtChain,nHighPtBkgndPassing,nHighPtBkgndMaxPassing);
-	iterateOverFilesAndEntries(lowPtChain,nLowPtBkgndPassing,nLowPtBkgndMaxPassing);
+	string sigOutPath = "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/scanned_tuples/test_master_signal_scan_tree.root";
+	string highPtOutPath = "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/scanned_tuples/test_master_high_pt_bkgnd_scan_tree.root";
+	string lowPtOutPath = "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/scanned_tuples/test_master_low_pt_bkgnd_scan_tree.root";
+	iterateOverFilesAndEntries(sigChain,nSignalPassing,nSignalMaxPassing,sigOutPath);
+	iterateOverFilesAndEntries(highPtChain,nHighPtBkgndPassing,nHighPtBkgndMaxPassing,highPtOutPath);
+	iterateOverFilesAndEntries(lowPtChain,nLowPtBkgndPassing,nLowPtBkgndMaxPassing,lowPtOutPath);
 
 	///now vectors of _nPassing and _nEvents are filled, so the trigger rate and Z->ee trigger
 	///efficiencies can be calculated
