@@ -18,87 +18,19 @@
 
 using namespace std;
 
-/**use this function to identify a few sets of cut values which yield good Z->ee trigger efficiency
- * and total rate
- * the same string keys are used in all of the maps which are passed as inputs to this fxn
- * the total rate returned by this function will only represent the rate due to bkgnd evts
- * I should use testMacro.C to calculate the total rate, including signal evts
- *
- * NO NEED FOR THIS
- * use master signal and bkgnd trees which contain all sets of different cut vals, and cumulative _nPassing and _nEvents vals
- */ 
-/*
-vector<map<string,Float_t> > findOptimalCutSets(Float_t desiredRate, string signalKey, map<string,vector<ULong64_t> >& numPassingMap, 
-		map<string,vector<ULong64_t> >& maxNumPassingMap, TChain * templateChain, map<string,vector<Float_t> >& bkgndXsxnsAndLumi){
-	///calculate the rate for every entry in numPassingMap with a bkgnd key
-	vector<Float_t> rateVector;
-	vector<Float_t> efficiencyVector;
-	
-	///fill rateVector with lots of elements, all equal to zero
-	///the number of entries in templateChain is equal to the number of elements in all of the vector<ULong64_t> objects in numPassingMap
-	for(Long64_t entries=0; entries<templateChain->GetEntries(); entries++){
-		rateVector.push_back(0);
-		efficiencyVector.push_back(0);
-	}///end loop to initialize values in rateVector
-	
-	///now calculate the rate
-	for(map<string,vector<ULong64_t> >::const_iterator numPassIt=numPassingMap.begin(); numPassIt!=numPassingMap.end(); numPassIt++){
-		if((numPassIt->first).compare(signalKey) == 0) continue;	///<skip the map entry associated with the signal
-		Float_t lumi = bkgndXsxnsAndLumi[numPassIt->first][0];
-		Float_t xSxn = bkgndXsxnsAndLumi[numPassIt->first][1];
-		Float_t nEvtsInSample = bkgndXsxnsAndLumi[numPassIt->first][2];
-
-#ifdef DEBUG
-		cout<<"lumi = "<< lumi << "\t"<<"xSxn = "<<xSxn <<"\t"<<"total num evts = "<< nEvtsInSample <<endl;
-		cout<<"the number of different cut sets = \t"<< (numPassIt->second).size() << endl;
-		cout<<"\t"<<endl;
-#endif
-
-		for(ULong64_t ind=0; ind<(numPassIt->second).size(); ind++){
-			///multiply the number of passing evts by the lumi and X sxn, and divide by the total number of evts in the sample
-			///store this number in rateVector
-			rateVector[ind] += (Float_t) ((numPassIt->second)[ind])*lumi*xSxn/(nEvtsInSample);
-		}///end loop over elements in numPassingMap vector tied to a specific bkgnd source
-	}///end loop over different bkgnds
-
-	///now the total rate, counting all bkgnd sources, is known for every unique set of cut values
-	///now calculate the Z->ee trigger efficiency for each unique set of cut vals, and store these efficiencies in a vector
-	for(ULong64_t index=0; index<(numPassingMap[signalKey]->second).size(); index++){
-		Float_t nPass = (Float_t) (numPassingMap[signalKey]->second)[index];
-		Float_t nPossible = (Float_t) (maxNumPassingMap[signalKey]->second)[index];
-#ifdef DEBUG
-		if(index<8) cout<<"num sig evts passing = \t"<<nPass<<endl;
-		if(index<8) cout<<"max num sig evts passing = \t"<<nPossible<<endl;
-		if(index<8) cout<<"\t"<<endl;
-#endif
-		
-		if(nPossible>0) efficiencyVector[index] += nPass/nPossible;
-	}///end loop which calculates the Z->ee trigger efficiency for each unique set of cuts
-
-	///now we know the total rate and Z->ee trigger efficiency for all sets of cut values
-	///find the 5 sets of cuts with the 5 highest Z->ee trigger efficiency and trigger rate <= desiredRate
-	map<ULong64_t,vector<Float_t> > tempMap;	///<key is tree entry number, vector holds two elements -> rate (first) and trig efficiency (second)
-	for(ULong64_t j=0; j<rateVector.size(); j++){
-		if(rateVector[j]<0.1 || rateVector[j]>desiredRate) continue;
-		vector<Float_t> rateAndEff;
-		rateAndEff.push_back(rateVector[j]);
-		rateAndEff.push_back(efficiencyVector[j]);
-		tempMap[j]=rateAndEff;
-	}///end loop over elements in rateVector and efficiencyVector
-
-}///end findOptimalCutSets()
-*/
-
 
 /**use this function to fill two vectors with _nPassing and _nEvents values, and save the cumulative
  * _nPassing and _nEvents values to a new tree
  * if the first entry of _nEvents is different from the second, then reset the first element in the vector
  * of _nEvents to match the second element in the same vector
  * numPassing will be filled with values of _nPassing
- * maxNumPassing will be filled with values of _nEvents 
+ * maxNumPassing will be filled with values of _nEvents
+ * this fxn is called once for every unique signal and bkgnd source, so there is no need to pass 
+ * map<string,vector<Float_t> > objects as inputs to this fxn
  */
-void iterateOverFilesAndEntries(TChain * chain, vector<ULong64_t>& numPassing, vector<ULong64_t>& maxNumPassing, string treeIDTag, string outputFileName){
+void iterateOverFilesAndEntries(TChain * chain, vector<ULong64_t>& numPassing, vector<ULong64_t>& maxNumPassing, string treeIDTag, string outputFileName, Float_t genEff, Float_t recoEff, Float_t lumiTimesXsxn){
 	string newTreeName = "master_scanned_tree_"+treeIDTag;
+	TFile * outputFile = new TFile(outputFileName.c_str(),"recreate");
 	TTree * outputTree = new TTree(newTreeName.c_str(),"");  ///< this tree will have the same structure as tempChain, but with two additional branches
 	TObjArray * fileElems = chain->GetListOfFiles();
 	TIter fileItr(fileElems);
@@ -151,12 +83,24 @@ void iterateOverFilesAndEntries(TChain * chain, vector<ULong64_t>& numPassing, v
 			if(index==0) cutBranchesMapVector.push_back(cutBranchesMap);
 		}///end loop over different sets of cut values in tempChain
 		
-		///the first entry of _nEvents in every bkgnd scan file is enormous, and not consistent with the other entries
+		///the first entry of _nEvents in every bkgnd scan file, and some signal scan files, is enormous, 
+		///and not consistent with the other entries
 		///this if() statement fixes this problem for each bkgnd scan file
 		if(maxNumPassing.size()>1 && maxNumPassing[0] != maxNumPassing[1]){
 			///the first entry of _nEvents is messed up, reset it to the correct value
 			maxNumPassing[0] = maxNumPassing[1];
 		}///end if(first element in maxNumPassing is different from all other elements)
+
+		///the first entry of _nPassing in some signal scan files is enormous, and not consistent with
+		///subsequent entries of _nPassing in the same file or with _nEvents in the same entry.
+		///This if statement remedies this problem.
+		if(numPassing.size()>1 && numPassing[0] > maxNumPassing[0]){
+			///this is not the correct value, but it will suffice for now
+			///the first entry in the tree has looser cuts than the second entry, so
+			///at worst the first entry in _nPassing (numPassing[0]) will be equal to the second entry
+			///in _nPassing (numPassing[1])
+			numPassing[0] = numPassing[1];
+		}
 
 #ifdef DEBUG
 		cout<<"looked at \t"<<tempChain->GetEntries()<<"\t entries in a chain"<<endl;
@@ -168,8 +112,9 @@ void iterateOverFilesAndEntries(TChain * chain, vector<ULong64_t>& numPassing, v
 
 	}///end loop over files in input chain
 
-	///now declare two ULong64_t vars, many Float_t[OUTPUTNELE] vars, and link these vars to branches in outputTree
+	///now declare two ULong64_t vars, many Float_t[OUTPUTNELE] vars, one Float_t var, and link these vars to branches in outputTree
 	ULong64_t totalNumPassing=0, totalMaxNumPassing=0;
+	Float_t rate=0;		///< write this into a new branch in the output tree
    	map<string,Float_t[OUTPUTNELE]> floatArrayBranchesMap;
 	for(map<string,Float_t[OUTPUTNELE]>::iterator mapIt=cutBranchesMap.begin(); mapIt!=cutBranchesMap.end(); mapIt++){
 		for(unsigned int i=0; i<OUTPUTNELE; i++){
@@ -180,13 +125,16 @@ void iterateOverFilesAndEntries(TChain * chain, vector<ULong64_t>& numPassing, v
 			mapIt!=floatArrayBranchesMap.end(); mapIt++){
 		outputTree->Branch((mapIt->first).c_str(),&(mapIt->second),((mapIt->first)+"["+to_string(OUTPUTNELE)+"]/F").c_str() );
 	}///end loop to make new Float_t array branches in outputTree
-	outputTree->Branch("totalNumPassing",&totalNumPassing,"totalNumPassing/l");
-	outputTree->Branch("totalMaxNumPassing",&totalMaxNumPassing,"totalMaxNumPassing/l");
+	outputTree->Branch("_nPassing",&totalNumPassing,"_nPassing/l");
+	outputTree->Branch("_nEvents",&totalMaxNumPassing,"_nEvents/l");
+	outputTree->Branch("rate",&rate,"rate/F");
 
 	///fill the branches with values from numPassing, maxNumPassing, and cutBranchesMapVector
 	for(ULong64_t indx=0; indx<numPassing.size(); indx++){
 		totalNumPassing = numPassing[indx];
 		totalMaxNumPassing = maxNumPassing[indx];
+		Float_t trigEff = (Float_t) (numPassing[indx])/maxNumPassing[indx];
+		rate = trigEff*genEff*recoEff*lumiTimesXsxn;
 		for(map<string,Float_t[OUTPUTNELE]>::iterator mapIt=cutBranchesMap.begin();
 				mapIt!=cutBranchesMap.end(); mapIt++){
 			for(unsigned int h=0; h<OUTPUTNELE; h++){
@@ -202,11 +150,8 @@ void iterateOverFilesAndEntries(TChain * chain, vector<ULong64_t>& numPassing, v
 	
 
 	///save outputTree to outputFileName
-	TFile * outputFile = new TFile(outputFileName.c_str(),"recreate");
 	outputFile->cd();
-#ifdef DEBUG
 	cout<<"outputTree name is \t"<< outputTree->GetName() <<endl;
-#endif
 	outputTree->Scan("*","","",10);
 	outputTree->Write();
 	outputFile->Close();
@@ -230,14 +175,17 @@ void countNpassingForAllCutSets(){
 	vector<ULong64_t> nHighPtBkgndMaxPassing;	///max number of high pt bkgnd evts which could have passed a set of cuts 
 	vector<ULong64_t> nLowPtBkgndPassing;	///number of low pt bkgnd evts which pass different sets of cuts
 	vector<ULong64_t> nLowPtBkgndMaxPassing;	///max number of low pt bkgnd evts which could have passed a set of cuts 
+	vector<ULong64_t> nVeryHighPtBkgndPassing;	///number of very high pt bkgnd evts which pass different sets of cuts
+	vector<ULong64_t> nVeryHighPtBkgndMaxPassing;	///max number of very high pt bkgnd evts which could have passed a set of cuts 
 	
 	///make three TChains, each with access to the entire directory of signal OR high pt bkgnd OR low pt bkgnd tuples
 	///use the TChain method GetFile, and finally call GetName() to get the name of the file
 	///use this file name to make a TFile object, and loop over the entries in this file
-	string signalPath = "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/scanned_tuples/scanned_signal_tree_*";
-	string highPtPath = "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/scanned_tuples/scanned_high_pt_bkgnd_tree_*";
-	string lowPtPath = "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/scanned_tuples/scanned_low_pt_bkgnd_tree_*";
-	if(signalPath.empty() || highPtPath.empty() || lowPtPath.empty()){
+	string signalPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/signal/*_SingleEG25.root";
+	string highPtPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_high_pt/*_SingleEG25.root";
+	string lowPtPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_low_pt/*_SingleEG25.root";
+	string veryHighPtPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_very_high_pt/*_SingleEG25.root";
+	if(signalPath.empty() || highPtPath.empty() || lowPtPath.empty() || veryHighPtPath.empty()){
 		cout<<"where are the scanned tuples?"<<endl;
 		return;
 	}
@@ -247,34 +195,35 @@ void countNpassingForAllCutSets(){
 	highPtChain->Add(highPtPath.c_str());
 	TChain * lowPtChain = new TChain("scanned_tree","");
 	lowPtChain->Add(lowPtPath.c_str());
-
-	string sigTreeId="signal", highPtTreeId="highPtBkgnd", lowPtTreeId="lowPtBkgnd";
-	string sigOutPath = "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/scanned_tuples/test_master_signal_scan_tree.root";
-	string highPtOutPath = "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/scanned_tuples/test_master_high_pt_bkgnd_scan_tree.root";
-	string lowPtOutPath = "/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/scanned_tuples/test_master_low_pt_bkgnd_scan_tree.root";
-	iterateOverFilesAndEntries(sigChain,nSignalPassing,nSignalMaxPassing, sigTreeId, sigOutPath);
-	//iterateOverFilesAndEntries(highPtChain,nHighPtBkgndPassing,nHighPtBkgndMaxPassing, highPtTreeId, highPtOutPath);
-	//iterateOverFilesAndEntries(lowPtChain,nLowPtBkgndPassing,nLowPtBkgndMaxPassing, lowPtTreeId, lowPtOutPath);
-
-	///now vectors of _nPassing and _nEvents are filled, so the trigger rate and Z->ee trigger
-	///efficiencies can be calculated
+	TChain * veryHighPtChain = new TChain("scanned_tree","");
+	veryHighPtChain->Add(veryHighPtPath.c_str());
 	
+	string sigTreeId="signal", highPtTreeId="highPtBkgnd", lowPtTreeId="lowPtBkgnd";
+	string veryHighPtTreeId = "veryHighPtBkgnd";
+	string sigOutPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/signal/singleEG25_master_signal_tuple.root";
+	string highPtOutPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_high_pt/singleEG25_master_high_pt_bkgnd_tuple.root";
+	string lowPtOutPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_low_pt/singleEG25_master_low_pt_bkgnd_tuple.root";
+	string veryHighPtOutPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_very_high_pt/singleEG25_master_very_high_pt_bkgnd_tuple.root";
+	
+	Float_t sigRecoEff = 0.55, bkgndRecoEff = 0.16, sigGenEff = 0.08, sigL1Eff = 0.90, pt30to80BkgndL1Eff = 0.08, pt20to30BkgndL1Eff = 0.035;
+	Float_t bkgndRecoEffVeryHighPt = 0.21, pt80to170BkgndL1Eff = 0.19;
+	Float_t lumi = 1.4e34;
+	Float_t rateFactor20to30 = lumi*((6.773*0.01029)*(1e-28));	///< xSxn times lumi for QCD pt 20-30 bkgnd
+	Float_t rateFactor30to80 = lumi*((1.859*0.06071)*(1e-28));
+	Float_t rateFactor80to170 = lumi*((3.529*0.15443)*(1e-30));
+	Float_t rateFactorSignal = lumi*(6.96)*(1e-33);
+
+	iterateOverFilesAndEntries(sigChain,nSignalPassing,nSignalMaxPassing, sigTreeId, sigOutPath, sigGenEff, sigRecoEff*sigL1Eff, rateFactorSignal);
+	iterateOverFilesAndEntries(highPtChain,nHighPtBkgndPassing,nHighPtBkgndMaxPassing, highPtTreeId, highPtOutPath,1, bkgndRecoEff*pt30to80BkgndL1Eff, rateFactor30to80);
+	iterateOverFilesAndEntries(lowPtChain,nLowPtBkgndPassing,nLowPtBkgndMaxPassing, lowPtTreeId, lowPtOutPath,1, bkgndRecoEff*pt20to30BkgndL1Eff, rateFactor20to30);
+	iterateOverFilesAndEntries(veryHighPtChain,nVeryHighPtBkgndPassing,nVeryHighPtBkgndMaxPassing, veryHighPtTreeId, veryHighPtOutPath,1, bkgndRecoEffVeryHighPt*pt80to170BkgndL1Eff, rateFactor80to170);
+
+
 
 	///declare quantities needed for findOptimalCutSets()
-	Float_t targetRate = 2.5;
 	/*
-	map<string,vector<ULong64_t> > nPassingMap, nEventsMap;
-	string sigKey = "signal", lowPtKey = "lowPtBkgnd", highPtKey = "highPtBkgnd";
-	nPassingMap[sigKey]=nSignalPassing;
-	nPassingMap[lowPtKey]=nLowPtBkgndPassing;
-	nPassingMap[highPtKey]=nHighPtBkgndPassing;
-	nEventsMap[sigKey]=nSignalMaxPassing;
-	nEventsMap[lowPtKey]=nLowPtBkgndMaxPassing;
-	nEventsMap[highPtKey]=nHighPtBkgndMaxPassing;
-	TChain * chainForCuts = new TChain("scanned_tree","");
-	chainForCuts->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/scanned_tuples/scanned_signal_tree_4.root");
-	map<string,vector<Float_t> > lumiAndXsxns;
 	vector<Float_t> forHighPt, forLowPt;	///<first element = lumi, second element = cross section, third element = total number evts analyzed
+	map<string,vector<Float_t> > lumiAndXsxns;
 	Float_t highPtBkgndEvts = 740502, lowPtBkgndEvts = 608199;
 	forHighPt.push_back((0.9)*pow(10.,34));
 	forHighPt.push_back((185900000*0.06071)*pow(10.,-36));
@@ -282,8 +231,6 @@ void countNpassingForAllCutSets(){
 	forLowPt.push_back((0.9)*pow(10.,34));
 	forLowPt.push_back((677300000*0.01029)*pow(10.,-36));
 	forLowPt.push_back(lowPtBkgndEvts);
-	lumiAndXsxns[lowPtKey]=forLowPt;
-	lumiAndXsxns[highPtKey]=forHighPt;
 
 	vector<map<string,Float_t> > interestingCutSets = findOptimalCutSets(targetRate, sigKey, nPassingMap, nEventsMap, chainForCuts, lumiAndXsxns);
 	*/

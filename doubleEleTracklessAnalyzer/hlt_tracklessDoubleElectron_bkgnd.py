@@ -2292,7 +2292,7 @@ process.hltBoolEnd = cms.EDFilter( "HLTBool",
 process.hltL1sL1SingleEG20ORL1SingleEG22 = cms.EDFilter( "HLTLevel1GTSeed",
     #L1_SingleEG22 does not exist in L1Menu_Collisions2015_25ns_v2
 	#L1SeedsLogicalExpression = cms.string( "L1_SingleEG20 OR L1_SingleEG22" ),
-    L1SeedsLogicalExpression = cms.string( "L1_SingleEG20" ),
+    L1SeedsLogicalExpression = cms.string( "L1_SingleEG25" ),
 	saveTags = cms.bool( True ),
     L1MuonCollectionTag = cms.InputTag( "hltL1extraParticles" ),
     L1UseL1TriggerObjectMaps = cms.bool( True ),
