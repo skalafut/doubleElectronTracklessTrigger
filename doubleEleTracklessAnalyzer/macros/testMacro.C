@@ -146,6 +146,156 @@ Float_t numEvtsPassingBothLegs(TChain * tracklessChain,TChain * trackedChain,TSt
 
 }//end numEvtsPassingBothLegs()	
 
+/**use this fxn to compare distributions from bkgnd and matched signal chains,
+ * and show the ranges of cut values explored in the scan optimization, and
+ * the ultimate value chosen for each variable.
+ * eta filters need to be applied within this fxn, but no other filters are necessary
+ */
+void compareMatchedSigAndBkgnd(TChain * sigChain,TChain * bkgndVeryHighPtChain,TChain * bkgndHighPtChain,TChain * bkgndLowPtChain,TString sigFillArgs,TString sigListName,TString bkgndVHPtFillArgs,TString bkgndVHPtListName,TString bkgndHPtFillArgs,TString bkgndHPtListName,TString bkgndLPtFillArgs,TString bkgndLPtListName,TString sigHistPlotArg,TString bkgndVHPtHistPlotArg,TString bkgndHPtHistPlotArg,TString bkgndLPtHistPlotArg,TString sigHistName,TString bkgndVHPtHistName,TString bkgndHPtHistName,TString bkgndLPtHistName,Double_t highEffCutVal,Double_t lowEffCutVal,Double_t optimalCutVal,TString histTitle,TString xAxisTitle,TString canvName,TString outputFile,Bool_t isPlottingEnergy,Bool_t isPlottingInverseEnergy,Bool_t isLowerBound,Bool_t doCrossSxnNormalization,TString etaRegion){
+	if(!(etaRegion.Contains("trackless")) && !(etaRegion.Contains("trackedEE")) && !(etaRegion.Contains("EB")) ){
+		std::cout<<"etaRegion is not formatted correctly!  Leaving fxn."<<std::endl;
+		return;
+	}
+	TCut filters="";
+	if(etaRegion.Contains("trackless")){
+		filters="TMath::Abs(etaHltEle)>2.5 && TMath::Abs(etaHltEle)<3.0";
+	}
+	if(etaRegion.Contains("trackedEE")){
+		filters="TMath::Abs(etaHltEle)<2.5 && TMath::Abs(etaHltEle)>1.479";
+	}
+	if(etaRegion.Contains("EB")){
+		filters="TMath::Abs(etaHltEle)<1.479";
+	}
+
+
+	sigChain->Draw(sigFillArgs,filters,"entrylistarray");
+	sigChain->SetEntryList((TEntryListArray*) gROOT->FindObject(sigListName));
+	bkgndVeryHighPtChain->Draw(bkgndVHPtFillArgs,filters,"entrylistarray");
+	bkgndVeryHighPtChain->SetEntryList((TEntryListArray*) gROOT->FindObject(bkgndVHPtListName));
+	bkgndHighPtChain->Draw(bkgndHPtFillArgs,filters,"entrylistarray");
+	bkgndHighPtChain->SetEntryList((TEntryListArray*) gROOT->FindObject(bkgndHPtListName));
+	bkgndLowPtChain->Draw(bkgndLPtFillArgs,filters,"entrylistarray");
+	bkgndLowPtChain->SetEntryList((TEntryListArray*) gROOT->FindObject(bkgndLPtListName));
+
+	TCanvas * canv = new TCanvas(canvName,canvName,700,700);
+	canv->cd();
+	sigChain->Draw(sigHistPlotArg);
+	TH1F * sigHist = (TH1F*) gROOT->FindObject(sigHistName);
+	bkgndVeryHighPtChain->Draw(bkgndVHPtHistPlotArg);
+	TH1F * bkgndVeryHighPtHist = (TH1F*) gROOT->FindObject(bkgndVHPtHistName);
+	bkgndHighPtChain->Draw(bkgndHPtHistPlotArg);
+	TH1F * bkgndHighPtHist = (TH1F*) gROOT->FindObject(bkgndHPtHistName);
+	bkgndLowPtChain->Draw(bkgndLPtHistPlotArg);
+	TH1F * bkgndLowPtHist = (TH1F*) gROOT->FindObject(bkgndLPtHistName);
+
+	if(!doCrossSxnNormalization){
+		bkgndHighPtHist->Add(bkgndLowPtHist);
+		bkgndHighPtHist->Add(bkgndVeryHighPtHist);
+		Double_t sigIntegral = sigHist->Integral();
+		sigHist->Scale(1/sigIntegral);
+		Double_t bkgndIntegral = bkgndHighPtHist->Integral();
+		bkgndHighPtHist->Scale(1/bkgndIntegral);
+	}//end if(!doCrossSxnNormalization)
+	if(doCrossSxnNormalization){
+		Double_t sigXSxn = (1500)*(TMath::Power(10.,-36));
+		sigHist->Scale(sigXSxn/sigXSxn);
+		Double_t bkgndLowPtXSxn = (677300000*0.01029)*(1e-36);
+		Double_t bkgndHighPtXSxn = (185900000*0.06071)*(1e-36);
+		Double_t bkgndVeryHighPtXSxn = (3.529*0.15443)*(1e-30);
+		bkgndLowPtHist->Scale(bkgndLowPtXSxn/sigXSxn);
+		bkgndHighPtHist->Scale(bkgndHighPtXSxn/sigXSxn);
+		bkgndVeryHighPtHist->Scale(bkgndVeryHighPtXSxn/sigXSxn);
+		bkgndHighPtHist->Add(bkgndLowPtHist);
+		bkgndHighPtHist->Add(bkgndVeryHighPtHist);
+	}//end if(doCrossSxnNormalization)
+	std::cout<<"normalized histos"<<std::endl;
+	sigHist->SetLineColor(1);	//black
+	bkgndHighPtHist->SetLineColor(2);	//red
+
+	///draw three TLine objects to represent the range of cut values scanned, and the optimal value chosen
+	Double_t shift = 0.0001;
+	TLine * highEffLine;
+	TLine * lowEffLine;
+	TLine * optimalCutLine;
+
+	//sigHist will be drawn first, bkgndHighPtHist overlaid on top.  If the largest bin in bkgndHighPtHist > the largest bin in sigHist,
+	//then increase the y axis max on sigHist to accommodate the peak in bkgndHighPtHist
+	if(sigHist->GetBinContent(sigHist->GetMaximumBin()) < bkgndHighPtHist->GetBinContent(bkgndHighPtHist->GetMaximumBin())){
+		std::cout<<"resetting sighist max, and setting length of cut lines"<<std::endl;
+		sigHist->SetMaximum((1.1)*( bkgndHighPtHist->GetBinContent(bkgndHighPtHist->GetMaximumBin()) ) );
+		highEffLine = new TLine(highEffCutVal,0.001, highEffCutVal+shift, (1.0)*bkgndHighPtHist->GetBinContent(bkgndHighPtHist->GetMaximumBin()));
+		lowEffLine = new TLine(lowEffCutVal,0.001, lowEffCutVal+shift, (1.0)*bkgndHighPtHist->GetBinContent(bkgndHighPtHist->GetMaximumBin()));
+		optimalCutLine = new TLine(optimalCutVal,0.001, optimalCutVal+shift, (1.0)*bkgndHighPtHist->GetBinContent(bkgndHighPtHist->GetMaximumBin()));
+	}///end if(sigHist max < bkgndHist max)
+	else{
+		std::cout<<"sighist max is greater than bkgndHist max.  No need to rescale axes, just initialize TLine objects"<<std::endl;
+		highEffLine = new TLine(highEffCutVal,0.001, highEffCutVal+shift, (1.0)*sigHist->GetBinContent(sigHist->GetMaximumBin()));
+		lowEffLine = new TLine(lowEffCutVal,0.001, lowEffCutVal+shift, (1.0)*sigHist->GetBinContent(sigHist->GetMaximumBin()));
+		optimalCutLine = new TLine(optimalCutVal,0.001, optimalCutVal+shift, (1.0)*sigHist->GetBinContent(sigHist->GetMaximumBin()));
+	}
+	
+	std::cout<<"set length of cut lines"<<std::endl;
+
+	highEffLine->SetLineColor(1);	///black
+	lowEffLine->SetLineColor(1);
+	optimalCutLine->SetLineColor(4);	///blue
+	highEffLine->SetLineWidth(3);
+	lowEffLine->SetLineWidth(3);
+	optimalCutLine->SetLineWidth(3);
+	std::cout<<"set color and width of cut lines"<<std::endl;
+	
+	TString titleAddendum = "  black=signal, red=bkgnd";
+	TString completeTitle = histTitle + titleAddendum;
+	sigHist->SetTitle(completeTitle);
+	//if isPlottingEnergy or isPlottingInverseEnergy is true, then append units to the x axis label
+	TString enrg = " (GeV)";
+	TString invEnrg = " (1/GeV)";
+	TString completeXaxisTitle;
+	if(isPlottingEnergy) completeXaxisTitle = xAxisTitle+enrg;
+	if(isPlottingInverseEnergy) completeXaxisTitle = xAxisTitle+invEnrg;
+	if(!isPlottingEnergy && !isPlottingInverseEnergy) completeXaxisTitle = xAxisTitle;
+	sigHist->GetXaxis()->SetTitle(completeXaxisTitle);
+	if(histTitle.Contains("Iso") ){
+		//std::cout<<"setting y axis to log scale"<<std::endl;
+		canv->SetLogy(1);
+		//sigHist->SetMinimum(1);
+	}
+	char temp[130];
+	if(isPlottingInverseEnergy && sigHist->GetXaxis()->GetBinWidth(1) > 0.01){
+		sprintf(temp,"Events / %.2f / GeV", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if(isPlottingEnergy && sigHist->GetXaxis()->GetBinWidth(1) > 0.01){
+		sprintf(temp,"Events / %.2f GeV", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( isPlottingEnergy && sigHist->GetXaxis()->GetBinWidth(1) <= 0.01){
+		sprintf(temp,"Events / %.3f GeV", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( isPlottingInverseEnergy && sigHist->GetXaxis()->GetBinWidth(1) <= 0.01){
+		sprintf(temp,"Events / %.3f / GeV", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( isPlottingInverseEnergy && sigHist->GetXaxis()->GetBinWidth(1) <= 0.001){
+		sprintf(temp,"Events / %.4f / GeV", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( !isPlottingInverseEnergy && !isPlottingEnergy && sigHist->GetXaxis()->GetBinWidth(1) <= 0.001){
+		sprintf(temp,"Events / %.4f ", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( !isPlottingInverseEnergy && !isPlottingEnergy && sigHist->GetXaxis()->GetBinWidth(1) <= 0.01){
+		sprintf(temp,"Events / %.3f ", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	if( !isPlottingInverseEnergy && !isPlottingEnergy && sigHist->GetXaxis()->GetBinWidth(1) > 0.01){
+		sprintf(temp,"Events / %.2f ", sigHist->GetXaxis()->GetBinWidth(1));
+	}
+	sigHist->GetYaxis()->SetTitle(temp);
+	sigHist->Draw();
+	bkgndHighPtHist->Draw("same");
+	lowEffLine->Draw();
+	highEffLine->Draw();
+	optimalCutLine->Draw();
+	canv->SaveAs(outputFile,"recreate");
+
+}///end compareMatchedSigAndBkgnd()
+
+
 //use this fxn to make a histogram of a kinematic or isolation variable for matched signal objects,
 //and objects from bkgnd files.  The matched signal objects will be subject to a slightly different
 //set of cuts than the objects from bkgnd events, but only because some deltaR filtering will be done
@@ -177,13 +327,6 @@ std::vector<Double_t> findOptimalCutMaxSigMinBkgnd(TChain * sigChain,TChain * bk
 	TH1F * bkgndHighPtHist = (TH1F*) gROOT->FindObject(bkgndHighPtHistName);
 	bkgndLowPtChain->Draw(bkgndLowPtHistPlotArg);
 	TH1F * bkgndLowPtHist = (TH1F*) gROOT->FindObject(bkgndLowPtHistName);
-
-	//now find cutVal which maximizes
-	// ( ( sigHist->Integral(critVal, cutVal)/sigHist->Integral()) - (bkgndHist->Integral(critVal,cutVal)/bkgndHist->Integral())  )
-	//if the cut variable will be used as an upper bound
-	//OR
-	// ( ( sigHist->Integral(cutVal, critVal)/sigHist->Integral()) - (bkgndHist->Integral(cutVal, critVal)/bkgndHist->Integral())  )
-	//if the cut var will be used as a lower bound
 
 	//std::cout<<"grabbed histos"<<std::endl;
 	//the last element in cutVals is the value of the variable being plotted which maximizes
@@ -945,52 +1088,51 @@ void testMacro(){
 	TString SignalTracklessTreeName = "recoTreeBeforeTriggerFiltersTracklessSignal.";
 
 
-	TChain * trackedLowPtBkgndChain = new TChain("recoAnalyzerTrackedNoCuts/recoTreeBeforeTriggerFiltersTrackedBkgndNoCuts","");
-	trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/from7_4_0_pre9/*_25ns.root");
+	TChain * trackedLowPtBkgndChain = new TChain("recoAnalyzerTrackedWithL1Filter/recoTreeBeforeTriggerFiltersTrackedBkgndWithL1Filter","");
+	trackedLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_20to30_pt/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
 	
-	TChain * trackedHighPtBkgndChain = new TChain("recoAnalyzerTrackedNoCuts/recoTreeBeforeTriggerFiltersTrackedBkgndNoCuts","");
-	trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/from7_4_0_pre9/*_25ns.root");
-
-
-	TChain * tracklessLowPtBkgndChain = new TChain("recoAnalyzerTracklessNoCuts/recoTreeBeforeTriggerFiltersTracklessBkgndNoCuts","");
-	tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_low_pt/from7_4_0_pre9/*_25ns.root");
+	TChain * trackedHighPtBkgndChain = new TChain("recoAnalyzerTrackedWithL1Filter/recoTreeBeforeTriggerFiltersTrackedBkgndWithL1Filter","");
+	trackedHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_30to80_pt/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
 	
-	TChain * tracklessHighPtBkgndChain = new TChain("recoAnalyzerTracklessNoCuts/recoTreeBeforeTriggerFiltersTracklessBkgndNoCuts","");
-	tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_high_pt/from7_4_0_pre9/*_25ns.root");
+	TChain * trackedVeryHighPtBkgndChain = new TChain("recoAnalyzerTrackedWithL1Filter/recoTreeBeforeTriggerFiltersTrackedBkgndWithL1Filter","");
+	trackedVeryHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_80to170_pt/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
 
 
-	TChain * trackedSignalChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedSignal","");
-	trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
+
+	TChain * tracklessLowPtBkgndChain = new TChain("recoAnalyzerTracklessWithL1Filter/recoTreeBeforeTriggerFiltersTracklessBkgndWithL1Filter","");
+	tracklessLowPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_20to30_pt/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
 	
-	TChain * tracklessSignalChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessSignal","");
-	tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
-
-	TChain * copy_trackedSignalChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedSignal","");
-	copy_trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
+	TChain * tracklessHighPtBkgndChain = new TChain("recoAnalyzerTracklessWithL1Filter/recoTreeBeforeTriggerFiltersTracklessBkgndWithL1Filter","");
+	tracklessHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_30to80_pt/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
 	
-	TChain * copy_tracklessSignalChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessSignal","");
-	copy_tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
+	TChain * tracklessVeryHighPtBkgndChain = new TChain("recoAnalyzerTracklessWithL1Filter/recoTreeBeforeTriggerFiltersTracklessBkgndWithL1Filter","");
+	tracklessVeryHighPtBkgndChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_80to170_pt/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
 
-	TChain * copy_two_trackedSignalChain = new TChain("recoAnalyzerTracked/recoTreeBeforeTriggerFiltersTrackedSignal","");
-	copy_two_trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
+
+	TChain * trackedSignalChain = new TChain("recoAnalyzerTrackedWithL1Filter/recoTreeBeforeTriggerFiltersTrackedSignalWithL1Filter","");
+	trackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
 	
-	TChain * copy_two_tracklessSignalChain = new TChain("recoAnalyzerTrackless/recoTreeBeforeTriggerFiltersTracklessSignal","");
-	copy_two_tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
+	TChain * tracklessSignalChain = new TChain("recoAnalyzerTracklessWithL1Filter/recoTreeBeforeTriggerFiltersTracklessSignalWithL1Filter","");
+	tracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
 
 
+	TChain * matchedTrackedSignalChain = new TChain("recoAnalyzerMatchedTrackedWithL1Filter/recoTreeBeforeTriggerFiltersMatchedTrackedSignalWithL1Filter","");
+	matchedTrackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
+	
+	TChain * matchedTracklessSignalChain = new TChain("recoAnalyzerMatchedTracklessWithL1Filter/recoTreeBeforeTriggerFiltersMatchedTracklessSignalWithL1Filter","");
+	matchedTracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
 
-	TChain * matchedTrackedSignalChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
-	matchedTrackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
-	//
-	TChain * matchedTracklessSignalChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
-	matchedTracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*.root");
 
+	//void compareMatchedSigAndBkgnd(TChain * sigChain,TChain * bkgndVeryHighPtChain,TChain * bkgndHighPtChain,TChain * bkgndLowPtChain,TString sigFillArgs,TString sigListName,TString bkgndVHPtFillArgs,TString bkgndVHPtListName,TString bkgndHPtFillArgs,TString bkgndHPtListName,TString bkgndLPtFillArgs,TString bkgndLPtListName,TString sigHistPlotArg,TString bkgndVHPtHistPlotArg,TString bkgndHPtHistPlotArg,TString bkgndLPtHistPlotArg,TString sigHistName,TString bkgndVHPtHistName,TString bkgndHPtHistName,TString bkgndLPtHistName,Double_t highEffCutVal,Double_t lowEffCutVal,Double_t optimalCutVal,TString histTitle,TString xAxisTitle,TString canvName,TString outputFile,Bool_t isPlottingEnergy,Bool_t isPlottingInverseEnergy,Bool_t isLowerBound,Bool_t doCrossSxnNormalization,TString etaRegion)
 
-	//TChain * copy_matchedTrackedSignalChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
-	//copy_matchedTrackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
-	//
-	//TChain * copy_matchedTracklessSignalChain = new TChain("recoAnalyzerMatchedTrackless/recoTreeBeforeTriggerFiltersMatchedTracklessSignal","");
-	//copy_matchedTracklessSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/*");
+	compareMatchedSigAndBkgnd(matchedTrackedSignalChain,trackedVeryHighPtBkgndChain,trackedHighPtBkgndChain,trackedLowPtBkgndChain,">>clusterShapeTrackedBarrelSignalList","clusterShapeTrackedBarrelSignalList",">>clusterShapeTrackedBarrelVHPtBkgndList","clusterShapeTrackedBarrelVHPtBkgndList",">>clusterShapeTrackedBarrelHPtBkgndList","clusterShapeTrackedBarrelHPtBkgndList",">>clusterShapeTrackedBarrelLPtBkgndList","clusterShapeTrackedBarrelLPtBkgndList","clusterShapeHltEle>>clusterShapeTrackedBarrelSignalHisto(100,0.,0.04)","clusterShapeHltEle>>clusterShapeTrackedBarrelVHPtBkgndHisto(100,0.,0.04)","clusterShapeHltEle>>clusterShapeTrackedBarrelHPtBkgndHisto(100,0.,0.04)","clusterShapeHltEle>>clusterShapeTrackedBarrelLPtBkgndHisto(100,0.,0.04)","clusterShapeTrackedBarrelSignalHisto","clusterShapeTrackedBarrelVHPtBkgndHisto","clusterShapeTrackedBarrelHPtBkgndHisto","clusterShapeTrackedBarrelLPtBkgndHisto",0.017,0.011,0.014,"#sigma_{i#etai#eta} in EB for signal and bkgnds","#sigma_{i#etai#eta}","c1","cluster_shape_EB_matched_signal_and_bkgnds_showing_scan_range.png",false,false,false,false,"EB");
+
+	compareMatchedSigAndBkgnd(matchedTrackedSignalChain,trackedVeryHighPtBkgndChain,trackedHighPtBkgndChain,trackedLowPtBkgndChain,">>hadEmTrackedBarrelSignalList","hadEmTrackedBarrelSignalList",">>hadEmTrackedBarrelVHPtBkgndList","hadEmTrackedBarrelVHPtBkgndList",">>hadEmTrackedBarrelHPtBkgndList","hadEmTrackedBarrelHPtBkgndList",">>hadEmTrackedBarrelLPtBkgndList","hadEmTrackedBarrelLPtBkgndList","hadEmHltEle>>hadEmTrackedBarrelSignalHisto(100,0.,0.4)","hadEmHltEle>>hadEmTrackedBarrelVHPtBkgndHisto(100,0.,0.4)","hadEmHltEle>>hadEmTrackedBarrelHPtBkgndHisto(100,0.,0.4)","hadEmHltEle>>hadEmTrackedBarrelLPtBkgndHisto(100,0.,0.4)","hadEmTrackedBarrelSignalHisto","hadEmTrackedBarrelVHPtBkgndHisto","hadEmTrackedBarrelHPtBkgndHisto","hadEmTrackedBarrelLPtBkgndHisto",0.2,0.08,0.14,"relative H/E in EB for signal and bkgnds","relative H/E","c2","rel_HoverE_EB_matched_signal_and_bkgnds_showing_scan_range.png",false,true,false,false,"EB");
+
+	compareMatchedSigAndBkgnd(matchedTrackedSignalChain,trackedVeryHighPtBkgndChain,trackedHighPtBkgndChain,trackedLowPtBkgndChain,">>ecalIsoTrackedBarrelSignalList","ecalIsoTrackedBarrelSignalList",">>ecalIsoTrackedBarrelVHPtBkgndList","ecalIsoTrackedBarrelVHPtBkgndList",">>ecalIsoTrackedBarrelHPtBkgndList","ecalIsoTrackedBarrelHPtBkgndList",">>ecalIsoTrackedBarrelLPtBkgndList","ecalIsoTrackedBarrelLPtBkgndList","ecalIsoHltEle>>ecalIsoTrackedBarrelSignalHisto(100,0.,0.6)","ecalIsoHltEle>>ecalIsoTrackedBarrelVHPtBkgndHisto(100,0.,0.6)","ecalIsoHltEle>>ecalIsoTrackedBarrelHPtBkgndHisto(100,0.,0.6)","ecalIsoHltEle>>ecalIsoTrackedBarrelLPtBkgndHisto(100,0.,0.6)","ecalIsoTrackedBarrelSignalHisto","ecalIsoTrackedBarrelVHPtBkgndHisto","ecalIsoTrackedBarrelHPtBkgndHisto","ecalIsoTrackedBarrelLPtBkgndHisto",0.39,0.19,0.29,"relative ecalIso in EB for signal and bkgnds","relative ecalIso","c3","rel_ecalIso_EB_matched_signal_and_bkgnds_showing_scan_range.png",false,true,false,false,"EB");
+
+	compareMatchedSigAndBkgnd(matchedTrackedSignalChain,trackedVeryHighPtBkgndChain,trackedHighPtBkgndChain,trackedLowPtBkgndChain,">>hcalIsoTrackedBarrelSignalList","hcalIsoTrackedBarrelSignalList",">>hcalIsoTrackedBarrelVHPtBkgndList","hcalIsoTrackedBarrelVHPtBkgndList",">>hcalIsoTrackedBarrelHPtBkgndList","hcalIsoTrackedBarrelHPtBkgndList",">>hcalIsoTrackedBarrelLPtBkgndList","hcalIsoTrackedBarrelLPtBkgndList","hcalIsoHltEle>>hcalIsoTrackedBarrelSignalHisto(100,0.,0.5)","hcalIsoHltEle>>hcalIsoTrackedBarrelVHPtBkgndHisto(100,0.,0.5)","hcalIsoHltEle>>hcalIsoTrackedBarrelHPtBkgndHisto(100,0.,0.5)","hcalIsoHltEle>>hcalIsoTrackedBarrelLPtBkgndHisto(100,0.,0.5)","hcalIsoTrackedBarrelSignalHisto","hcalIsoTrackedBarrelVHPtBkgndHisto","hcalIsoTrackedBarrelHPtBkgndHisto","hcalIsoTrackedBarrelLPtBkgndHisto",0.3,0.15,0.25,"relative hcalIso in EB for signal and bkgnds","relative hcalIso","c4","rel_hcalIso_EB_matched_signal_and_bkgnds_showing_scan_range.png",false,true,false,false,"EB");
+
 
 
 
@@ -1095,11 +1237,11 @@ void testMacro(){
 
 
 	////tracked and trackless leg cuts for playing around
-	TCut trialTrackedEBPt = "ptHltEle>=22.";
+	TCut trialTrackedEBPt = "ptHltEle>=27.";
 
 	TCut trialTrackedEBSigmaIEIE = "clusterShapeHltEle<=0.017";
 	TCut trialTrackedEBHE = "hadEmHltEle<=0.2";
-	TCut trialTrackedEBEcalIso = "ecalIsoHltEle<=0.35";
+	TCut trialTrackedEBEcalIso = "ecalIsoHltEle<=0.39";
 	TCut trialTrackedEBHcalIso = "hcalIsoHltEle<=0.3";
 	TCut trialTrackedEBEp = "epHltEle<=0.012";
 	TCut trialTrackedEBDeta = "dEtaHltEle<=0.005";
@@ -1109,20 +1251,18 @@ void testMacro(){
 	TCut trialTrackedEEPt = "ptHltEle>=27.";
 	TCut trialTrackedEESigmaIEIE = "clusterShapeHltEle<=0.036";
 	TCut trialTrackedEEHE = "hadEmHltEle<=0.2";
-	TCut trialTrackedEEEcalIso = "ecalIsoHltEle<=0.25";
-	TCut trialTrackedEEHcalIso = "hcalIsoHltEle<=0.3";
+	TCut trialTrackedEEEcalIso = "ecalIsoHltEle<=0.26";
+	TCut trialTrackedEEHcalIso = "hcalIsoHltEle<=0.34";
 	TCut trialTrackedEEEp = "epHltEle<=0.009";
 	TCut trialTrackedEEDeta = "dEtaHltEle<=0.01";
 	TCut trialTrackedEEDphi = "dPhiHltEle<=0.03";
 	TCut trialTrackedEETrackIso = "trackIsoHltEle<=0.125";
 
-	TCut trialTracklessPt = "ptHltEle>=20.";
-	TCut trialTracklessEESigmaIEIE = "clusterShapeHltEle<=0.04";
-	TCut trialTracklessEEHE = "hadEmHltEle<=0.25";
+	TCut trialTracklessPt = "ptHltEle>=16.";
+	TCut trialTracklessEESigmaIEIE = "clusterShapeHltEle<=0.043";
+	TCut trialTracklessEEHE = "hadEmHltEle<=0.26";
 	TCut trialTracklessEEEcalIso = "ecalIsoHltEle<=0.25";
 	TCut trialTracklessEEHcalIso = "hcalIsoHltEle<=0.77";
-
-
 
 
 
@@ -1175,7 +1315,7 @@ void testMacro(){
 	*/
 
 
-	Float_t sigEvtsPassing=0, bkgndLowPtEvtsPassing=0, bkgndHighPtEvtsPassing=0;
+	Float_t sigEvtsPassing=0, bkgndLowPtEvtsPassing=0, bkgndHighPtEvtsPassing=0, bkgndVeryHighPtEvtsPassing=0;
 
 
 	//Float_t numEvtsPassingBothLegs(TChain * tracklessChain,TChain * trackedChain,TString tracklessListFillArgs,TString tracklessListName,TString trackedListFillArgs,TString trackedListName,TCut tracklessFilters,TCut trackedFilters )
@@ -1188,10 +1328,19 @@ void testMacro(){
 	//sigEvtsPassing = numEvtsPassingBothLegs(tracklessSignalChain,trackedSignalChain,">>tracklessevtNumberZeroSignalList","tracklessevtNumberZeroSignalList",">>trackedevtNumberZeroSignalList","trackedevtNumberZeroSignalList",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
 
 
+	/*
 	bkgndLowPtEvtsPassing = numEvtsPassingBothLegs(tracklessLowPtBkgndChain,trackedLowPtBkgndChain,">>tracklessevtNumberZeroLowPtBkgndList","tracklessevtNumberZeroLowPtBkgndList",">>trackedevtNumberZeroLowPtBkgndList","trackedevtNumberZeroLowPtBkgndList",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
 
 	bkgndHighPtEvtsPassing = numEvtsPassingBothLegs(tracklessHighPtBkgndChain,trackedHighPtBkgndChain,">>tracklessevtNumberZeroHighPtBkgndList","tracklessevtNumberZeroHighPtBkgndList",">>trackedevtNumberZeroHighPtBkgndList","trackedevtNumberZeroHighPtBkgndList",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
 
+	bkgndVeryHighPtEvtsPassing = numEvtsPassingBothLegs(tracklessVeryHighPtBkgndChain,trackedVeryHighPtBkgndChain,">>tracklessevtNumberZeroVeryHighPtBkgndList","tracklessevtNumberZeroVeryHighPtBkgndList",">>trackedevtNumberZeroVeryHighPtBkgndList","trackedevtNumberZeroVeryHighPtBkgndList",trialTracklessEndcapLeg,(trialTrackedBarrelLeg || trialTrackedEndcapLeg) );
+
+	std::cout<<"\t"<<std::endl;
+	std::cout<< bkgndHighPtEvtsPassing <<"\t HighPt bkgnd evts passed cuts"<<std::endl;
+	std::cout<< bkgndVeryHighPtEvtsPassing <<"\t VeryHighPt bkgnd evts passed cuts"<<std::endl;
+	std::cout<< bkgndLowPtEvtsPassing <<"\t LowPt bkgnd evts passed cuts"<<std::endl;
+	std::cout<<"\t"<<std::endl;
+	*/
 
 	//std::vector<Float_t> calcTriggerRate(Float_t nSigEvts, TChain * sigChain, Float_t nLowPtBkgndEvts, TChain * lowPtBkgndChain, Float_t nHighPtBkgndEvts, TChain * highPtBkgndChain)
 

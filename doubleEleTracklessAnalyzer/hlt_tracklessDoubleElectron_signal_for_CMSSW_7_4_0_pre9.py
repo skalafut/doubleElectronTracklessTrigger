@@ -6105,7 +6105,8 @@ process.TFileService = cms.Service("TFileService",
 
 process.source = cms.Source( "PoolSource",
     fileNames = cms.untracked.vstring(
-	   #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/06911F9F-9899-E411-B576-001E67396ACC.root',
+		"/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/file_from_DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_GEN_SIM_RAW_dataset_1.root"
+		#'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/06911F9F-9899-E411-B576-001E67396ACC.root',
        #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/1676BF69-8E99-E411-8544-001E673976D9.root',
        #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/24BB002C-A199-E411-A815-001E67397E13.root',
        #'root://cms-xrd-global.cern.ch//store/mc/Phys14DR/DYToEE_M-50_Tune4C_13TeV-pythia8/GEN-SIM-RAW/PU40bx25_tsg_castor_PHYS14_25_V1-v2/00000/2CFB8725-9299-E411-BB74-001E67396DCE.root',
@@ -6240,31 +6241,31 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 
 #this is a standalone module to save the output from cmsRun hlt_tracklessDoubleElectron.py into a .root file
 #This .root file can then be analyzed by the trigger optimization script
-#process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
-#	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects.root"),
-#	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects_no_filter_refs.root"),
-#	fileName = cms.untracked.string("signal_1.root"),
-#	fastCloning = cms.untracked.bool( False ),
-#    dataset = cms.untracked.PSet(
-#        dataTier = cms.untracked.string( 'RECO' ),
-#        filterName = cms.untracked.string( '' )
-#    ),
-#    #Drop l1extra* collections 
-#	outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop l1extra*_*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
-#    
-#	#l1extra* collections are not dropped
-#	#outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
-#    
-#	#keep all collections
-#	#outputCommands = cms.untracked.vstring( 'keep *' ) 
-#
-#	)
-#process.FULLOutput = cms.EndPath( process.hltOutputFULL )
+process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
+	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects.root"),
+	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects_no_filter_refs.root"),
+	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/DY_to_EE_13TeV_40PU_25ns_bx_mLL_50_Phys14_file_passed_through_HLT_and_L1_menu_v2.root"),
+	fastCloning = cms.untracked.bool( False ),
+    dataset = cms.untracked.PSet(
+        dataTier = cms.untracked.string( 'RECO' ),
+        filterName = cms.untracked.string( '' )
+    ),
+    #Drop l1extra* collections 
+	#outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop l1extra*_*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
+    
+	#l1extra* collections are not dropped
+	#outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
+    
+	#keep all collections
+	outputCommands = cms.untracked.vstring( 'keep *' ) 
+
+	)
+process.FULLOutput = cms.EndPath( process.hltOutputFULL )
 
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(30)
 )
 
 # enable the TrigReport and TimeReport
