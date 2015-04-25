@@ -1,4 +1,3 @@
-#include "TMath.h"
 #include <TTree.h>
 #include <TChain.h>
 #include <TFile.h>
@@ -12,7 +11,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-
+#include "TMath.h"
 
 using namespace std;
 
@@ -59,7 +58,7 @@ void calcMatchingEffAndUnc(TChain * chain, Float_t & efficiency, Float_t & uncer
  * a number of evts N available, and a subset of evts k which pass the cuts
  */
 void calcEffAndUnc(Float_t Nevts, Float_t kevts, Float_t & eff, Float_t & uncert){
-	cout<<"max num evts = \t"<< Nevts <<"\t passing evts = \t"<< kevts <<endl;
+	//cout<<"max num evts = \t"<< Nevts <<"\t passing evts = \t"<< kevts <<endl;
 	eff = kevts/Nevts;
 	uncert = (1/Nevts)*TMath::Sqrt(kevts*(1 - (kevts/Nevts) ));
 }///end calcEffAndUnc()
@@ -155,6 +154,10 @@ void calculateEfficiencies(){
 	TChain * matchedTrackedSignalChainNoCuts = new TChain("recoAnalyzerMatchedTrackedNoCuts/recoTreeBeforeTriggerFiltersMatchedTrackedSignalNoCuts","");
 	matchedTrackedSignalChainNoCuts->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
 
+	TChain * matchedTrackedSignalChainNoCutsHasTracklessAndTracked = new TChain("recoAnalyzerMatchedTrackedNoCutsHasTracklessAndTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignalNoCutsHasTracklessAndTracked","");
+	matchedTrackedSignalChainNoCutsHasTracklessAndTracked->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
+
+
 	TChain * matchedTrackedSignalChainNoCutsRequireTracked = new TChain("recoAnalyzerMatchedTrackedNoCutsRequireTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignalNoCutsRequireTracked","");
 	matchedTrackedSignalChainNoCutsRequireTracked->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
 
@@ -171,27 +174,34 @@ void calculateEfficiencies(){
 
 	Float_t signalGenEff=0, signalL1Eff=0, signalRecoEff=0, signalTrackedMatchingEff=0, signalTracklessMatchingEff=0;
 	Float_t signalGenEffUnc=10, signalL1EffUnc=10, signalRecoEffUnc=10, signalTrackedMatchingEffUnc=10, signalTracklessMatchingEffUnc=10;
-	Float_t signalRecoTrackedEff=0, signalRecoTracklessEff=0;
-	Float_t signalRecoTrackedEffUnc=10, signalRecoTracklessEffUnc=10;
+	Float_t signalRecoTrackedEff=0, signalRecoTracklessEff=0, signalRecoMassCutEff=0;
+	Float_t signalRecoTrackedEffUnc=10, signalRecoTracklessEffUnc=10, signalRecoMassCutEffUnc=10;
 
 
+	///calculate the fraction of evts which have two GEN electrons with Z mother, one of which is in the tracked eta region, the other is
+	///in the trackless EE region, and their dilepton mass is btwn 60 and 120 GeV
 	calcEffAndUnc((Float_t) (trackedSignalChainNoCuts->GetEntries()), (Float_t) (matchedTrackedSignalChainNoCuts->GetEntries()), signalGenEff, signalGenEffUnc);
 
-	cout<<"about to calculate efficiency for a tracked reco object to be found, conditional on GEN cuts being passed"<<endl;
+	///calculate the fraction of evts which already passed the GEN cuts and have at least one RecoEcalCandidate within tracker eta coverage 
 	calcEffAndUnc((Float_t) (matchedTrackedSignalChainNoCuts->GetEntriesFast()), (Float_t) (matchedTrackedSignalChainNoCutsRequireTracked->GetEntries()),signalRecoTrackedEff,signalRecoTrackedEffUnc);
 
-	cout<<"\t"<<endl;
-	cout<<"about to calculate efficiency for a trackless reco object to be found, conditional on GEN cuts being passed"<<endl;
+	///calculate the fraction of evts which already passed the GEN cuts and have at least one RecoEcalCandidate within trackless eta region 
 	calcEffAndUnc((Float_t) (matchedTrackedSignalChainNoCuts->GetEntriesFast()), (Float_t) (matchedTrackedSignalChainNoCutsRequireTrackless->GetEntries()),signalRecoTracklessEff,signalRecoTracklessEffUnc);
 
-	cout<<"\t"<<endl;
-	cout<<"about to calculate efficiency for reco cuts to be passed, conditional on GEN cuts being passed"<<endl;
-	calcEffAndUnc((Float_t) (matchedTrackedSignalChainNoCuts->GetEntriesFast()), (Float_t) (matchedTrackedSignalChain->GetEntries()),signalRecoEff,signalRecoEffUnc);
-	cout<<"finished calculating total reco efficiency (at least one tracked and one trackless, dilepton mass btwn 50 and 130 GeV)"<<endl;
+	///calculate the fraction of evts which already passed GEN cuts and have at least one RecoEcalCandidate in the tracked and trackless
+	///eta region, and the dilepton mass of at least one tracked+trackless RecoEcalCandidate pair is btwn 50 and 130 GeV
+	calcEffAndUnc((Float_t) (matchedTrackedSignalChainNoCutsHasTracklessAndTracked->GetEntries()), (Float_t) (matchedTrackedSignalChain->GetEntries()),signalRecoMassCutEff,signalRecoMassCutEffUnc);
 
+	///calculate the fraction of evts which already passed GEN cuts and now pass all three RecoEcalCandidate cuts (two eta requirements,
+	///one dilepton mass requirement)
+	calcEffAndUnc((Float_t) (matchedTrackedSignalChainNoCuts->GetEntriesFast()), (Float_t) (matchedTrackedSignalChain->GetEntries()),signalRecoEff,signalRecoEffUnc);
+
+	///calculate the fraction of evts which already passed all GEN and RecoEcalCandidate cuts, and now fire the L1 trigger
 	calcEffAndUnc((Float_t) (matchedTrackedSignalChain->GetEntriesFast()), (Float_t) (matchedTrackedSignalChainWithL1Filter->GetEntries()),signalL1Eff,signalL1EffUnc);
 	
 
+	///calculate the fraction of evts which already passed all GEN and RecoEcalCandidate cuts, and fired the L1 trigger, and
+	///now satisfy the gen matching requirements
 	calcMatchingEffAndUnc(matchedTrackedSignalChainWithL1Filter, signalTrackedMatchingEff, signalTrackedMatchingEffUnc);
 	calcMatchingEffAndUnc(matchedTracklessSignalChainWithL1Filter, signalTracklessMatchingEff, signalTracklessMatchingEffUnc);
 
@@ -225,6 +235,7 @@ void calculateEfficiencies(){
 	cout<<"signal Gen efficiency = \t"<< signalGenEff << "\t uncertainty = \t"<< signalGenEffUnc << endl;
 	cout<<"signal RecoTracked efficiency conditional on gen = \t"<< signalRecoTrackedEff << "\t uncertainty = \t"<< signalRecoTrackedEffUnc << endl;
 	cout<<"signal RecoTrackless efficiency conditional on gen = \t"<< signalRecoTracklessEff << "\t uncertainty = \t"<< signalRecoTracklessEffUnc << endl;
+	cout<<"signal RecoMassCut efficiency conditional on tracked and trackless = \t"<< signalRecoMassCutEff << "\t uncertainty = \t"<< signalRecoMassCutEffUnc << endl;
 	cout<<"signal Reco efficiency conditional on gen = \t"<< signalRecoEff << "\t uncertainty = \t"<< signalRecoEffUnc << endl;
 	cout<<"signal L1 efficiency conditional on reco = \t"<< signalL1Eff << "\t uncertainty = \t"<< signalL1EffUnc << endl;
 	cout<<"signal matching eff for Tracked objs conditional on L1 = \t"<< signalTrackedMatchingEff << "\t uncertainty = \t" << signalTrackedMatchingEffUnc << endl;
