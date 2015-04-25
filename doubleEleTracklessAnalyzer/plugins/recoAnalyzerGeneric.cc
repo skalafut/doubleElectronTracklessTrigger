@@ -304,7 +304,11 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 		for(reco::RecoEcalCandidateRefVector::const_iterator refIt=hltObjectsHandle->begin(); refIt != hltObjectsHandle->end(); refIt++){
 			Float_t hltEta = (*refIt)->eta();
 			Float_t hltPhi = (*refIt)->phi();
-			
+	
+			deltaRAllHltEle[j] = deltaR(hltEta, hltPhi, etaGenEle, phiGenEle);
+			nAllHltEle++;
+			j++;
+		
 			if(deltaR(hltEta, hltPhi, etaGenEle, phiGenEle) < minDR){
 				//overwrite the old kinematic and isolation info when a new REC object is found which is closer to the GEN electron
 				//thus there will only be one entry in each array per event
@@ -349,7 +353,6 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 				dEtaHltEle[0] = DetaIt->val;
 				EpIt = (*EpHandle).find(*refIt);
 				epHltEle[0] = EpIt->val;
-				j += 1;
 				nHltEle = 1;
 
 			}//end deltaR filter
@@ -396,6 +399,11 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 			Float_t hltEta = (*refIt)->eta();
 			Float_t hltPhi = (*refIt)->phi();
 
+			deltaRAllHltEle[j] = deltaR(hltEta, hltPhi, etaGenEle, phiGenEle);
+			nAllHltEle++;
+			j++;
+
+
 			if(deltaR(hltEta, hltPhi, etaGenEle, phiGenEle) < minDR){
 				minDR = deltaR(hltEta, hltPhi, etaGenEle, phiGenEle);
 				etaHltEle[0] = (*refIt)->eta();
@@ -428,7 +436,6 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 				hcalIsoHltEle[0] = (HcalIsoIt->val)/ptHltEle[0];
 				EcalIsoIt = (*EcalIsoHandle).find(*refIt);
 				ecalIsoHltEle[0] = (EcalIsoIt->val)/ptHltEle[0];
-				j += 1;
 				nHltEle = 1;
 			}//end deltaR filter
 
@@ -504,6 +511,7 @@ edm::InputTag genZedMomObjectsTag;
 TTree * tree;
 
 Int_t nHltEle;
+Int_t nAllHltEle;	///< for matched evts
 Float_t etaHltEle[NELE];
 Float_t ptHltEle[NELE];
 Float_t phiHltEle[NELE];
@@ -522,6 +530,10 @@ Float_t diObjectMassHltEle[NELE];
 
 //contains the deltaR value between one REC and a GEN electron in a signal evt
 Float_t deltaRHltEle[NELE];
+
+///contains the dR value btwn all RECs and a GEN electron in a signal evt
+Float_t deltaRAllHltEle[NELE];
+
 
 //GEN electron eta, pt, phi
 //there will only be one GEN electron relevant to each entry in the tree
@@ -578,6 +590,7 @@ recoAnalyzerGeneric::recoAnalyzerGeneric(const edm::ParameterSet& iConfig):
   
    //RecoEcalCandidate object branches
    tree->Branch("nHltEle",&nHltEle,"nHltEle/I");
+   tree->Branch("nAllHltEle",&nAllHltEle,"nAllHltEle/I");
    tree->Branch("etaHltEle",etaHltEle,"etaHltEle[nHltEle]/F");
    tree->Branch("ptHltEle",ptHltEle,"ptHltEle[nHltEle]/F");
    tree->Branch("phiHltEle",phiHltEle,"phiHltEle[nHltEle]/F");
@@ -591,6 +604,7 @@ recoAnalyzerGeneric::recoAnalyzerGeneric(const edm::ParameterSet& iConfig):
    tree->Branch("trackIsoHltEle",trackIsoHltEle,"trackIsoHltEle[nHltEle]/F");
    tree->Branch("diObjectMassHltEle",diObjectMassHltEle,"diObjectMassHltEle[nHltEle]/F");
    tree->Branch("deltaRHltEle",deltaRHltEle,"deltaRHltEle[nHltEle]/F");
+   tree->Branch("deltaRAllHltEle",deltaRAllHltEle,"deltaRAllHltEle[nAllHltEle]/F");
  
 
    //GEN electron branches
@@ -643,6 +657,7 @@ recoAnalyzerGeneric::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 
 
 	nHltEle = 0;
+	nAllHltEle = 0;
 	
 	for(Int_t r=0; r<NELE; r++){
 		//set all entries in arrays to zero
@@ -659,6 +674,7 @@ recoAnalyzerGeneric::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 		trackIsoHltEle[r]=1000;
 		diObjectMassHltEle[r]=-1;
 		deltaRHltEle[r]=1000;
+		deltaRAllHltEle[r]=1000;
 		
 		etaGenEle=1000;
 		ptGenEle=1000;
