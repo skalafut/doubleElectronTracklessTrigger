@@ -7,12 +7,56 @@
 #include <TStyle.h>
 #include <TCut.h>
 #include <TH1F.h>
+#include <TLegend.h>
 #include <TMath.h>
+#include <TPad.h>
+#include <TPaveStats.h>
 #include <iostream>
 #include <fstream>
 //this include gives ROOT a temper tantrum 
 //#include <array>
 #include <vector>
+
+///overlay two histos which were made from one TChain
+///the histo with name histNameOne has looser cuts, and will be drawn first
+///the histo named histNameTwo has tighter cuts, and will be drawn second
+void overlayTwoHistos(TChain * chain,std::vector<TString> plotArgsVect,TString histNameOne,TString legEntryOne,TString histNameTwo,TString legEntryTwo,TString histTitle,TString xAxisTitle,TString canvName,std::vector<TCut> filtersVect,TString outputFile,Bool_t isPlottingEnergy){
+	gStyle->SetOptStat("");
+	TCanvas * canv = new TCanvas(canvName,canvName,500,500);
+	canv->cd();
+	chain->Draw(plotArgsVect[0],filtersVect[0]);
+	for(unsigned int i=1;i<plotArgsVect.size();i++){
+		chain->Draw(plotArgsVect[i],filtersVect[i]);
+	}
+
+	TH1F * pHistOne = (TH1F*) gROOT->FindObject(histNameOne);
+	TH1F * pHistTwo = (TH1F*) gROOT->FindObject(histNameTwo);
+	pHistOne->SetTitle(histTitle);
+	pHistOne->GetXaxis()->SetTitle(xAxisTitle);
+	pHistOne->SetLineColor(1);
+	pHistTwo->SetLineColor(2);
+	pHistOne->SetFillColor(21);	///< sets color of area under drawn curve or hist line to grey
+	pHistTwo->SetFillColor(30);
+	
+	//every histo should have at least three bins.
+	//if a histo is created with numBins = 1, then bin #1 is the bin which is plotted 
+	char temp[130];
+	if(isPlottingEnergy) sprintf(temp,"Events / %.2f GeV", pHistOne->GetXaxis()->GetBinWidth(1));
+	else sprintf(temp,"Events / %.2f ", pHistOne->GetXaxis()->GetBinWidth(1));
+	pHistOne->GetYaxis()->SetTitle(temp);
+	
+	///add a legend to distinguish the two histos
+	TLegend * leg = new TLegend(0.75,0.68,1,0.93);
+	leg->AddEntry(pHistOne,legEntryOne);
+	leg->AddEntry(pHistTwo,legEntryTwo);
+	
+	///pHistOne has looser cuts than pHistTwo.  Draw pHistOne first, then draw pHistTwo.
+	pHistOne->Draw();
+	pHistTwo->Draw("same");
+	leg->Draw();
+	canv->SaveAs(outputFile,"recreate");
+
+}///end overlayTwoHistos()
 
 //use this to make and save a histogram from a single TTree branch
 //plotArgs is used in TTree::Draw, and could be something like "etaGenEle[0]>>leadingEta(100,-3.0,3.0)"
@@ -26,6 +70,7 @@ void makeAndSaveSingleTreeHisto(TChain * chain,TString plotArgs,TString histName
 	TH1F * pHist = (TH1F*) gROOT->FindObject(histName);
 	pHist->SetTitle(histTitle);
 	pHist->GetXaxis()->SetTitle(xAxisTitle);
+	pHist->SetFillColor(21);
 	//every histo should have at least three bins.
 	//if a histo is created with numBins = 1, then bin #1 is the bin which is plotted 
 	char temp[130];
@@ -48,6 +93,7 @@ void makeAndSaveOverlayTreeHisto(TChain * chain,std::vector<TString> plotArgsVec
 	TH1F * pHist = (TH1F*) gROOT->FindObject(histName);
 	pHist->SetTitle(histTitle);
 	pHist->GetXaxis()->SetTitle(xAxisTitle);
+	pHist->SetFillColor(21);	///< sets color of area under drawn curve or hist line to grey
 	//every histo should have at least three bins.
 	//if a histo is created with numBins = 1, then bin #1 is the bin which is plotted 
 	char temp[130];
@@ -55,6 +101,16 @@ void makeAndSaveOverlayTreeHisto(TChain * chain,std::vector<TString> plotArgsVec
 	else sprintf(temp,"Events / %.2f ", pHist->GetXaxis()->GetBinWidth(1));
 	pHist->GetYaxis()->SetTitle(temp);
 	pHist->Draw();
+	if(outputFile.Contains("trackless_gen_electron_etas")){
+		///if the eta distributions of trackless electrons are being drawn, then move the stats box
+		///to the center of the plot (near eta = 0)
+		gPad->Update();
+		TPaveStats *box = (TPaveStats*) pHist->FindObject("stats");
+		box->SetX1NDC(0.4);
+		box->SetX2NDC(0.65);
+	}
+	gPad->Update();
+	canv->Update();
 	canv->SaveAs(outputFile,"recreate");
 	
 }//end makeAndSaveOverlayTreeHisto()
@@ -62,7 +118,7 @@ void makeAndSaveOverlayTreeHisto(TChain * chain,std::vector<TString> plotArgsVec
 void genPlotMacro(){
 
 	TChain * genSignalChain = new TChain("genAnalyzerOne/genElectronsFromZ");
-	genSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*.root");
+	genSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
 
 
 	//TCut objects 
@@ -130,18 +186,18 @@ void genPlotMacro(){
 	//cutsVector.clear();
 
 
+	/*
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////plot eta of all electrons
-	//plotArgsVector.push_back("etaGenEle[0]>>+allElectronetas(100,-3.0,3.0)");
-	//plotArgsVector.push_back("etaGenEle[0]>>+allElectronetas(100,-3.0,3.0)");
-	//cutsVector.push_back("");
-	//cutsVector.push_back("");
-	//makeAndSaveOverlayTreeHisto(genSignalChain,plotArgsVector,"allElectronetas","#eta of all GEN electrons","#eta","c0",cutsVector,"all_electron_etas.png",false);
-	//
-	//plotArgsVector.clear();
-	//cutsVector.clear();
+	plotArgsVector.push_back("etaGenEle[0]>>+allElectronetas(60,-3.0,3.0)");
+	plotArgsVector.push_back("etaGenEle[1]>>+allElectronetas(60,-3.0,3.0)");
+	cutsVector.push_back("");
+	cutsVector.push_back("");
+	makeAndSaveOverlayTreeHisto(genSignalChain,plotArgsVector,"allElectronetas","#eta of all GEN electrons","#eta","c0",cutsVector,"all_electron_etas.png",false);
+	plotArgsVector.clear();
+	cutsVector.clear();
 
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -197,7 +253,7 @@ void genPlotMacro(){
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////plot eta,pt,phi of all tracked and trackless GEN electrons in evts where both exist and their dilepton mass
 	////is btwn 60 and 120 GeV
-	
+
 	plotArgsVector.push_back("etaGenEle[0]>>+allTrackedElectronetasBothElectronsExistWithDileptonMass(100,-3.0,3.0)");
 	plotArgsVector.push_back("etaGenEle[1]>>+allTrackedElectronetasBothElectronsExistWithDileptonMass");
 	cutsVector.push_back(trackedEta0+tracklessEtaLow1+tracklessEtaHigh1+totalDileptonMass);
@@ -241,12 +297,49 @@ void genPlotMacro(){
 	cutsVector.clear();
 
 
+	//void overlayTwoHistos(TChain * chain,std::vector<TString> plotArgsVect,TString histNameOne,TString legEntryOne,TString histNameTwo,TString legEntryTwo,TString histTitle,TString xAxisTitle,TString canvName,std::vector<TCut> filtersVect,TString outputFile,Bool_t isPlottingEnergy)
+	
+	///plot the eta of tracked GEN electrons before and after the tracked pt>27 cut is applied
+	///in evts where one tracked and one trackless GEN electron exists, and their dilepton mass is btwn 60 and 120 GeV 
+	plotArgsVector.push_back("etaGenEle[0]>>+allTrackedElectronetasBothElectronsExistWithDileptonMass(100,-3.0,3.0)");
+	plotArgsVector.push_back("etaGenEle[1]>>+allTrackedElectronetasBothElectronsExistWithDileptonMass");
+	plotArgsVector.push_back("etaGenEle[0]>>+allTrackedElectronetasBothElectronsExistWithDileptonMassAndTrackedPtCut(100,-3.0,3.0)");
+	plotArgsVector.push_back("etaGenEle[1]>>+allTrackedElectronetasBothElectronsExistWithDileptonMassAndTrackedPtCut");
+	cutsVector.push_back(trackedEta0+tracklessEtaLow1+tracklessEtaHigh1+totalDileptonMass);
+	cutsVector.push_back(trackedEta1+tracklessEtaLow0+tracklessEtaHigh0+totalDileptonMass);
+	cutsVector.push_back(trackedPtAndEta0+tracklessEtaLow1+tracklessEtaHigh1+totalDileptonMass);
+	cutsVector.push_back(trackedPtAndEta1+tracklessEtaLow0+tracklessEtaHigh0+totalDileptonMass);
+	overlayTwoHistos(genSignalChain,plotArgsVector,"allTrackedElectronetasBothElectronsExistWithDileptonMass","tracked #eta","allTrackedElectronetasBothElectronsExistWithDileptonMassAndTrackedPtCut","tracked #eta pt>27","Tracked GEN electron #eta","#eta","c300",cutsVector,"tracked_gen_etas_with_and_without_tracked_pt_cut_passes_dilepton_mass.png",false);
+
+	plotArgsVector.clear();
+	cutsVector.clear();
+
+	*/
+	
+	///plot the pt of trackless GEN electrons before and after the tracked pt>27 cut is applied
+	///in evts where one tracked and one trackless GEN electron exists, and their dilepton mass is btwn 60 and 120 GeV 
+	plotArgsVector.push_back("ptGenEle[0]>>+allTracklessElectronptsBothElectronsExistWithDileptonMass(100,0.,100.)");
+	plotArgsVector.push_back("ptGenEle[1]>>+allTracklessElectronptsBothElectronsExistWithDileptonMass");
+	plotArgsVector.push_back("ptGenEle[0]>>+allTracklessElectronptsBothElectronsExistWithDileptonMassAndTrackedPtCut(100,0.,100.)");
+	plotArgsVector.push_back("ptGenEle[1]>>+allTracklessElectronptsBothElectronsExistWithDileptonMassAndTrackedPtCut");
+	
+	cutsVector.push_back(trackedEta1+tracklessEtaLow0+tracklessEtaHigh0+totalDileptonMass);
+	cutsVector.push_back(trackedEta0+tracklessEtaLow1+tracklessEtaHigh1+totalDileptonMass);
+	cutsVector.push_back(trackedPtAndEta1+tracklessEtaLow0+tracklessEtaHigh0+totalDileptonMass);
+	cutsVector.push_back(trackedPtAndEta0+tracklessEtaLow1+tracklessEtaHigh1+totalDileptonMass);
+	overlayTwoHistos(genSignalChain,plotArgsVector,"allTracklessElectronptsBothElectronsExistWithDileptonMass","no cut","allTracklessElectronptsBothElectronsExistWithDileptonMassAndTrackedPtCut","tracked pT cut","Trackless GEN electron pT","pT (GeV)","c301",cutsVector,"trackless_gen_pts_with_and_without_tracked_pt_cut_passes_dilepton_mass.png",true);
+
+	plotArgsVector.clear();
+	cutsVector.clear();
+
+
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////plot eta,pt,phi of all tracked and trackless GEN electrons in evts where both exist, their dilepton mass
 	////is btwn 60 and 120 GeV, and the tracked electron has pt>27
-	
+
+	/*
 	plotArgsVector.push_back("etaGenEle[0]>>+allTrackedElectronetasBothElectronsExistWithDileptonMassAndTrackedPt(100,-3.0,3.0)");
 	plotArgsVector.push_back("etaGenEle[1]>>+allTrackedElectronetasBothElectronsExistWithDileptonMassAndTrackedPt");
 	cutsVector.push_back(trackedPtAndEta0+tracklessEtaLow1+tracklessEtaHigh1+totalDileptonMass);
@@ -268,6 +361,9 @@ void genPlotMacro(){
 	plotArgsVector.clear();
 	cutsVector.clear();
 
+	*/
+
+	/*
 	cutsVector.push_back(trackedPtAndEta1+tracklessEtaLow0+tracklessEtaHigh0+totalDileptonMass);
 	cutsVector.push_back(trackedPtAndEta0+tracklessEtaLow1+tracklessEtaHigh1+totalDileptonMass);
 	plotArgsVector.push_back("etaGenEle[0]>>+allTracklessElectronetasBothElectronsExistWithDileptonMassAndTrackedPt(100,-3.0,3.0)");
@@ -390,7 +486,8 @@ void genPlotMacro(){
 	cutsVector.clear();
 	
 	makeAndSaveSingleTreeHisto(genSignalChain,"invMassGen>>invMassPassingAllCuts","invMassPassingAllCuts","Dilepton mass in evts passing all GEN requirements","M_{ee} (GeV)","c130",(trackedPtAndEta0 || trackedPtAndEta1) && (tracklessPtAndEta0 || tracklessPtAndEta1) && totalDileptonMass,"invMassGen_passing_all_gen_requirements.png",true);
-	
+
+	*/
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

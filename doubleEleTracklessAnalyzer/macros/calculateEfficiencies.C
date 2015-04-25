@@ -28,6 +28,7 @@ void makeAndSaveSingleTreeHisto(TChain * chain,TString plotArgs,TString histName
 	TH1F * pHist = (TH1F*) gROOT->FindObject(histName);
 	pHist->SetTitle(histTitle);
 	pHist->GetXaxis()->SetTitle(xAxisTitle);
+	pHist->SetFillColor(21);	///< sets color of area under drawn curve or hist line to grey
 	//every histo should have at least three bins.
 	//if a histo is created with numBins = 1, then bin #1 is the bin which is plotted 
 	char temp[130];
@@ -58,6 +59,7 @@ void calcMatchingEffAndUnc(TChain * chain, Float_t & efficiency, Float_t & uncer
  * a number of evts N available, and a subset of evts k which pass the cuts
  */
 void calcEffAndUnc(Float_t Nevts, Float_t kevts, Float_t & eff, Float_t & uncert){
+	cout<<"max num evts = \t"<< Nevts <<"\t passing evts = \t"<< kevts <<endl;
 	eff = kevts/Nevts;
 	uncert = (1/Nevts)*TMath::Sqrt(kevts*(1 - (kevts/Nevts) ));
 }///end calcEffAndUnc()
@@ -91,7 +93,8 @@ void calcEffAndUnc(Float_t Nevts, Float_t kevts, Float_t & eff, Float_t & uncert
  */
 void calculateEfficiencies(){
 
-	///swap 0_pre9 to 0_patch1 and SingleEG25 to DoubleEG_22_10 to transfer btwn SingleEG25 tuples and DoubleEG_22_10 tuples 
+	//swap btwn DoubleEG_22_10, DoubleEG_15_10, SingleEG25, and SingleEG40
+	//can also use files in from7_4_0_pre9/*_25ns_SingleEG25.root
 	///declare TChains needed to compute efficiencies
 	TChain * trackedLowPtBkgndChainWithL1Filter = new TChain("recoAnalyzerTrackedWithL1Filter/recoTreeBeforeTriggerFiltersTrackedBkgndWithL1Filter","");
 	trackedLowPtBkgndChainWithL1Filter->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/bkgnd_20to30_pt/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
@@ -127,10 +130,19 @@ void calculateEfficiencies(){
 	TChain * trackedSignalChainWithL1Filter = new TChain("recoAnalyzerTrackedWithL1Filter/recoTreeBeforeTriggerFiltersTrackedSignalWithL1Filter","");
 	trackedSignalChainWithL1Filter->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
 
+	TChain * tracklessSignalChainWithL1Filter = new TChain("recoAnalyzerTracklessWithL1Filter/recoTreeBeforeTriggerFiltersTracklessSignalWithL1Filter","");
+	tracklessSignalChainWithL1Filter->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
+
+
+
 
 
 	TChain * matchedTrackedSignalChainWithL1Filter = new TChain("recoAnalyzerMatchedTrackedWithL1Filter/recoTreeBeforeTriggerFiltersMatchedTrackedSignalWithL1Filter","");
 	matchedTrackedSignalChainWithL1Filter->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
+
+	TChain * matchedTrackedSignalChain = new TChain("recoAnalyzerMatchedTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignal","");
+	matchedTrackedSignalChain->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
+
 
 	TChain * matchedTracklessSignalChainWithL1Filter = new TChain("recoAnalyzerMatchedTracklessWithL1Filter/recoTreeBeforeTriggerFiltersMatchedTracklessSignalWithL1Filter","");
 	matchedTracklessSignalChainWithL1Filter->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
@@ -143,22 +155,48 @@ void calculateEfficiencies(){
 	TChain * matchedTrackedSignalChainNoCuts = new TChain("recoAnalyzerMatchedTrackedNoCuts/recoTreeBeforeTriggerFiltersMatchedTrackedSignalNoCuts","");
 	matchedTrackedSignalChainNoCuts->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
 
+	TChain * matchedTrackedSignalChainNoCutsRequireTracked = new TChain("recoAnalyzerMatchedTrackedNoCutsRequireTracked/recoTreeBeforeTriggerFiltersMatchedTrackedSignalNoCutsRequireTracked","");
+	matchedTrackedSignalChainNoCutsRequireTracked->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
+
+
+	TChain * matchedTrackedSignalChainNoCutsRequireTrackless = new TChain("recoAnalyzerMatchedTrackedNoCutsRequireTrackless/recoTreeBeforeTriggerFiltersMatchedTrackedSignalNoCutsRequireTrackless","");
+	matchedTrackedSignalChainNoCutsRequireTrackless->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
+
+
 	TChain * trackedSignalChainNoCuts = new TChain("recoAnalyzerTrackedNoCuts/recoTreeBeforeTriggerFiltersTrackedSignalNoCuts","");
 	trackedSignalChainNoCuts->Add("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/tuples_mostRecent/signal/from7_4_0_patch1/*_25ns_DoubleEG_22_10.root");
 
 
 
+
 	Float_t signalGenEff=0, signalL1Eff=0, signalRecoEff=0, signalTrackedMatchingEff=0, signalTracklessMatchingEff=0;
 	Float_t signalGenEffUnc=10, signalL1EffUnc=10, signalRecoEffUnc=10, signalTrackedMatchingEffUnc=10, signalTracklessMatchingEffUnc=10;
+	Float_t signalRecoTrackedEff=0, signalRecoTracklessEff=0;
+	Float_t signalRecoTrackedEffUnc=10, signalRecoTracklessEffUnc=10;
+
 
 	calcEffAndUnc((Float_t) (trackedSignalChainNoCuts->GetEntries()), (Float_t) (matchedTrackedSignalChainNoCuts->GetEntries()), signalGenEff, signalGenEffUnc);
-	calcEffAndUnc((Float_t) (matchedTrackedSignalChainNoCuts->GetEntriesFast()), (Float_t) (matchedTrackedSignalChainNoCutsWithL1Filter->GetEntries()),signalL1Eff,signalL1EffUnc);
-	calcEffAndUnc((Float_t) (matchedTrackedSignalChainNoCutsWithL1Filter->GetEntriesFast()), (Float_t) (matchedTrackedSignalChainWithL1Filter->GetEntries()),signalRecoEff,signalRecoEffUnc);
+
+	cout<<"about to calculate efficiency for a tracked reco object to be found, conditional on GEN cuts being passed"<<endl;
+	calcEffAndUnc((Float_t) (matchedTrackedSignalChainNoCuts->GetEntriesFast()), (Float_t) (matchedTrackedSignalChainNoCutsRequireTracked->GetEntries()),signalRecoTrackedEff,signalRecoTrackedEffUnc);
+
+	cout<<"\t"<<endl;
+	cout<<"about to calculate efficiency for a trackless reco object to be found, conditional on GEN cuts being passed"<<endl;
+	calcEffAndUnc((Float_t) (matchedTrackedSignalChainNoCuts->GetEntriesFast()), (Float_t) (matchedTrackedSignalChainNoCutsRequireTrackless->GetEntries()),signalRecoTracklessEff,signalRecoTracklessEffUnc);
+
+	cout<<"\t"<<endl;
+	cout<<"about to calculate efficiency for reco cuts to be passed, conditional on GEN cuts being passed"<<endl;
+	calcEffAndUnc((Float_t) (matchedTrackedSignalChainNoCuts->GetEntriesFast()), (Float_t) (matchedTrackedSignalChain->GetEntries()),signalRecoEff,signalRecoEffUnc);
+	cout<<"finished calculating total reco efficiency (at least one tracked and one trackless, dilepton mass btwn 50 and 130 GeV)"<<endl;
+
+	calcEffAndUnc((Float_t) (matchedTrackedSignalChain->GetEntriesFast()), (Float_t) (matchedTrackedSignalChainWithL1Filter->GetEntries()),signalL1Eff,signalL1EffUnc);
+	
 
 	calcMatchingEffAndUnc(matchedTrackedSignalChainWithL1Filter, signalTrackedMatchingEff, signalTrackedMatchingEffUnc);
 	calcMatchingEffAndUnc(matchedTracklessSignalChainWithL1Filter, signalTracklessMatchingEff, signalTracklessMatchingEffUnc);
 
 
+	/*
 	Float_t LowPtBkgndL1Eff=0, HighPtBkgndL1Eff=0, VeryHighPtBkgndL1Eff=0;
 	Float_t LowPtBkgndL1EffUnc=10, HighPtBkgndL1EffUnc=10, VeryHighPtBkgndL1EffUnc=10;
 	Float_t LowPtBkgndRecoEff=0, HighPtBkgndRecoEff=0, VeryHighPtBkgndRecoEff=0;
@@ -175,23 +213,27 @@ void calculateEfficiencies(){
 
 
 	cout<<"LowPt bkgnd L1 efficiency = \t"<< LowPtBkgndL1Eff <<"\t uncertainty = \t" << LowPtBkgndL1EffUnc <<endl;
-	cout<<"HighPt bkgnd L1 efficiency = \t"<< HighPtBkgndL1Eff <<"\t uncertainty = \t" << HighPtBkgndL1EffUnc <<endl;
-	cout<<"VeryHighPt bkgnd L1 efficiency = \t"<< VeryHighPtBkgndL1Eff <<"\t uncertainty = \t" << VeryHighPtBkgndL1EffUnc <<endl;
-
 	cout<<"LowPt bkgnd Reco efficiency conditional on L1 = \t"<< LowPtBkgndRecoEff <<"\t uncertainty = \t"<< LowPtBkgndRecoEffUnc <<endl;
-	cout<<"HighPt bkgnd Reco efficiency conditional on L1 = \t"<< HighPtBkgndRecoEff <<"\t uncertainty = \t"<< HighPtBkgndRecoEffUnc <<endl;
-	cout<<"VeryHighPt bkgnd Reco efficiency conditional on L1 = \t"<< VeryHighPtBkgndRecoEff <<"\t uncertainty = \t"<< VeryHighPtBkgndRecoEffUnc <<endl;
 	
+	cout<<"HighPt bkgnd L1 efficiency = \t"<< HighPtBkgndL1Eff <<"\t uncertainty = \t" << HighPtBkgndL1EffUnc <<endl;
+	cout<<"HighPt bkgnd Reco efficiency conditional on L1 = \t"<< HighPtBkgndRecoEff <<"\t uncertainty = \t"<< HighPtBkgndRecoEffUnc <<endl;
+	
+	cout<<"VeryHighPt bkgnd L1 efficiency = \t"<< VeryHighPtBkgndL1Eff <<"\t uncertainty = \t" << VeryHighPtBkgndL1EffUnc <<endl;
+	cout<<"VeryHighPt bkgnd Reco efficiency conditional on L1 = \t"<< VeryHighPtBkgndRecoEff <<"\t uncertainty = \t"<< VeryHighPtBkgndRecoEffUnc <<endl;
+	*/
 
 	cout<<"signal Gen efficiency = \t"<< signalGenEff << "\t uncertainty = \t"<< signalGenEffUnc << endl;
-	cout<<"signal L1 efficiency conditional on gen = \t"<< signalL1Eff << "\t uncertainty = \t"<< signalL1EffUnc << endl;
-	cout<<"signal Reco efficiency conditional on L1 = \t"<< signalRecoEff << "\t uncertainty = \t"<< signalRecoEffUnc << endl;
-	cout<<"signal matching eff for Tracked objs conditional on reco = \t"<< signalTrackedMatchingEff << "\t uncertainty = \t" << signalTrackedMatchingEffUnc << endl;
-	cout<<"signal matching eff for Trackless objs conditional on reco = \t"<< signalTracklessMatchingEff << "\t uncertainty = \t" << signalTracklessMatchingEffUnc << endl;
+	cout<<"signal RecoTracked efficiency conditional on gen = \t"<< signalRecoTrackedEff << "\t uncertainty = \t"<< signalRecoTrackedEffUnc << endl;
+	cout<<"signal RecoTrackless efficiency conditional on gen = \t"<< signalRecoTracklessEff << "\t uncertainty = \t"<< signalRecoTracklessEffUnc << endl;
+	cout<<"signal Reco efficiency conditional on gen = \t"<< signalRecoEff << "\t uncertainty = \t"<< signalRecoEffUnc << endl;
+	cout<<"signal L1 efficiency conditional on reco = \t"<< signalL1Eff << "\t uncertainty = \t"<< signalL1EffUnc << endl;
+	cout<<"signal matching eff for Tracked objs conditional on L1 = \t"<< signalTrackedMatchingEff << "\t uncertainty = \t" << signalTrackedMatchingEffUnc << endl;
+	cout<<"signal matching eff for Trackless objs conditional on L1 = \t"<< signalTracklessMatchingEff << "\t uncertainty = \t" << signalTracklessMatchingEffUnc << endl;
 
 	//void makeAndSaveSingleTreeHisto(TChain * chain,TString plotArgs,TString histName,TString histTitle,TString xAxisTitle,TString canvName,TCut filters,TString outputFile, Bool_t isPlottingEnergy)
-	makeAndSaveSingleTreeHisto(matchedTrackedSignalChainWithL1Filter,"deltaRHltEle>>matchedTrackedDeltaR(100,0.,0.1)","matchedTrackedDeltaR","#DeltaR between matched tracked reco electrons and tracked GEN electrons","#DeltaR","c1","","matched_tracked_reco_electron_dR_for_evts_passing_all_GEN_L1_and_reco_cuts.png",false);
-	makeAndSaveSingleTreeHisto(matchedTracklessSignalChainWithL1Filter,"deltaRHltEle>>matchedTracklessDeltaR(100,0.,0.1)","matchedTracklessDeltaR","#DeltaR between matched trackless reco electrons and trackless GEN electrons","#DeltaR","c2","","matched_trackless_reco_electron_dR_for_evts_passing_all_GEN_L1_and_reco_cuts.png",false);
+	//makeAndSaveSingleTreeHisto(matchedTrackedSignalChainWithL1Filter,"deltaRAllHltEle>>matchedTrackedDeltaR(100,0.,0.2)","matchedTrackedDeltaR","#DeltaR between tracked reco and GEN electrons","#DeltaR","c1","","tracked_reco_electron_dR_for_evts_passing_all_GEN_L1_and_reco_cuts.png",false);
+	//makeAndSaveSingleTreeHisto(matchedTracklessSignalChainWithL1Filter,"deltaRAllHltEle>>matchedTracklessDeltaR(100,0.,6.4)","matchedTracklessDeltaR","#DeltaR between trackless reco and GEN electrons","#DeltaR","c2","","trackless_reco_electron_dR_for_evts_passing_all_GEN_L1_and_reco_cuts.png",false);
+	
 	
 
 }///end calculateEfficiencies()
