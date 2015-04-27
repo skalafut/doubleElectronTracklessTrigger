@@ -539,144 +539,7 @@ process.magfield = cms.ESSource( "XMLIdealGeometryESSource",
     rootNodeName = cms.string( "cmsMagneticField:MAGF" )
 )
 
-#process.trackerTopologyConstants = cms.ESProducer( "TrackerTopologyEP",
-#  pxb_layerMask = cms.uint32( 15 ),
-#  tib_str_int_extStartBit = cms.uint32( 10 ),
-#  tib_layerMask = cms.uint32( 7 ),
-#  tib_str_fw_bwStartBit = cms.uint32( 12 ),
-#  pxf_bladeMask = cms.uint32( 63 ),
-#  pxb_moduleStartBit = cms.uint32( 2 ),
-#  pxb_ladderStartBit = cms.uint32( 8 ),
-#  pxb_layerStartBit = cms.uint32( 16 ),
-#  tec_wheelStartBit = cms.uint32( 14 ),
-#  tib_str_fw_bwMask = cms.uint32( 3 ),
-#  tec_ringStartBit = cms.uint32( 5 ),
-#  tib_moduleStartBit = cms.uint32( 2 ),
-#  tib_sterMask = cms.uint32( 3 ),
-#  tid_sideStartBit = cms.uint32( 13 ),
-#  tid_wheelStartBit = cms.uint32( 11 ),
-#  tid_ringMask = cms.uint32( 3 ),
-#  tid_sterMask = cms.uint32( 3 ),
-#  tec_petal_fw_bwStartBit = cms.uint32( 12 ),
-#  tec_ringMask = cms.uint32( 7 ),
-#  tib_strMask = cms.uint32( 63 ),
-#  tec_sterMask = cms.uint32( 3 ),
-#  tec_sideStartBit = cms.uint32( 18 ),
-#  pxb_moduleMask = cms.uint32( 63 ),
-#  pxf_panelStartBit = cms.uint32( 8 ),
-#  tid_sideMask = cms.uint32( 3 ),
-#  tob_moduleMask = cms.uint32( 7 ),
-#  tid_ringStartBit = cms.uint32( 9 ),
-#  pxf_sideMask = cms.uint32( 3 ),
-#  appendToDataLabel = cms.string( "" ),
-#  pxf_diskStartBit = cms.uint32( 16 ),
-#  tib_str_int_extMask = cms.uint32( 3 ),
-#  tec_moduleMask = cms.uint32( 7 ),
-#  tob_sterMask = cms.uint32( 3 ),
-#  tob_rod_fw_bwMask = cms.uint32( 3 ),
-#  tob_layerStartBit = cms.uint32( 14 ),
-#  tec_petal_fw_bwMask = cms.uint32( 3 ),
-#  tib_layerStartBit = cms.uint32( 14 ),
-#  tec_sterStartBit = cms.uint32( 0 ),
-#  tid_moduleMask = cms.uint32( 31 ),
-#  tib_sterStartBit = cms.uint32( 0 ),
-#  tid_sterStartBit = cms.uint32( 0 ),
-#  pxf_moduleStartBit = cms.uint32( 2 ),
-#  pxf_diskMask = cms.uint32( 15 ),
-#  pxf_sideStartBit = cms.uint32( 23 ),
-#  tid_module_fw_bwStartBit = cms.uint32( 7 ),
-#  tob_layerMask = cms.uint32( 7 ),
-#  tid_module_fw_bwMask = cms.uint32( 3 ),
-#  tob_rod_fw_bwStartBit = cms.uint32( 12 ),
-#  tec_petalMask = cms.uint32( 15 ),
-#  pxb_ladderMask = cms.uint32( 255 ),
-#  tec_moduleStartBit = cms.uint32( 2 ),
-#  tec_sideMask = cms.uint32( 3 ),
-#  tob_rodMask = cms.uint32( 127 ),
-#  tib_strStartBit = cms.uint32( 4 ),
-#  tec_wheelMask = cms.uint32( 15 ),
-#  tob_rodStartBit = cms.uint32( 5 ),
-#  pxf_panelMask = cms.uint32( 3 ),
-#  tib_moduleMask = cms.uint32( 3 ),
-#  pxf_bladeStartBit = cms.uint32( 10 ),
-#  tid_wheelMask = cms.uint32( 3 ),
-#  tob_sterStartBit = cms.uint32( 0 ),
-#  tid_moduleStartBit = cms.uint32( 2 ),
-#  tec_petalStartBit = cms.uint32( 8 ),
-#  tob_moduleStartBit = cms.uint32( 2 ),
-#  pxf_moduleMask = cms.uint32( 63 )
-#)
 
-#copy of module above with the module name changed to trackerTopology
-#process.trackerTopology = cms.ESProducer( "TrackerTopologyEP",
-#  pxb_layerMask = cms.uint32( 15 ),
-#  tib_str_int_extStartBit = cms.uint32( 10 ),
-#  tib_layerMask = cms.uint32( 7 ),
-#  tib_str_fw_bwStartBit = cms.uint32( 12 ),
-#  pxf_bladeMask = cms.uint32( 63 ),
-#  pxb_moduleStartBit = cms.uint32( 2 ),
-#  pxb_ladderStartBit = cms.uint32( 8 ),
-#  pxb_layerStartBit = cms.uint32( 16 ),
-#  tec_wheelStartBit = cms.uint32( 14 ),
-#  tib_str_fw_bwMask = cms.uint32( 3 ),
-#  tec_ringStartBit = cms.uint32( 5 ),
-#  tib_moduleStartBit = cms.uint32( 2 ),
-#  tib_sterMask = cms.uint32( 3 ),
-#  tid_sideStartBit = cms.uint32( 13 ),
-#  tid_wheelStartBit = cms.uint32( 11 ),
-#  tid_ringMask = cms.uint32( 3 ),
-#  tid_sterMask = cms.uint32( 3 ),
-#  tec_petal_fw_bwStartBit = cms.uint32( 12 ),
-#  tec_ringMask = cms.uint32( 7 ),
-#  tib_strMask = cms.uint32( 63 ),
-#  tec_sterMask = cms.uint32( 3 ),
-#  tec_sideStartBit = cms.uint32( 18 ),
-#  pxb_moduleMask = cms.uint32( 63 ),
-#  pxf_panelStartBit = cms.uint32( 8 ),
-#  tid_sideMask = cms.uint32( 3 ),
-#  tob_moduleMask = cms.uint32( 7 ),
-#  tid_ringStartBit = cms.uint32( 9 ),
-#  pxf_sideMask = cms.uint32( 3 ),
-#  appendToDataLabel = cms.string( "" ),
-#  pxf_diskStartBit = cms.uint32( 16 ),
-#  tib_str_int_extMask = cms.uint32( 3 ),
-#  tec_moduleMask = cms.uint32( 7 ),
-#  tob_sterMask = cms.uint32( 3 ),
-#  tob_rod_fw_bwMask = cms.uint32( 3 ),
-#  tob_layerStartBit = cms.uint32( 14 ),
-#  tec_petal_fw_bwMask = cms.uint32( 3 ),
-#  tib_layerStartBit = cms.uint32( 14 ),
-#  tec_sterStartBit = cms.uint32( 0 ),
-#  tid_moduleMask = cms.uint32( 31 ),
-#  tib_sterStartBit = cms.uint32( 0 ),
-#  tid_sterStartBit = cms.uint32( 0 ),
-#  pxf_moduleStartBit = cms.uint32( 2 ),
-#  pxf_diskMask = cms.uint32( 15 ),
-#  pxf_sideStartBit = cms.uint32( 23 ),
-#  tid_module_fw_bwStartBit = cms.uint32( 7 ),
-#  tob_layerMask = cms.uint32( 7 ),
-#  tid_module_fw_bwMask = cms.uint32( 3 ),
-#  tob_rod_fw_bwStartBit = cms.uint32( 12 ),
-#  tec_petalMask = cms.uint32( 15 ),
-#  pxb_ladderMask = cms.uint32( 255 ),
-#  tec_moduleStartBit = cms.uint32( 2 ),
-#  tec_sideMask = cms.uint32( 3 ),
-#  tob_rodMask = cms.uint32( 127 ),
-#  tib_strStartBit = cms.uint32( 4 ),
-#  tec_wheelMask = cms.uint32( 15 ),
-#  tob_rodStartBit = cms.uint32( 5 ),
-#  pxf_panelMask = cms.uint32( 3 ),
-#  tib_moduleMask = cms.uint32( 3 ),
-#  pxf_bladeStartBit = cms.uint32( 10 ),
-#  tid_wheelMask = cms.uint32( 3 ),
-#  tob_sterStartBit = cms.uint32( 0 ),
-#  tid_moduleStartBit = cms.uint32( 2 ),
-#  tec_petalStartBit = cms.uint32( 8 ),
-#  tob_moduleStartBit = cms.uint32( 2 ),
-#  pxf_moduleMask = cms.uint32( 63 )
-#)
-
-#from under_development hlt .py file
 process.trackerTopology = cms.ESProducer( "TrackerTopologyEP",
   pxb_layerMask = cms.uint32( 15 ),
   tib_str_int_extStartBit = cms.uint32( 10 ),
@@ -5260,31 +5123,6 @@ process.genEleTrack = cms.EDFilter("CandSelector",
 		cut = cms.string("pt> 27 && eta < 2.5 && eta > -2.5"),
 		)
 
-#use this genTracked and twoGenTrackedFilter in combination
-process.genTracked = cms.EDFilter("CandSelector",
-		src = cms.InputTag("genEle"),
-		cut = cms.string("pt>27 && eta < 2.5 && eta > -2.5")
-		)
-process.twoGenTrackedFilter = cms.EDFilter("CandViewCountFilter",
-		src = cms.InputTag("genTracked"),
-		minNumber = cms.uint32(2)
-		)
-
-#use genTracked, genTrackless, genTrackedFilter, genTracklessFilter in combination
-process.genTrackless = cms.EDFilter("CandSelector",
-		src = cms.InputTag("genEle"),
-		cut = cms.string("pt>15 && ( (eta < 3.0 && eta > 2.5 ) || (eta < -2.5 && eta > -3.0) )")
-		)
-process.genTrackedFilter = cms.EDFilter("CandViewCountFilter",
-		src = cms.InputTag("genTracked"),
-		minNumber = cms.uint32(1)
-		)
-process.genTracklessFilter = cms.EDFilter("CandViewCountFilter",
-		src = cms.InputTag("genTrackless"),
-		minNumber = cms.uint32(1)
-		)
-
-
 process.genUntrack = cms.EDFilter("CandSelector",
 		src = cms.InputTag("genEle"),
 		cut = cms.string("pt> 15 && ( (eta < 3.0 && eta > 2.5 ) || (eta < -2.5 && eta > -3.0) )"),
@@ -6444,24 +6282,6 @@ process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_Study_NoCutsRequireTracked = cms.Pat
 		)
 
 
-
-#process.quickGenStudyTwoTracked = cms.Path(
-#		process.genEle
-#		*process.twoGenFilter
-#		*process.genAnalyzerOne
-#		*process.genTracked
-#		*process.twoGenTrackedFilter
-#		)
-#
-#process.quickGenStudyOneTrackedOneTrackless = cms.Path(
-#		process.genEle
-#		*process.twoGenFilter
-#		*process.genTracked
-#		*process.genTrackedFilter
-#		*process.genTrackless
-#		*process.genTracklessFilter
-#		)
-#
 
 #process.HLT_Ele27_WPXX_Ele15_WPYY_trackless_v1 = cms.Path( 
 #		process.HLTBeginSequence 
