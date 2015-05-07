@@ -1,3 +1,0 @@
-/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/testScanTuple_1.root
-/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/testScanTuple_2.root
-/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/testScanTuple_3.root

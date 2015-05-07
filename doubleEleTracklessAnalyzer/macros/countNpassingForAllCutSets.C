@@ -14,7 +14,7 @@
 #include <map>
 
 #define OUTPUTNELE 1
-#define DEBUG
+//#define DEBUG
 
 using namespace std;
 
@@ -185,7 +185,7 @@ void countNpassingForAllCutSets(){
 	///make three TChains, each with access to the entire directory of signal OR high pt bkgnd OR low pt bkgnd tuples
 	///use the TChain method GetFile, and finally call GetName() to get the name of the file
 	///use this file name to make a TFile object, and loop over the entries in this file
-	string signalPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/signal/TEST_7_4_0_pre9_*.root";
+	string signalPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/signal/*_DoubleEG_22_10.root";
 	string highPtPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_high_pt/*_DoubleEG_22_10.root";
 	string lowPtPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_low_pt/*_DoubleEG_22_10.root";
 	string veryHighPtPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_very_high_pt/*_DoubleEG_22_10.root";
@@ -205,13 +205,13 @@ void countNpassingForAllCutSets(){
 	string sigTreeId="signal", highPtTreeId="highPtBkgnd", lowPtTreeId="lowPtBkgnd";
 	string veryHighPtTreeId = "veryHighPtBkgnd";
 	string sigOutPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/signal/doubleEG_22_10_master_signal_tuple.root";
-	string highPtOutPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_high_pt/doubleEG_22_10_master_high_pt_bkgnd_tuple.root";
-	string lowPtOutPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_low_pt/doubleEG_22_10_master_low_pt_bkgnd_tuple.root";
-	string veryHighPtOutPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_very_high_pt/doubleEG_22_10_master_very_high_pt_bkgnd_tuple.root";
+	string highPtOutPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_high_pt/DoubleEG_22_10_master_high_pt_bkgnd_tuple.root";
+	string lowPtOutPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_low_pt/DoubleEG_22_10_master_low_pt_bkgnd_tuple.root";
+	string veryHighPtOutPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_very_high_pt/DoubleEG_22_10_master_very_high_pt_bkgnd_tuple.root";
 
-	Float_t pt20to30BkgndL1Eff = 0.0054, pt20to30BkgndRecoEff = 0.26;
-	Float_t pt30to80BkgndL1Eff = 0.019, pt30to80BkgndRecoEff = 0.24;
-	Float_t pt80to170BkgndL1Eff = 0.067, pt80to170BkgndRecoEff = 0.27;
+	Float_t pt20to30BkgndL1Eff = 0.015, pt20to30BkgndRecoEff = 0.095;
+	Float_t pt30to80BkgndL1Eff = 0.043, pt30to80BkgndRecoEff = 0.107;
+	Float_t pt80to170BkgndL1Eff = 0.123, pt80to170BkgndRecoEff = 0.147;
 	Float_t sigRecoEff = 0.51, sigGenEff = 0.077, sigL1Eff = 0.83, sigTrackedMatchEff = 0.96, sigTracklessMatchEff = 0.84;
 	
 	Float_t lumi = 1.4e34;
@@ -220,7 +220,7 @@ void countNpassingForAllCutSets(){
 	Float_t rateFactor80to170 = lumi*((3.529*0.15443)*(1e-30));
 	Float_t rateFactorSignal = lumi*(1.5)*(1e-33);
 
-	iterateOverFilesAndEntries(sigChain,nSignalPassing,nSignalMaxPassing, sigTreeId, sigOutPath, sigGenEff, sigRecoEff*sigL1Eff*sigTrackedMatchEff*sigTracklessMatchEff, rateFactorSignal);
+	//iterateOverFilesAndEntries(sigChain,nSignalPassing,nSignalMaxPassing, sigTreeId, sigOutPath, sigGenEff, sigRecoEff*sigL1Eff*sigTrackedMatchEff*sigTracklessMatchEff, rateFactorSignal);
 	iterateOverFilesAndEntries(highPtChain,nHighPtBkgndPassing,nHighPtBkgndMaxPassing, highPtTreeId, highPtOutPath,1, pt30to80BkgndL1Eff*pt30to80BkgndRecoEff, rateFactor30to80);
 	iterateOverFilesAndEntries(veryHighPtChain,nVeryHighPtBkgndPassing,nVeryHighPtBkgndMaxPassing, veryHighPtTreeId, veryHighPtOutPath,1, pt80to170BkgndL1Eff*pt80to170BkgndRecoEff, rateFactor80to170);
 	iterateOverFilesAndEntries(lowPtChain,nLowPtBkgndPassing,nLowPtBkgndMaxPassing, lowPtTreeId, lowPtOutPath,1, pt20to30BkgndL1Eff*pt20to30BkgndRecoEff, rateFactor20to30);

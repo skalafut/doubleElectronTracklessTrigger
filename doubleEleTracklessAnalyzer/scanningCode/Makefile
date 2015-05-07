@@ -1,6 +1,4 @@
-
-CMDLINEFLAGS=""
-CXXFLAGS=-Wall -std=c++11 $(CMDLINEFLAGS) # -pedantic -ansi  #-std=c++0x
+CXXFLAGS=-Wall -std=c++11 # -pedantic -ansi  #-std=c++0x
 
 ROOT_LIB:=`root-config --libs --glibs`
 ROOT_FLAGS:=`root-config --cflags --ldflags`

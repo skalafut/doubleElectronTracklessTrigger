@@ -25,8 +25,9 @@
 #define NUMELEBRANCHNAME "nHltEle"
 //#define DEBUG
 //#define DEBUG2
-//#define DEBUG3
+#define DEBUG3
 //#define SHORTTEST
+//#define TEST
 
 using namespace std;
 
@@ -181,8 +182,6 @@ void Scan::SaveOutput(string pathToOutputFile){
 /**
    Recursive method.
    @param[in] iCut number of remaining variables to loop over. if iCut==0 then end
-   if isSignal = true, then use the Scan object member variable cutEfficiency to move to the
-   next set of cuts (looser)  
  */
 float Scan::runScan(unsigned int iCut){
 	//scan over all of the variables in _cutContainer, and for each variable loop over all possible
@@ -218,9 +217,8 @@ float Scan::runScan(unsigned int iCut){
 		//
 		// now set the value of the variable in _outputBranches[_shortCutName]
 		// and use some recursive magic!
-		cout<< currentCut << endl;
 		_outputBranches[currentCut._shortCutName][0] = currentCut._threshVal;
-		if(runScan(iCut-1) < 0.5) break;
+		if(runScan(iCut-1) < -1) break;
 	}//end loop over all possible values of the cut threshold for a CutVar object in _cutContainer
 
 	return 1;
@@ -243,8 +241,8 @@ float Scan::countEvtsPassing(){
 	//loop over entries in tuple
 	Long64_t maxEntries = _pInputChain->GetEntriesFast();
 #ifdef SHORTTEST
-	maxEntries = 10;
-	//	cout<<"running short test, scanning over "<< maxEntries<<" entries in tuple"<<endl;
+	maxEntries = 20;
+	cout<<"running short test, scanning over "<< maxEntries<<" entries in tuple"<<endl;
 #endif
 
 	for(Long64_t evt = 0; evt<maxEntries; evt++){
@@ -457,7 +455,12 @@ void Scan::runScanUsingTupleInput(TChain * preScannedTuple){
 
 	///now when preScannedTuple->GetEntry(evt) is called, the cut values in that particular evtNum will be placed
 	///in _outputBranches
-	for(long evt=0; evt<preScannedTuple->GetEntries(); evt++){
+	long evtLoop= preScannedTuple->GetEntries();
+#ifdef TEST
+	evtLoop = 5;
+#endif
+
+	for(long evt=0; evt<evtLoop; evt++){
 		preScannedTuple->GetEntry(evt);
 		for(vector<CutVar>::iterator cutItr=_cutContainer.begin(); cutItr!=_cutContainer.end(); cutItr++){
 			///now update the _threshVal of each CutVar object in _cutContainer using the values in
