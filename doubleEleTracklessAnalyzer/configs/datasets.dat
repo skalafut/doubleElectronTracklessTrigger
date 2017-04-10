@@ -1,0 +1,11 @@
+##########################
+#shortname	dataset	cross_sxn(pb)	cross_sxn_err	total_evts	skimmed_dataset	skimmed_events
+QCD_emenr_pt120to170	/QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8/PhaseIFall16DR-FlatPU28to62HcalNZSRAW_90X_upgrade2017_realistic_v6_C1-v1/GEN-SIM-RAW	62964	-	133984	-	-
+QCD_emenr_pt20to30	/QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8/PhaseIFall16DR-FlatPU28to62HcalNZSRAW_90X_upgrade2017_realistic_v6_C1-v1/GEN-SIM-RAW	5352960	-	11350786	-	-
+QCD_emenr_pt30to50	/QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8/PhaseIFall16DR-FlatPU28to62HcalNZSRAW_90X_upgrade2017_realistic_v6_C1-v1/GEN-SIM-RAW	9928000	-	11761399	-	-
+QCD_emenr_pt50to80	/QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8/PhaseIFall16DR-FlatPU28to62HcalNZSRAW_90X_upgrade2017_realistic_v6_C1-v1/GEN-SIM-RAW	2890800	-	5456641	-	-
+QCD_emenr_pt80to120	/QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8/PhaseIFall16DR-FlatPU28to62HcalNZSRAW_90X_upgrade2017_realistic_v6_C1-v1/GEN-SIM-RAW	350000	-	304698	-	-
+#####
+DYJets_madgraph	/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/PhaseIFall16DR-FlatPU28to62HcalNZSRAW_90X_upgrade2017_realistic_v6_C1-v1/GEN-SIM-RAW	6.000e+03	-	14424188	-	-
+#too few events in Zee sample, inclusive DYJetsToLL has much better statistics
+#ZEE_powheg	/ZToEE_NNPDF30_13TeV-powheg_M_50_120/PhaseIFall16DR-FlatPU28to62HcalNZSRAW_EXO40_90X_upgrade2017_realistic_v6_C1-v1/GEN-SIM-RAW	2.000e+03	-	97980	-	-
