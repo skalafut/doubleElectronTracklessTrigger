@@ -265,6 +265,7 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
    std::cout<<"entered daughter producer code"<<std::endl;
 #endif
 
+   /*
    //read collection of reco::CompositeCandidate objects from iEvent
    Handle<std::vector<reco::CompositeCandidate> > momIn;
    iEvent.getByToken(momToken, momIn);
@@ -296,6 +297,7 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
    iEvent.put(daughterOneRefColl, daughterOneCollection);
    iEvent.put(daughterTwoRefColl, daughterTwoCollection);
 
+   */
 
 
 /* This is an event example
