@@ -10906,7 +10906,7 @@ process.HLTSchedule = cms.Schedule( *(process.HLTriggerFirstPath, process.HLT_El
 
 process.source = cms.Source( "PoolSource",
     fileNames = cms.untracked.vstring(
-        'file:RelVal_Raw_GRun_MC.root',
+		'FILEA','FILEB','FILEC','FILED','FILEE','FILEF','FILEG','FILEH','FILEI','FILEJ','FILEK','FILEL','FILEM','FILEN','FILEO','FILEP','FILEQ','FILER','FILES','FILET','FILEU','FILEV','FILEW','FILEX','FILEY','FILEZ','FILE0','FILE1','FILE2','FILE3','FILE4','FILE5','FILE6','FILE7','FILE8','FILE9','FILEa','FILEb','FILEc','FILEd','FILEe','FILEf','FILEg','FILEh','FILEi','FILEj','FILEk'
     ),
     inputCommands = cms.untracked.vstring(
         'keep *'
@@ -10951,7 +10951,7 @@ if 'hltDQML1SeedLogicScalers' in process.__dict__:
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32( 100 )
+    input = cms.untracked.int32( -1 )
 )
 
 # enable TrigReport, TimeReport and MultiThreading
@@ -10976,20 +10976,19 @@ if 'MessageLogger' in process.__dict__:
     process.MessageLogger.categories.append('FastReport')
 
 # add specific customizations
-_customInfo = {}
-_customInfo['menuType'  ]= "GRun"
-_customInfo['globalTags']= {}
-_customInfo['globalTags'][True ] = "auto:run2_hlt_GRun"
-_customInfo['globalTags'][False] = "auto:run2_mc_GRun"
-_customInfo['inputFiles']={}
-_customInfo['inputFiles'][True]  = "file:RelVal_Raw_GRun_DATA.root"
-_customInfo['inputFiles'][False] = "file:RelVal_Raw_GRun_MC.root"
-_customInfo['maxEvents' ]=  -1
-_customInfo['globalTag' ]= "90X_upgrade2017_TSG_Hcal_V2"
-_customInfo['inputFile' ]=  ['FILEA','FILEB','FILEC','FILED','FILEE','FILEF','FILEG','FILEH','FILEI','FILEJ','FILEK','FILEL','FILEM','FILEN','FILEO','FILEP','FILEQ','FILER','FILES','FILET','FILEU','FILEV','FILEW','FILEX','FILEY','FILEZ','FILE0','FILE1','FILE2','FILE3','FILE4','FILE5','FILE6','FILE7','FILE8','FILE9','FILEa','FILEb','FILEc','FILEd','FILEe','FILEf','FILEg','FILEh','FILEi','FILEj','FILEk']
-_customInfo['realData'  ]=  False
-from HLTrigger.Configuration.customizeHLTforALL import customizeHLTforAll
-process = customizeHLTforAll(process,"GRun",_customInfo)
+#_customInfo = {}
+#_customInfo['menuType'  ]= "GRun"
+#_customInfo['globalTags']= {}
+#_customInfo['globalTags'][True ] = "auto:run2_hlt_GRun"
+#_customInfo['globalTags'][False] = "auto:run2_mc_GRun"
+#_customInfo['inputFiles']={}
+#_customInfo['inputFiles'][True]  = "file:RelVal_Raw_GRun_DATA.root"
+#_customInfo['inputFiles'][False] = "file:RelVal_Raw_GRun_MC.root"
+#_customInfo['maxEvents' ]=  -1
+#_customInfo['globalTag' ]= "90X_upgrade2017_TSG_Hcal_V2"
+#_customInfo['realData'  ]=  False
+#from HLTrigger.Configuration.customizeHLTforALL import customizeHLTforAll
+#process = customizeHLTforAll(process,"GRun",_customInfo)
 
 from HLTrigger.Configuration.customizeHLTforCMSSW import customizeHLTforCMSSW
 process = customizeHLTforCMSSW(process,"GRun")

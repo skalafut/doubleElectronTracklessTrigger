@@ -61,8 +61,8 @@ do
 		rm tempOne.sh
 
 		#submit the job from scripts/ dir
-		echo "bsub -R 'pool>2000' -q 1nd -J runSkimJob_${mcIdentifier[$j]}_Part_${startingCount} < runSkimJob_${mcIdentifier[$j]}_${startingCount}.sh"
-		#eval "bsub -R 'pool>2000' -q 1nd -J runSkimJob_${mcIdentifier[$j]}_Part_${startingCount} < runSkimJob_${mcIdentifier[$j]}_${startingCount}.sh"
+		#echo "bsub -R 'pool>2000' -q 1nd -J runSkimJob_${mcIdentifier[$j]}_Part_${startingCount} < runSkimJob_${mcIdentifier[$j]}_${startingCount}.sh"
+		eval "bsub -R 'pool>2000' -q 1nd -J runSkimJob_${mcIdentifier[$j]}_Part_${startingCount} < runSkimJob_${mcIdentifier[$j]}_${startingCount}.sh"
 		eval "cd .."
 
 		let startingCount=startingCount+1
