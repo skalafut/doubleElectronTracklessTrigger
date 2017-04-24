@@ -10986,7 +10986,7 @@ _customInfo['inputFiles'][True]  = "file:RelVal_Raw_GRun_DATA.root"
 _customInfo['inputFiles'][False] = "file:RelVal_Raw_GRun_MC.root"
 _customInfo['maxEvents' ]=  -1
 _customInfo['globalTag' ]= "90X_upgrade2017_TSG_Hcal_V2"
-_customInfo['inputFile' ]=  ['FILEA', 'FILEB', 'FILEC', 'FILED', 'FILEE', 'FILEF', 'FILEG', 'FILEH', 'FILEI', 'FILEJ', 'FILEK', 'FILEL', 'FILEM', 'FILEN', 'FILEO', 'FILEP', 'FILEQ', 'FILER', 'FILES', 'FILET', 'FILEU', 'FILEV', 'FILEW', 'FILEX', 'FILEY', 'FILEZ', 'FILE0', 'FILE1', 'FILE2', 'FILE3', 'FILE4', 'FILE5', 'FILE6', 'FILE7', 'FILE8', 'FILE9', 'FILEa', 'FILEb', 'FILEc', 'FILEd', 'FILEe', 'FILEf', 'FILEg', 'FILEh', 'FILEi', 'FILEj', 'FILEk']
+_customInfo['inputFile' ]=  ['FILEA','FILEB','FILEC','FILED','FILEE','FILEF','FILEG','FILEH','FILEI','FILEJ','FILEK','FILEL','FILEM','FILEN','FILEO','FILEP','FILEQ','FILER','FILES','FILET','FILEU','FILEV','FILEW','FILEX','FILEY','FILEZ','FILE0','FILE1','FILE2','FILE3','FILE4','FILE5','FILE6','FILE7','FILE8','FILE9','FILEa','FILEb','FILEc','FILEd','FILEe','FILEf','FILEg','FILEh','FILEi','FILEj','FILEk']
 _customInfo['realData'  ]=  False
 from HLTrigger.Configuration.customizeHLTforALL import customizeHLTforAll
 process = customizeHLTforAll(process,"GRun",_customInfo)

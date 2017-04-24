@@ -29,7 +29,7 @@ do
 	do
 		#move into test dir
 		eval "cd test"
-		eval "sed 's@NNN@$startingCount@g' hltSkimDoubleEle.py > tempOne.py"
+		eval "sed 's@PartNNN@Part$startingCount@g' hltSkimDoubleEle.py > tempOne.py"
 		eval "sed 's@TAGNAME@${mcIdentifier[$j]}@g' tempOne.py > tempTwo.py"
 
 		#now loop over all elements in placeholderFileNames, and replace each element with a full path to a real file
@@ -42,7 +42,7 @@ do
 				break
 			fi
 
-			eval "sed -i 's@${placeholderFileNames[$i]}@${fileList[$fileListIndex]}@g' tempTwo.py"
+			eval "sed -i 's@${placeholderFileNames[$i]}@${fileList[$fileListIndex]}@' tempTwo.py"
 
 			let fileListIndex=fileListIndex+1
 		done
