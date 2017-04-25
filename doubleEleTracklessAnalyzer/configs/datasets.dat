@@ -1,5 +1,5 @@
 ##########################
-#shortname	dataset	cross_sxn(pb)	cross_sxn_err	total_evts	skimmed_dataset	skimmed_events
+#shortname	dataset	cross_sxn x filterEff(pb)	cross_sxn_err	total_evts	skimmed_dataset	skimmed_events
 #QCD_emenr_pt120to170	/QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8/PhaseIFall16DR-FlatPU28to62HcalNZSRAW_90X_upgrade2017_realistic_v6_C1-v1/GEN-SIM-RAW	62964	-	133984	-	-
 #QCD_emenr_pt20to30	/QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8/PhaseIFall16DR-FlatPU28to62HcalNZSRAW_90X_upgrade2017_realistic_v6_C1-v1/GEN-SIM-RAW	5352960	-	11350786	-	-
 #QCD_emenr_pt30to50	/QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8/PhaseIFall16DR-FlatPU28to62HcalNZSRAW_90X_upgrade2017_realistic_v6_C1-v1/GEN-SIM-RAW	9928000	-	11761399	-	-

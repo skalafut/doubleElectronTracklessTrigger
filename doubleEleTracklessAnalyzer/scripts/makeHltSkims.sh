@@ -14,6 +14,12 @@ placeholderFileNames=('FILEA' 'FILEB' 'FILEC' 'FILED' 'FILEE' 'FILEF' 'FILEG' 'F
 
 placeholderLength=${#placeholderFileNames[@]}
 
+#use these two variables to control the submission of jobs
+#if too many jobs are running at the same time the local disk space quota
+#will be exceeded, and the jobs will fail
+maxRunningJobs=30
+numSubmitted=0
+
 #now loop over all elements in mcIdentifier
 for j in ${!mcIdentifier[*]}
 do
@@ -61,11 +67,20 @@ do
 		rm tempOne.sh
 
 		#submit the job from scripts/ dir
-		#echo "bsub -R 'pool>2000' -q 1nd -J runSkimJob_${mcIdentifier[$j]}_Part_${startingCount} < runSkimJob_${mcIdentifier[$j]}_${startingCount}.sh"
-		eval "bsub -R 'pool>2000' -q 1nd -J runSkimJob_${mcIdentifier[$j]}_Part_${startingCount} < runSkimJob_${mcIdentifier[$j]}_${startingCount}.sh"
+		#echo "bsub -R 'pool>4000' -q 2nd -J runSkimJob_${mcIdentifier[$j]}_Part_${startingCount} < runSkimJob_${mcIdentifier[$j]}_${startingCount}.sh"
+		eval "bsub -R 'pool>4000' -q 2nd -J runSkimJob_${mcIdentifier[$j]}_Part_${startingCount} < runSkimJob_${mcIdentifier[$j]}_${startingCount}.sh"
+		
+		#move back to one dir above scripts/
 		eval "cd .."
 
 		let startingCount=startingCount+1
+		let numSubmitted=numSubmitted+1
+		if [ $numSubmitted -ge $maxRunningJobs ]; then
+			let numSubmitted=0
+			eval "rm core.*"
+			eval "rm scripts/core.*"
+			eval "sleep 100m"
+		fi
 
 	done
 

@@ -10853,7 +10853,56 @@ process.HLTTrackReconstructionForIsoElectronIter02 = cms.Sequence( process.HLTPi
 process.HLTPFClusteringForEgammaUnseeded = cms.Sequence( process.hltParticleFlowRecHitECALUnseeded + process.hltParticleFlowRecHitPSUnseeded + process.hltParticleFlowClusterPSUnseeded + process.hltParticleFlowClusterECALUncorrectedUnseeded + process.hltParticleFlowClusterECALUnseeded + process.hltParticleFlowSuperClusterECALUnseeded )
 process.HLTDoLocalHcalWithTowerL1EGUnseededSequence = cms.Sequence( process.hltHcalDigis + process.hltHbhePhase1Reco + process.hltHbhereco + process.hltHfprereco + process.hltHfreco + process.hltHoreco + process.hltTowerMakerForAll + process.hltHcalDigisL1EGUnseeded + process.hltHbherecoMethod2L1EGUnseeded + process.hltTowerMakerMethod2L1EGUnseeded )
 process.HLTPFHcalClusteringForEgammaUnseeded = cms.Sequence( process.hltParticleFlowRecHitHBHEForEgammaUnseeded + process.hltParticleFlowRecHitHCALForEgammaUnseeded + process.hltParticleFlowRecHitHFForEgammaUnseeded + process.hltParticleFlowClusterHBHEForEgammaUnseeded + process.hltParticleFlowClusterHCALForEgammaUnseeded + process.hltParticleFlowClusterHFForEgammaUnseeded )
-process.HLTEle27HighEtaEle20Mass55Sequence = cms.Sequence( process.HLTDoFullUnpackingEgammaEcalSequence + process.HLTPFClusteringForEgamma + process.hltEgammaCandidates + process.hltEGL1SingleAndDoubleEGNonIsoOrFilter + process.hltEle27HighEtaEle20EtFilter + process.hltEgammaClusterShape + process.hltEle27HighEtaEle20ClusterShapeFilter + process.HLTDoLocalHcalWithTowerL1EGSeededSequence + process.HLTFastJetForEgamma + process.hltEgammaHoverE + process.hltEle27HighEtaEle20HEFilter + process.hltEgammaEcalPFClusterIso + process.hltEle27HighEtaEle20EcalIsoFilter + process.HLTPFHcalClusteringForEgamma + process.hltEgammaHcalPFClusterIso + process.hltEle27HighEtaEle20HcalIsoFilter + process.HLTDoLocalPixelSequence + process.HLTDoLocalStripSequence + process.hltMixedLayerPairs + process.hltEgammaElectronPixelSeeds + process.hltEle27HighEtaEle20PixelMatchFilter + process.HLTGsfElectronSequence + process.hltEle27HighEtaEle20OneOEMinusOneOPFilter + process.hltEle27HighEtaEle20DetaFilter + process.hltEle27HighEtaEle20DphiFilter + process.HLTTrackReconstructionForIsoElectronIter02 + process.hltEgammaEleGsfTrackIso + process.hltEle27HighEtaEle20TrackIsoFilter + process.HLTPFClusteringForEgammaUnseeded + process.hltEgammaCandidatesUnseeded + process.hltEgammaCandidatesWrapperUnseeded + process.hltDiEG20EtUnseededFilter + process.hltEgammaClusterShapeUnseeded + process.hltEle27HighEtaEle20ClusterShapeUnseededFilter + process.hltEgammaEcalPFClusterIsoUnseeded + process.hltEle27HighEtaEle20EcalIsoFilterUnseeded + process.HLTDoLocalHcalWithTowerL1EGUnseededSequence + process.hltEgammaHoverEUnseeded + process.hltEle27HighEtaEle20HEFilterUnseeded + process.HLTPFHcalClusteringForEgammaUnseeded + process.hltEgammaHcalPFClusterIsoUnseeded + process.hltEle27HighEtaEle20HcalIsoFilterUnseeded + process.hltHighEtaEle20Selector + process.hltHighEtaEle20SelectorFilter + process.hltEle27HighEtaEle20Mass55Filter )
+
+
+process.HLTEle27HighEtaEle20Mass55Sequence = cms.Sequence( process.HLTDoFullUnpackingEgammaEcalSequence 
++ process.HLTPFClusteringForEgamma 
++ process.hltEgammaCandidates 
++ process.hltEGL1SingleAndDoubleEGNonIsoOrFilter 
++ process.hltEle27HighEtaEle20EtFilter 
++ process.hltEgammaClusterShape 
++ process.hltEle27HighEtaEle20ClusterShapeFilter 
++ process.HLTDoLocalHcalWithTowerL1EGSeededSequence 
++ process.HLTFastJetForEgamma 
++ process.hltEgammaHoverE 
++ process.hltEle27HighEtaEle20HEFilter 
++ process.hltEgammaEcalPFClusterIso 
++ process.hltEle27HighEtaEle20EcalIsoFilter 
++ process.HLTPFHcalClusteringForEgamma 
++ process.hltEgammaHcalPFClusterIso 
++ process.hltEle27HighEtaEle20HcalIsoFilter 
++ process.HLTDoLocalPixelSequence 
++ process.HLTDoLocalStripSequence 
++ process.hltMixedLayerPairs 
++ process.hltEgammaElectronPixelSeeds 
++ process.hltEle27HighEtaEle20PixelMatchFilter 
++ process.HLTGsfElectronSequence 
++ process.hltEle27HighEtaEle20OneOEMinusOneOPFilter 
++ process.hltEle27HighEtaEle20DetaFilter 
++ process.hltEle27HighEtaEle20DphiFilter 
++ process.HLTTrackReconstructionForIsoElectronIter02 
++ process.hltEgammaEleGsfTrackIso 
++ process.hltEle27HighEtaEle20TrackIsoFilter 
++ process.HLTPFClusteringForEgammaUnseeded 
++ process.hltEgammaCandidatesUnseeded 
++ process.hltEgammaCandidatesWrapperUnseeded 
++ process.hltDiEG20EtUnseededFilter 
++ process.hltEgammaClusterShapeUnseeded 
++ process.hltEle27HighEtaEle20ClusterShapeUnseededFilter 
++ process.hltEgammaEcalPFClusterIsoUnseeded 
++ process.hltEle27HighEtaEle20EcalIsoFilterUnseeded 
++ process.HLTDoLocalHcalWithTowerL1EGUnseededSequence 
++ process.hltEgammaHoverEUnseeded 
++ process.hltEle27HighEtaEle20HEFilterUnseeded 
++ process.HLTPFHcalClusteringForEgammaUnseeded 
++ process.hltEgammaHcalPFClusterIsoUnseeded 
++ process.hltEle27HighEtaEle20HcalIsoFilterUnseeded 
++ process.hltHighEtaEle20Selector 
++ process.hltHighEtaEle20SelectorFilter 
++ process.hltEle27HighEtaEle20Mass55Filter
+)
+
+
 process.HLTEndSequence = cms.Sequence( process.hltBoolEnd )
 process.HLTPFScoutingPackingSequence = cms.Sequence( process.hltScoutingPFPacker + process.hltScoutingMuonPacker + process.hltScoutingEgammaPacker )
 
@@ -10906,7 +10955,6 @@ process.HLTSchedule = cms.Schedule( *(process.HLTriggerFirstPath, process.HLT_El
 
 process.source = cms.Source( "PoolSource",
     fileNames = cms.untracked.vstring(
-		'FILEA','FILEB','FILEC','FILED','FILEE','FILEF','FILEG','FILEH','FILEI','FILEJ','FILEK','FILEL','FILEM','FILEN','FILEO','FILEP','FILEQ','FILER','FILES','FILET','FILEU','FILEV','FILEW','FILEX','FILEY','FILEZ','FILE0','FILE1','FILE2','FILE3','FILE4','FILE5','FILE6','FILE7','FILE8','FILE9','FILEa','FILEb','FILEc','FILEd','FILEe','FILEf','FILEg','FILEh','FILEi','FILEj','FILEk'
     ),
     inputCommands = cms.untracked.vstring(
         'keep *'
@@ -10956,10 +11004,11 @@ process.maxEvents = cms.untracked.PSet(
 
 # enable TrigReport, TimeReport and MultiThreading
 process.options = cms.untracked.PSet(
-    wantSummary = cms.untracked.bool( True ),
-    numberOfThreads = cms.untracked.uint32( 4 ),
-    numberOfStreams = cms.untracked.uint32( 0 ),
-    sizeOfStackForThreadsInKB = cms.untracked.uint32( 10*1024 )
+    wantSummary = cms.untracked.bool( True )
+    #numberOfThreads = cms.untracked.uint32( 1 ),
+    #numberOfStreams = cms.untracked.uint32( 0 ),
+    #sizeOfStackForThreadsInKB = cms.untracked.uint32( 10*1024 ),
+	#SkipEvent = cms.untracked.vstring('EventCorruption')
 )
 
 # override the GlobalTag, connection string and pfnPrefix
@@ -10975,20 +11024,22 @@ if 'MessageLogger' in process.__dict__:
     process.MessageLogger.categories.append('HLTrigReport')
     process.MessageLogger.categories.append('FastReport')
 
+
 # add specific customizations
-#_customInfo = {}
-#_customInfo['menuType'  ]= "GRun"
-#_customInfo['globalTags']= {}
-#_customInfo['globalTags'][True ] = "auto:run2_hlt_GRun"
-#_customInfo['globalTags'][False] = "auto:run2_mc_GRun"
-#_customInfo['inputFiles']={}
-#_customInfo['inputFiles'][True]  = "file:RelVal_Raw_GRun_DATA.root"
-#_customInfo['inputFiles'][False] = "file:RelVal_Raw_GRun_MC.root"
-#_customInfo['maxEvents' ]=  -1
-#_customInfo['globalTag' ]= "90X_upgrade2017_TSG_Hcal_V2"
-#_customInfo['realData'  ]=  False
-#from HLTrigger.Configuration.customizeHLTforALL import customizeHLTforAll
-#process = customizeHLTforAll(process,"GRun",_customInfo)
+_customInfo = {}
+_customInfo['menuType'  ]= "GRun"
+_customInfo['globalTags']= {}
+_customInfo['globalTags'][True ] = "auto:run2_hlt_GRun"
+_customInfo['globalTags'][False] = "auto:run2_mc_GRun"
+_customInfo['inputFiles']={}
+_customInfo['inputFiles'][True]  = "file:RelVal_Raw_GRun_DATA.root"
+_customInfo['inputFiles'][False] = "file:RelVal_Raw_GRun_MC.root"
+_customInfo['maxEvents' ]=  -1
+_customInfo['globalTag' ]= "90X_upgrade2017_TSG_Hcal_V2"
+_customInfo['inputFile'] = 'FILEA','FILEB','FILEC','FILED','FILEE','FILEF','FILEG','FILEH','FILEI','FILEJ','FILEK','FILEL','FILEM','FILEN','FILEO','FILEP','FILEQ','FILER','FILES','FILET','FILEU','FILEV','FILEW','FILEX','FILEY','FILEZ','FILE0','FILE1','FILE2','FILE3','FILE4','FILE5','FILE6','FILE7','FILE8','FILE9','FILEa','FILEb','FILEc','FILEd','FILEe','FILEf','FILEg','FILEh','FILEi','FILEj','FILEk'
+_customInfo['realData'  ]=  False
+from HLTrigger.Configuration.customizeHLTforALL import customizeHLTforAll
+process = customizeHLTforAll(process,"GRun",_customInfo)
 
 from HLTrigger.Configuration.customizeHLTforCMSSW import customizeHLTforCMSSW
 process = customizeHLTforCMSSW(process,"GRun")
