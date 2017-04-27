@@ -14,4 +14,5 @@ eval "cmsRun test/hltSkimDoubleEle_TAGNAME_NNN.py"
 #after the skim finishes, move the skim file to a pre-existing directory in the WR group space on eos
 eval "xrdcp TAGNAME_skimPartNNN.root $eosReadingTag$WRITEDIR/."
 rm TAGNAME_skimPartNNN.root
+eval "rm test/hltSkimDoubleEle_TAGNAME_NNN.py"
 
