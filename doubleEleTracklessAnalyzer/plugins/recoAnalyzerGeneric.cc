@@ -123,20 +123,20 @@ class recoAnalyzerGeneric : public edm::EDAnalyzer {
 
 void getTriggerObjectsInfo(const edm::Event& iEvent){
 
-	iEvent.getByLabel(hltZedMomObjectsTag, hltZedMomObjectsHandle);
+	iEvent.getByToken(hltZedMomObjectsTag, hltZedMomObjectsHandle);
 	if(!hltZedMomObjectsHandle.isValid() ) return;
 
 	if(analyzingTracked && maxDeltaR < 0){
-		iEvent.getByLabel(SigmaIEIETag,SigmaIEIEHandle);
-		iEvent.getByLabel(HadEmTag,HadEmHandle);
-		iEvent.getByLabel(HcalIsoTag,HcalIsoHandle);
-		iEvent.getByLabel(EcalIsoTag,EcalIsoHandle);
-		iEvent.getByLabel(TrackIsoTag,TrackIsoHandle);
-		iEvent.getByLabel(DphiTag,DphiHandle);
-		iEvent.getByLabel(DetaTag,DetaHandle);
-		iEvent.getByLabel(EpTag,EpHandle);
+		iEvent.getByToken(SigmaIEIETag,SigmaIEIEHandle);
+		iEvent.getByToken(HadEmTag,HadEmHandle);
+		iEvent.getByToken(HcalIsoTag,HcalIsoHandle);
+		iEvent.getByToken(EcalIsoTag,EcalIsoHandle);
+		iEvent.getByToken(TrackIsoTag,TrackIsoHandle);
+		iEvent.getByToken(DphiTag,DphiHandle);
+		iEvent.getByToken(DetaTag,DetaHandle);
+		iEvent.getByToken(EpTag,EpHandle);
 
-		iEvent.getByLabel(hltObjectsTag, hltObjectsHandle);
+		iEvent.getByToken(hltObjectsTag, hltObjectsHandle);
 
 		//std::cout<<"setup handles to tracked leg objects and variables"<<std::endl;
 		
@@ -202,12 +202,12 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 	}//end filter on tracked leg objects 
 	
 	if(!analyzingTracked && maxDeltaR < 0){
-		iEvent.getByLabel(SigmaIEIETag,SigmaIEIEHandle);
-		iEvent.getByLabel(HadEmTag,HadEmHandle);
-		iEvent.getByLabel(HcalIsoTag,HcalIsoHandle);
-		iEvent.getByLabel(EcalIsoTag,EcalIsoHandle);
+		iEvent.getByToken(SigmaIEIETag,SigmaIEIEHandle);
+		iEvent.getByToken(HadEmTag,HadEmHandle);
+		iEvent.getByToken(HcalIsoTag,HcalIsoHandle);
+		iEvent.getByToken(EcalIsoTag,EcalIsoHandle);
 	
-		iEvent.getByLabel(hltObjectsTag, hltObjectsHandle);
+		iEvent.getByToken(hltObjectsTag, hltObjectsHandle);
 		
 		//std::cout<<"setup handles to trackless leg objects and variables"<<std::endl;
 		
@@ -264,18 +264,18 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 	}//end filter on trackless leg objects 
 
 	if(analyzingTracked && maxDeltaR > 0){
-		iEvent.getByLabel(SigmaIEIETag,SigmaIEIEHandle);
-		iEvent.getByLabel(HadEmTag,HadEmHandle);
-		iEvent.getByLabel(HcalIsoTag,HcalIsoHandle);
-		iEvent.getByLabel(EcalIsoTag,EcalIsoHandle);
-		iEvent.getByLabel(TrackIsoTag,TrackIsoHandle);
-		iEvent.getByLabel(DphiTag,DphiHandle);
-		iEvent.getByLabel(DetaTag,DetaHandle);
-		iEvent.getByLabel(EpTag,EpHandle);
+		iEvent.getByToken(SigmaIEIETag,SigmaIEIEHandle);
+		iEvent.getByToken(HadEmTag,HadEmHandle);
+		iEvent.getByToken(HcalIsoTag,HcalIsoHandle);
+		iEvent.getByToken(EcalIsoTag,EcalIsoHandle);
+		iEvent.getByToken(TrackIsoTag,TrackIsoHandle);
+		iEvent.getByToken(DphiTag,DphiHandle);
+		iEvent.getByToken(DetaTag,DetaHandle);
+		iEvent.getByToken(EpTag,EpHandle);
 
-		iEvent.getByLabel(hltObjectsTag, hltObjectsHandle);
-		iEvent.getByLabel(genObjectsTag, genObjectsHandle);
-		iEvent.getByLabel(genZedMomObjectsTag,genZedMomObjectsHandle);
+		iEvent.getByToken(hltObjectsTag, hltObjectsHandle);
+		iEvent.getByToken(genObjectsTag, genObjectsHandle);
+		iEvent.getByToken(genZedMomObjectsTag,genZedMomObjectsHandle);
 
 		//std::cout<<"setup handles to tracked leg objects and variables"<<std::endl;
 		
@@ -362,14 +362,14 @@ void getTriggerObjectsInfo(const edm::Event& iEvent){
 	}//end filter on tracked leg objects which should be matched to one GEN tracked electron 
 	
 	if(!analyzingTracked && maxDeltaR > 0){
-		iEvent.getByLabel(SigmaIEIETag,SigmaIEIEHandle);
-		iEvent.getByLabel(HadEmTag,HadEmHandle);
-		iEvent.getByLabel(HcalIsoTag,HcalIsoHandle);
-		iEvent.getByLabel(EcalIsoTag,EcalIsoHandle);
+		iEvent.getByToken(SigmaIEIETag,SigmaIEIEHandle);
+		iEvent.getByToken(HadEmTag,HadEmHandle);
+		iEvent.getByToken(HcalIsoTag,HcalIsoHandle);
+		iEvent.getByToken(EcalIsoTag,EcalIsoHandle);
 	
-		iEvent.getByLabel(hltObjectsTag, hltObjectsHandle);
-		iEvent.getByLabel(genObjectsTag, genObjectsHandle);
-		iEvent.getByLabel(genZedMomObjectsTag,genZedMomObjectsHandle);
+		iEvent.getByToken(hltObjectsTag, hltObjectsHandle);
+		iEvent.getByToken(genObjectsTag, genObjectsHandle);
+		iEvent.getByToken(genZedMomObjectsTag,genZedMomObjectsHandle);
 
 		//std::cout<<"setup handles to trackless leg objects and variables"<<std::endl;
 		
@@ -463,31 +463,31 @@ typedef edm::AssociationMap<edm::OneToValue<std::vector<reco::RecoEcalCandidate>
 
 //handles and inputTags to AssociationMaps for RecoEcalCandidate objects 
 edm::Handle<ecalCandToValMap> SigmaIEIEHandle;
-edm::InputTag SigmaIEIETag;
+edm::EDGetToken SigmaIEIETag;
 
 edm::Handle<ecalCandToValMap> HadEmHandle;
-edm::InputTag HadEmTag;
+edm::EDGetToken HadEmTag;
 
 edm::Handle<ecalCandToValMap> EcalIsoHandle;
-edm::InputTag EcalIsoTag;
+edm::EDGetToken EcalIsoTag;
 
 edm::Handle<ecalCandToValMap> HcalIsoHandle;
-edm::InputTag HcalIsoTag;
+edm::EDGetToken HcalIsoTag;
 
 edm::Handle<ecalCandToValMap> EpHandle;
-edm::InputTag EpTag;
+edm::EDGetToken EpTag;
 
 edm::Handle<ecalCandToValMap> DetaHandle;
-edm::InputTag DetaTag;
+edm::EDGetToken DetaTag;
 
 edm::Handle<ecalCandToValMap> DphiHandle;
-edm::InputTag DphiTag;
+edm::EDGetToken DphiTag;
 
 edm::Handle<ecalCandToValMap> TrackIsoHandle;
-edm::InputTag TrackIsoTag;
+edm::EDGetToken TrackIsoTag;
 
 
-//RecoEcalCandidate and reco::Candidate handles, relevant InputTags, and tree variables
+//RecoEcalCandidate and reco::Candidate handles, relevant EDGetTokens, and tree variables
 //edm::Handle<std::vector<reco::RecoEcalCandidate> > hltObjectsHandle;
 edm::Handle<reco::RecoEcalCandidateRefVector> hltObjectsHandle;
 //original std::vector<edm::Ref<reco::RecoEcalCandidateCollection> > hltRefs;
@@ -500,13 +500,13 @@ edm::Handle<std::vector<reco::CompositeCandidate>> genZedMomObjectsHandle;
 
 std::string tName;
 
-edm::InputTag hltObjectsTag;
+edm::EDGetToken hltObjectsTag;
 
 bool analyzingTracked;
-edm::InputTag genObjectsTag;
+edm::EDGetToken genObjectsTag;
 double maxDeltaR;
-edm::InputTag hltZedMomObjectsTag;
-edm::InputTag genZedMomObjectsTag;
+edm::EDGetToken hltZedMomObjectsTag;
+edm::EDGetToken genZedMomObjectsTag;
 
 TTree * tree;
 
@@ -566,21 +566,21 @@ Double_t rescaledEvtNumber;
 //
 //the order of private member vars which are initialized using iConfig.getParameter<>() is important!
 recoAnalyzerGeneric::recoAnalyzerGeneric(const edm::ParameterSet& iConfig):
-	SigmaIEIETag(iConfig.getParameter<edm::InputTag>("SigmaIEIE")),
-	HadEmTag(iConfig.getParameter<edm::InputTag>("HadEm")),
-	EcalIsoTag(iConfig.getParameter<edm::InputTag>("EcalIso")),
-	HcalIsoTag(iConfig.getParameter<edm::InputTag>("HcalIso")),
-	EpTag(iConfig.getParameter<edm::InputTag>("Ep")),
-	DetaTag(iConfig.getParameter<edm::InputTag>("Deta")),
-	DphiTag(iConfig.getParameter<edm::InputTag>("Dphi")),
-	TrackIsoTag(iConfig.getParameter<edm::InputTag>("TrackIso")),
+	SigmaIEIETag( consumes<ecalCandToValMap>(iConfig.getParameter<edm::InputTag>("SigmaIEIE")) ),
+	HadEmTag( consumes<ecalCandToValMap>(iConfig.getParameter<edm::InputTag>("HadEm")) ),
+	EcalIsoTag( consumes<ecalCandToValMap>(iConfig.getParameter<edm::InputTag>("EcalIso")) ),
+	HcalIsoTag( consumes<ecalCandToValMap>(iConfig.getParameter<edm::InputTag>("HcalIso")) ),
+	EpTag( consumes<ecalCandToValMap>(iConfig.getParameter<edm::InputTag>("Ep")) ),
+	DetaTag( consumes<ecalCandToValMap>(iConfig.getParameter<edm::InputTag>("Deta")) ),
+	DphiTag( consumes<ecalCandToValMap>(iConfig.getParameter<edm::InputTag>("Dphi")) ),
+	TrackIsoTag( consumes<ecalCandToValMap>(iConfig.getParameter<edm::InputTag>("TrackIso")) ),
 	tName(iConfig.getParameter<std::string>("treeName")),
-	hltObjectsTag(iConfig.getParameter<edm::InputTag>("recoElectronCollection")),
+	hltObjectsTag( consumes<reco::RecoEcalCandidateRefVector>(iConfig.getParameter<edm::InputTag>("recoElectronCollection")) ),
 	analyzingTracked(iConfig.getParameter<bool>("doAnalysisOfTracked")),
-	genObjectsTag(iConfig.getParameter<edm::InputTag>("genCollection")),
+	genObjectsTag( consumes<edm::OwnVector<reco::Candidate> >(iConfig.getParameter<edm::InputTag>("genCollection")) ),
 	maxDeltaR(iConfig.getParameter<double>("dRMatch")),
-	hltZedMomObjectsTag(iConfig.getParameter<edm::InputTag>("recoZedCollection")),
-	genZedMomObjectsTag(iConfig.getParameter<edm::InputTag>("genZedCollection"))
+	hltZedMomObjectsTag( consumes<std::vector<reco::CompositeCandidate> >(iConfig.getParameter<edm::InputTag>("recoZedCollection")) ),
+	genZedMomObjectsTag( consumes<std::vector<reco::CompositeCandidate> >(iConfig.getParameter<edm::InputTag>("genZedCollection")) )
 
 {
    //now do what ever initialization is needed

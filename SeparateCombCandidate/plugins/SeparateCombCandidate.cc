@@ -124,7 +124,7 @@ class SeparateCombCandidate : public edm::EDProducer {
 	  //check if a Ref with pt, eta, and phi already exists in a collection of Ref objects
 	  //return false if the Ref object does not exist in the collection
 	  //return true if the Ref object does exist in the collection of Ref objects
-	  bool isDuplicateRef(reco::CandidateBaseRef& refObject,std::auto_ptr<reco::RecoEcalCandidateRefVector>& ptrToRefColl){
+	  bool isDuplicateRef(reco::CandidateBaseRef& refObject,std::unique_ptr<reco::RecoEcalCandidateRefVector>& ptrToRefColl){
 #ifdef DEBUG
 		  std::cout<<"in isDuplicateRef()"<<std::endl;
 		  std::cout<<"about to check if RefVector size = 0"<<std::endl;
@@ -140,7 +140,7 @@ class SeparateCombCandidate : public edm::EDProducer {
 		  return false;
 	  }//end isDuplicateRef() 
 
-	  void findAndSaveRef(edm::Handle<std::vector<reco::RecoEcalCandidate> >& inputParentHandle, edm::Handle<std::vector<reco::CompositeCandidate> >& inputMomHandle, std::auto_ptr<reco::RecoEcalCandidateRefVector>& ptrToOutputColl, std::string& dauRole){
+	  void findAndSaveRef(edm::Handle<std::vector<reco::RecoEcalCandidate> >& inputParentHandle, edm::Handle<std::vector<reco::CompositeCandidate> >& inputMomHandle, std::unique_ptr<reco::RecoEcalCandidateRefVector>& ptrToOutputColl, std::string& dauRole){
 
 		  for(std::vector<reco::CompositeCandidate>::const_iterator momIt = inputMomHandle->begin(); momIt != inputMomHandle->end(); momIt++){
 			  //get a Ref to a daughter via momIt->daughter()->masterClone()
@@ -192,9 +192,13 @@ class SeparateCombCandidate : public edm::EDProducer {
       //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
  
       // ----------member data ---------------------------
-	  edm::EDGetTokenT<std::vector<reco::CompositeCandidate>> momToken;
-	  edm::EDGetTokenT<std::vector<reco::RecoEcalCandidate>> momParentOneToken;
-      edm::EDGetTokenT<std::vector<reco::RecoEcalCandidate>> momParentTwoToken;
+	  edm::EDGetTokenT<std::vector<reco::CompositeCandidate> > momToken;
+	  edm::EDGetTokenT<std::vector<reco::RecoEcalCandidate> > momParentOneToken;
+	  edm::EDGetTokenT<std::vector<reco::RecoEcalCandidate> > momParentTwoToken;
+	  
+	  edm::Handle<std::vector<reco::CompositeCandidate> > momIn;
+	  edm::Handle<std::vector<reco::RecoEcalCandidate> > momParentOneIn;	//for trackless leg RECs
+	  edm::Handle<std::vector<reco::RecoEcalCandidate> > momParentTwoIn;	//for tracked leg RECs
 	
    	  std::string daughterOneCollection;
 	  std::string daughterTwoCollection;
@@ -214,6 +218,9 @@ class SeparateCombCandidate : public edm::EDProducer {
 // constructors and destructor
 //
 SeparateCombCandidate::SeparateCombCandidate(const edm::ParameterSet& iConfig):
+	momToken( consumes<std::vector<reco::CompositeCandidate> >(iConfig.getParameter<edm::InputTag>("zedLabel"))),
+	momParentOneToken( consumes<std::vector<reco::RecoEcalCandidate> >(iConfig.getParameter<edm::InputTag>("tracklessHltEle"))),
+	momParentTwoToken( consumes<std::vector<reco::RecoEcalCandidate> >(iConfig.getParameter<edm::InputTag>("trackedHltEle"))),
 	daughterOneCollection(iConfig.getParameter<std::string>("tracklessEleCollectionName")),
 	daughterTwoCollection(iConfig.getParameter<std::string>("trackedEleCollectionName"))
 {
@@ -228,11 +235,9 @@ SeparateCombCandidate::SeparateCombCandidate(const edm::ParameterSet& iConfig):
    produces<ExampleData2,InRun>();
 */
    
-   momToken = consumes<std::vector<reco::CompositeCandidate>>(iConfig.getParameter<edm::InputTag>("zedLabel"));
-   momParentOneToken = consumes<std::vector<reco::RecoEcalCandidate>>(iConfig.getParameter<edm::InputTag>("tracklessHltEle"));
-   momParentTwoToken = consumes<std::vector<reco::RecoEcalCandidate>>(iConfig.getParameter<edm::InputTag>("trackedHltEle"));
-   //daughterOneCollection = iConfig.getParameter<std::string>("tracklessEleCollectionName");
-   //daughterTwoCollection = iConfig.getParameter<std::string>("trackedEleCollectionName");
+   //momToken = consumes<std::vector<reco::CompositeCandidate> >(iConfig.getParameter<edm::InputTag>("zedLabel"));
+   //momParentOneToken = consumes<std::vector<reco::RecoEcalCandidate> >(iConfig.getParameter<edm::InputTag>("tracklessHltEle"));
+   //momParentTwoToken = consumes<std::vector<reco::RecoEcalCandidate> >(iConfig.getParameter<edm::InputTag>("trackedHltEle"));
    
    //register the two collections of products - std::vector<edm::Refs to RecoEcalCandidate objects> (daughters of Z)
    produces<reco::RecoEcalCandidateRefVector>(daughterOneCollection);
@@ -265,15 +270,9 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
    std::cout<<"entered daughter producer code"<<std::endl;
 #endif
 
-   /*
    //read collection of reco::CompositeCandidate objects from iEvent
-   Handle<std::vector<reco::CompositeCandidate> > momIn;
    iEvent.getByToken(momToken, momIn);
-
-   Handle<std::vector<reco::RecoEcalCandidate> > momParentOneIn;	//for trackless leg RECs
    iEvent.getByToken(momParentOneToken, momParentOneIn);
-
-   Handle<std::vector<reco::RecoEcalCandidate> > momParentTwoIn;	//for tracked leg RECs
    iEvent.getByToken(momParentTwoToken, momParentTwoIn);
 
 #ifdef DEBUG
@@ -281,23 +280,25 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 #endif
 
    //create empty output collections, one for each daughter, and pointers to each collection
-   std::auto_ptr<reco::RecoEcalCandidateRefVector> daughterOneRefColl(new reco::RecoEcalCandidateRefVector );	//trackless collection
-   std::auto_ptr<reco::RecoEcalCandidateRefVector> daughterTwoRefColl(new reco::RecoEcalCandidateRefVector );	//tracked collection
+   //std::auto_ptr<reco::RecoEcalCandidateRefVector> daughterOneRefColl(new reco::RecoEcalCandidateRefVector );	//trackless collection
+   //std::auto_ptr<reco::RecoEcalCandidateRefVector> daughterTwoRefColl(new reco::RecoEcalCandidateRefVector );	//tracked collection
+   auto dauOneRefCands = std::make_unique<reco::RecoEcalCandidateRefVector>();
+   auto dauTwoRefCands = std::make_unique<reco::RecoEcalCandidateRefVector>();
 
    std::string roleOne = "tracklessRecoEle";
    std::string roleTwo = "trackedRecoEle";
-   findAndSaveRef(momParentOneIn, momIn, daughterOneRefColl, roleOne); 
-   findAndSaveRef(momParentTwoIn, momIn, daughterTwoRefColl, roleTwo); 
+   findAndSaveRef(momParentOneIn, momIn, dauOneRefCands, roleOne); 
+   findAndSaveRef(momParentTwoIn, momIn, dauTwoRefCands, roleTwo); 
   
-
 #ifdef DEBUG
    std::cout<<"about to put daughter collections into root file"<<std::endl;
 #endif
    //now put the two collections of Refs to daughter particles into the event
-   iEvent.put(daughterOneRefColl, daughterOneCollection);
-   iEvent.put(daughterTwoRefColl, daughterTwoCollection);
+   //iEvent.put(daughterOneRefColl, daughterOneCollection);
+   //iEvent.put(daughterTwoRefColl, daughterTwoCollection);
+   iEvent.put(std::move(dauOneRefCands), daughterOneCollection);
+   iEvent.put(std::move(dauTwoRefCands), daughterTwoCollection);
 
-   */
 
 
 /* This is an event example
