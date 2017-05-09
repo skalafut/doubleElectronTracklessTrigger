@@ -2,7 +2,7 @@
 
 import FWCore.ParameterSet.Config as cms
 
-process = cms.Process( "SKIM" )
+process = cms.Process( "MINITREE" )
 
 process.HLTConfigVersion = cms.PSet(
   tableName = cms.string('/dev/CMSSW_9_0_1/HLT/V26')
@@ -9153,7 +9153,7 @@ process.hltOutputPhysicsCommissioning = cms.OutputModule( "PoolOutputModule",
       'keep triggerTriggerEvent_*_*_*' )
 )
 process.hltOutputPhysicsEGamma = cms.OutputModule( "PoolOutputModule",
-    fileName = cms.untracked.string( "TAGNAME_skimPartNNN.root" ),
+    fileName = cms.untracked.string( "TAGNAME_treePartNNN.root" ),
     fastCloning = cms.untracked.bool( False ),
     dataset = cms.untracked.PSet(
         filterName = cms.untracked.string( "" ),
@@ -9263,7 +9263,7 @@ process.hltOutputPhysicsEGamma = cms.OutputModule( "PoolOutputModule",
   #'HLT_Photon90_R9Id90_HE10_IsoM_v8',
   ) ),
     outputCommands = cms.untracked.vstring( 'drop *',
-	  'keep *_genParticles_*_*',
+	  'keep recoGenParticle_genParticles_*_*',
 	  'keep GenEventInfoProduct_*_*_*',
 	  'keep LHEEventProduct_*_*_*',
 	  'keep edmHepMCProduct_*_*_*',
@@ -10906,13 +10906,108 @@ process.HLTEle27HighEtaEle20Mass55Sequence = cms.Sequence( process.HLTDoFullUnpa
 process.HLTEndSequence = cms.Sequence( process.hltBoolEnd )
 process.HLTPFScoutingPackingSequence = cms.Sequence( process.hltScoutingPFPacker + process.hltScoutingMuonPacker + process.hltScoutingEgammaPacker )
 
-process.HLTriggerFirstPath = cms.Path( process.hltGetConditions + process.hltGetRaw + process.hltBoolFalse )
-process.HLT_Ele27_HighEta_Ele20_Mass55_v8 = cms.Path( process.HLTBeginSequence + process.hltL1sSingleAndDoubleEGNonIsoOr + process.hltPreEle27HighEtaEle20Mass55 + process.HLTEle27HighEtaEle20Mass55Sequence + process.HLTEndSequence )
+#######################################################################################################
+#reco selectors, analyzers, filters and producers needed for making hlt minitrees
+process.noTrackerCandidates = cms.EDFilter( "CandViewSelector",
+    src = cms.InputTag( "hltEgammaCandidatesUnseeded" ),
+	cut = cms.string(' (eta > -2.5 && eta < -3.0 ) || ( eta > 2.5 && eta < 3.0 ) ')
+)
+
+process.trackerCandidates = cms.EDFilter( "CandViewSelector",
+    src = cms.InputTag( "hltEgammaCandidates" ),
+	cut = cms.string('eta < 2.5 && eta > -2.5')
+)
+
+process.combRecoEle = cms.EDProducer("CandViewShallowCloneCombiner",
+		decay = cms.string("noTrackerCandidates trackerCandidates"),
+		#checkCharge = cms.bool(False),
+		cut = cms.string("mass > 50 && mass < 130"),
+		#this name is tied to the CompositeCandidate object
+		#name = cms.string('zedToElEl'),
+		#roles are relevant to the daughters
+		roles = cms.vstring('tracklessRecoEle', 'trackedRecoEle')
+		
+		)
+
+process.recoZeeFilter = cms.EDFilter("CandViewCountFilter",
+		src = cms.InputTag("combRecoEle"),
+		minNumber = cms.uint32(1)
+		)
+
+process.recoDaughterProducer = cms.EDProducer("SeparateCombCandidate",
+		zedLabel = cms.InputTag("combRecoEle"),
+		tracklessHltEle = cms.InputTag("hltEgammaCandidatesUnseeded"),
+		trackedHltEle = cms.InputTag("hltEgammaCandidates"),
+		tracklessEleCollectionName = cms.string("tracklessDaughters"),
+		trackedEleCollectionName = cms.string("trackedDaughters")
+
+		)
+
+process.recoAnalyzerTrackedWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShape","sigmaIEtaIEta5x5","MINITREE"),
+		HadEm=cms.InputTag("hltEgammaHoverE","","MINITREE"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIso","","MINITREE"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIso","","MINITREE"),
+		Ep=cms.InputTag("hltEgammaGsfTrackVars","OneOESuperMinusOneOP","MINITREE"),
+		Deta=cms.InputTag("hltEgammaGsfTrackVars","Deta","MINITREE"),
+		Dphi=cms.InputTag("hltEgammaGsfTrackVars","Dphi","MINITREE"),
+		TrackIso=cms.InputTag("hltEgammaEleGsfTrackIso","","MINITREE"),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersTrackedBkgndWithL1Filter"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducer","trackedDaughters","MINITREE"),
+		doAnalysisOfTracked = cms.bool(True),
+		genCollection = cms.InputTag("","",""),
+		dRMatch = cms.double(-1),
+		recoZedCollection = cms.InputTag("combRecoEle","","MINITREE"),
+		genZedCollection = cms.InputTag("","","")
+	
+		)
+
+process.recoAnalyzerTracklessWithL1Filter = cms.EDAnalyzer('recoAnalyzerGeneric',
+		SigmaIEIE = cms.InputTag("hltEgammaClusterShapeUnseeded","","MINITREE"),
+		HadEm=cms.InputTag("hltEgammaHoverEUnseeded","","MINITREE"),
+		EcalIso=cms.InputTag("hltEgammaEcalPFClusterIsoUnseeded","","MINITREE"),
+		HcalIso=cms.InputTag("hltEgammaHcalPFClusterIsoUnseeded","","MINITREE"),
+		Ep=cms.InputTag("","",""),
+		Deta=cms.InputTag("","",""),
+		Dphi=cms.InputTag("","",""),
+		TrackIso=cms.InputTag("","",""),
+		treeName = cms.string("recoTreeBeforeTriggerFiltersTracklessBkgndWithL1Filter"),
+		recoElectronCollection = cms.InputTag("recoDaughterProducer","tracklessDaughters","MINITREE"),
+		doAnalysisOfTracked = cms.bool(False),
+		genCollection = cms.InputTag("","",""),
+		dRMatch = cms.double(-1),
+		recoZedCollection = cms.InputTag("combRecoEle","","MINITREE"),
+		genZedCollection = cms.InputTag("","","")
+	
+		)
+
+
+process.HLTriggerFirstPath = cms.Path(
+		process.hltGetConditions
+		+ process.hltGetRaw
+		+ process.hltBoolFalse )
+
+process.HLT_Ele27_HighEta_Ele20_Mass55_StudyWithL1Filter = cms.Path(
+		process.HLTBeginSequence 
+		+ process.hltL1sSingleAndDoubleEGNonIsoOr 
+		+ process.hltPreEle27HighEtaEle20Mass55 
+		+ process.HLTEle27HighEtaEle20Mass55Sequence 
+		+ process.HLTEndSequence 
+		+ process.noTrackerCandidates
+		+ process.trackerCandidates
+		+ process.combRecoEle
+		*process.recoZeeFilter
+		*process.recoDaughterProducer
+		*process.recoAnalyzerTrackedWithL1Filter  #this produces tree used in optimization of tracked leg cuts
+		*process.recoAnalyzerTracklessWithL1Filter  #this produces tree used in optimization of trackless leg cuts
+		)
+
 process.HLTriggerFinalPath = cms.Path( process.hltGtStage2Digis + process.hltScalersRawToDigi + process.hltFEDSelector + process.hltTriggerSummaryAOD + process.hltTriggerSummaryRAW + process.hltBoolFalse )
+
 #process.ParkingHLTPhysicsOutput = cms.EndPath( process.hltGtStage2Digis + process.hltPreParkingHLTPhysicsOutput + process.hltOutputParkingHLTPhysics )
-process.ParkingZeroBiasOutput = cms.EndPath( process.hltGtStage2Digis + process.hltPreParkingZeroBiasOutput )
+#process.ParkingZeroBiasOutput = cms.EndPath( process.hltGtStage2Digis + process.hltPreParkingZeroBiasOutput )
 #process.PhysicsCommissioningOutput = cms.EndPath( process.hltGtStage2Digis + process.hltPrePhysicsCommissioningOutput + process.hltOutputPhysicsCommissioning )
-process.PhysicsEGammaOutput = cms.EndPath( process.hltGtStage2Digis + process.hltPrePhysicsEGammaOutput + process.hltOutputPhysicsEGamma )
+#process.PhysicsEGammaOutput = cms.EndPath( process.hltGtStage2Digis + process.hltPrePhysicsEGammaOutput + process.hltOutputPhysicsEGamma )
 #process.PhysicsEndOfFillOutput = cms.EndPath( process.hltGtStage2Digis + process.hltPrePhysicsEndOfFillOutput + process.hltOutputPhysicsEndOfFill )
 #process.PhysicsHadronsTausOutput = cms.EndPath( process.hltGtStage2Digis + process.hltPrePhysicsHadronsTausOutput + process.hltOutputPhysicsHadronsTaus )
 #process.PhysicsMuonsOutput = cms.EndPath( process.hltGtStage2Digis + process.hltPrePhysicsMuonsOutput + process.hltOutputPhysicsMuons )
@@ -10949,7 +11044,9 @@ process.dqmOutput = cms.OutputModule("DQMRootOutputModule",
 
 
 #process.HLTSchedule = cms.Schedule( *(process.HLTriggerFirstPath, process.HLT_Ele27_HighEta_Ele20_Mass55_v8, process.HLTriggerFinalPath, process.ParkingHLTPhysicsOutput, process.ParkingZeroBiasOutput, process.PhysicsCommissioningOutput, process.PhysicsEGammaOutput, process.PhysicsEndOfFillOutput, process.PhysicsHadronsTausOutput, process.PhysicsMuonsOutput, process.PhysicsTracksOutput, process.PhysicsForwardOutput, process.PhysicsMinimumBias0Output, process.PhysicsMinimumBias1Output, process.PhysicsMinimumBias2Output, process.ParkingOutput, process.DQMOutput, process.DQMCalibrationOutput, process.DQMEventDisplayOutput, process.HLTMonitorOutput, process.RPCMONOutput, process.CalibrationOutput, process.EcalCalibrationOutput, process.ALCAPHISYMOutput, process.ALCALUMIPIXELSOutput, process.ALCAP0Output, process.ALCAELECTRONOutput, process.ExpressOutput, process.NanoDSTOutput, process.PhysicsParkingScoutingMonitorOutput, process.ScoutingCaloOutput, process.ScoutingPFOutput ))
-process.HLTSchedule = cms.Schedule( *(process.HLTriggerFirstPath, process.HLT_Ele27_HighEta_Ele20_Mass55_v8, process.HLTriggerFinalPath, process.ParkingZeroBiasOutput, process.PhysicsEGammaOutput ))
+#process.HLTSchedule = cms.Schedule( *(process.HLTriggerFirstPath, process.HLT_Ele27_HighEta_Ele20_Mass55_v8, process.HLTriggerFinalPath, process.ParkingZeroBiasOutput, process.PhysicsEGammaOutput ))
+
+
 
 
 
@@ -10967,48 +11064,77 @@ process = L1REPACK(process,"FullSimHcalTP")
 
 # adapt HLT modules to the correct process name
 if 'hltTrigReport' in process.__dict__:
-    process.hltTrigReport.HLTriggerResults                    = cms.InputTag( 'TriggerResults', '', 'SKIM' )
+    process.hltTrigReport.HLTriggerResults                    = cms.InputTag( 'TriggerResults', '', 'MINITREE' )
 
 if 'hltPreExpressCosmicsOutputSmart' in process.__dict__:
-    process.hltPreExpressCosmicsOutputSmart.hltResults = cms.InputTag( 'TriggerResults', '', 'SKIM' )
+    process.hltPreExpressCosmicsOutputSmart.hltResults = cms.InputTag( 'TriggerResults', '', 'MINITREE' )
 
 if 'hltPreExpressOutputSmart' in process.__dict__:
-    process.hltPreExpressOutputSmart.hltResults        = cms.InputTag( 'TriggerResults', '', 'SKIM' )
+    process.hltPreExpressOutputSmart.hltResults        = cms.InputTag( 'TriggerResults', '', 'MINITREE' )
 
 if 'hltPreDQMForHIOutputSmart' in process.__dict__:
-    process.hltPreDQMForHIOutputSmart.hltResults       = cms.InputTag( 'TriggerResults', '', 'SKIM' )
+    process.hltPreDQMForHIOutputSmart.hltResults       = cms.InputTag( 'TriggerResults', '', 'MINITREE' )
 
 if 'hltPreDQMForPPOutputSmart' in process.__dict__:
-    process.hltPreDQMForPPOutputSmart.hltResults       = cms.InputTag( 'TriggerResults', '', 'SKIM' )
+    process.hltPreDQMForPPOutputSmart.hltResults       = cms.InputTag( 'TriggerResults', '', 'MINITREE' )
 
 if 'hltPreHLTDQMResultsOutputSmart' in process.__dict__:
-    process.hltPreHLTDQMResultsOutputSmart.hltResults  = cms.InputTag( 'TriggerResults', '', 'SKIM' )
+    process.hltPreHLTDQMResultsOutputSmart.hltResults  = cms.InputTag( 'TriggerResults', '', 'MINITREE' )
 
 if 'hltPreHLTDQMOutputSmart' in process.__dict__:
-    process.hltPreHLTDQMOutputSmart.hltResults         = cms.InputTag( 'TriggerResults', '', 'SKIM' )
+    process.hltPreHLTDQMOutputSmart.hltResults         = cms.InputTag( 'TriggerResults', '', 'MINITREE' )
 
 if 'hltPreHLTMONOutputSmart' in process.__dict__:
-    process.hltPreHLTMONOutputSmart.hltResults         = cms.InputTag( 'TriggerResults', '', 'SKIM' )
+    process.hltPreHLTMONOutputSmart.hltResults         = cms.InputTag( 'TriggerResults', '', 'MINITREE' )
 
 if 'hltDQMHLTScalers' in process.__dict__:
-    process.hltDQMHLTScalers.triggerResults                   = cms.InputTag( 'TriggerResults', '', 'SKIM' )
-    process.hltDQMHLTScalers.processname                      = 'SKIM'
+    process.hltDQMHLTScalers.triggerResults                   = cms.InputTag( 'TriggerResults', '', 'MINITREE' )
+    process.hltDQMHLTScalers.processname                      = 'MINITREE'
 
 if 'hltDQML1SeedLogicScalers' in process.__dict__:
-    process.hltDQML1SeedLogicScalers.processname              = 'SKIM'
+    process.hltDQML1SeedLogicScalers.processname              = 'MINITREE'
 
 # limit the number of events to be processed
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32( -1 )
 )
 
+#the output from the analyzers (minitrees) will be stored in this file
+process.TFileService = cms.Service("TFileService",
+		fileName = cms.string('ABCDE_pt_bkgnd_analyzer_trees_NUM.root')
+
+)
+
+#the skim output will be saved by this module
+#process.hltOutputFULL = cms.OutputModule( "PoolOutputModule",
+#	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects.root"),
+#	#fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/signal_sample_with_HLT_objects_no_filter_refs.root"),
+#	fileName = cms.untracked.string("/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/testDYMinitree.root"),
+#	fastCloning = cms.untracked.bool( False ),
+#    dataset = cms.untracked.PSet(
+#        dataTier = cms.untracked.string( 'RECO' ),
+#        filterName = cms.untracked.string( '' )
+#    ),
+#    #Drop l1extra* collections 
+#	#outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop l1extra*_*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
+#    
+#	#l1extra* collections are not dropped
+#	#outputCommands = cms.untracked.vstring( 'keep *' ) + cms.untracked.vstring('drop CrossingFrame*_*_*_*')  + cms.untracked.vstring('drop *_*Digis*_*_*')  + cms.untracked.vstring('drop TrackingRecHits*_*_*_*')  + cms.untracked.vstring('drop *Sorted_*_*_*')  + cms.untracked.vstring('drop recoTrack*_hltIter*_*_*') + cms.untracked.vstring('drop floatedmValueMap_hlt*_*_*')  + cms.untracked.vstring('drop SiPixel*_*_*_*')  + cms.untracked.vstring('drop SiStrip*_*_*_*')  + cms.untracked.vstring('drop *DetIdstdset*_*_*_*')  + cms.untracked.vstring('drop TrajectorySeeds_*_*_*')  + cms.untracked.vstring('drop TrackCandidates_*_*_*')  + cms.untracked.vstring('drop recoPFRecHits_*_*_*') 
+#    
+#	#keep all collections
+#	outputCommands = cms.untracked.vstring( 'keep *' ) 
+#
+#	)
+#process.FULLOutput = cms.EndPath( process.hltOutputFULL )
+
+
 # enable TrigReport, TimeReport and MultiThreading
 process.options = cms.untracked.PSet(
-    wantSummary = cms.untracked.bool( True )
+    wantSummary = cms.untracked.bool( True ),
     #numberOfThreads = cms.untracked.uint32( 1 ),
     #numberOfStreams = cms.untracked.uint32( 0 ),
     #sizeOfStackForThreadsInKB = cms.untracked.uint32( 10*1024 ),
-	#SkipEvent = cms.untracked.vstring('EventCorruption')
+	SkipEvent = cms.untracked.vstring('ProductNotFound')
 )
 
 # override the GlobalTag, connection string and pfnPrefix
@@ -11036,7 +11162,8 @@ _customInfo['inputFiles'][True]  = "file:RelVal_Raw_GRun_DATA.root"
 _customInfo['inputFiles'][False] = "file:RelVal_Raw_GRun_MC.root"
 _customInfo['maxEvents' ]=  -1
 _customInfo['globalTag' ]= "90X_upgrade2017_TSG_Hcal_V2"
-_customInfo['inputFile'] = 'FILEA'
+#_customInfo['inputFile'] = 'FILEA','FILEB','FILEC','FILED','FILEE','FILEF','FILEG','FILEH','FILEI','FILEJ','FILEK','FILEK','FILEL','FILEM','FILEN','FILEO','FILEP','FILEQ','FILER','FILES','FILET','FILEU','FILEV','FILEW','FILEX','FILEY','FILEZ'
+_customInfo['inputFile'] = "root://eoscms.cern.ch//eos/cms/store/group/phys_exotica/leptonsPlusJets/WR/skims/QCD_emenr_pt80to120_SKv1/QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8/QCD_emenr_pt80to120/170428_024418/0000/QCD_emenr_pt80to120_skim_1.root","root://eoscms.cern.ch//eos/cms/store/group/phys_exotica/leptonsPlusJets/WR/skims/QCD_emenr_pt80to120_SKv1/QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8/QCD_emenr_pt80to120/170428_024418/0000/QCD_emenr_pt80to120_skim_10.root","root://eoscms.cern.ch//eos/cms/store/group/phys_exotica/leptonsPlusJets/WR/skims/QCD_emenr_pt80to120_SKv1/QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8/QCD_emenr_pt80to120/170428_024418/0000/QCD_emenr_pt80to120_skim_11.root"
 _customInfo['realData'  ]=  False
 from HLTrigger.Configuration.customizeHLTforALL import customizeHLTforAll
 process = customizeHLTforAll(process,"GRun",_customInfo)
