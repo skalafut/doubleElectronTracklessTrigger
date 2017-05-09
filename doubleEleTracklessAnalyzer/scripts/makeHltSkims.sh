@@ -10,14 +10,15 @@ mcIdentifier=(`cat $datasetFile | grep -v '#' | awk '{print $1}'`)
 fileTag='Files.txt'
 
 #these are the dummy names of different input files in the hltSkim...py executable
-placeholderFileNames=('FILEA' 'FILEB' 'FILEC' 'FILED' 'FILEE' 'FILEF' 'FILEG' 'FILEH' 'FILEI' 'FILEJ' 'FILEK' 'FILEL' 'FILEM' 'FILEN' 'FILEO' 'FILEP' 'FILEQ' 'FILER' 'FILES' 'FILET' 'FILEU' 'FILEV' 'FILEW' 'FILEX' 'FILEY' 'FILEZ' 'FILE0' 'FILE1' 'FILE2' 'FILE3' 'FILE4' 'FILE5' 'FILE6' 'FILE7' 'FILE8' 'FILE9' 'FILEa' 'FILEb' 'FILEc' 'FILEd' 'FILEe' 'FILEf' 'FILEg' 'FILEh' 'FILEi' 'FILEj' 'FILEk')
+#placeholderFileNames=('FILEA' 'FILEB' 'FILEC' 'FILED' 'FILEE' 'FILEF' 'FILEG' 'FILEH' 'FILEI' 'FILEJ' 'FILEK' 'FILEL' 'FILEM' 'FILEN' 'FILEO' 'FILEP' 'FILEQ' 'FILER' 'FILES' 'FILET' 'FILEU' 'FILEV' 'FILEW' 'FILEX' 'FILEY' 'FILEZ' 'FILE0' 'FILE1' 'FILE2' 'FILE3' 'FILE4' 'FILE5' 'FILE6' 'FILE7' 'FILE8' 'FILE9' 'FILEa' 'FILEb' 'FILEc' 'FILEd' 'FILEe' 'FILEf' 'FILEg' 'FILEh' 'FILEi' 'FILEj' 'FILEk')
+placeholderFileNames=('FILEA')
 
 placeholderLength=${#placeholderFileNames[@]}
 
 #use these two variables to control the submission of jobs
 #if too many jobs are running at the same time the local disk space quota
 #will be exceeded, and the jobs will fail
-maxRunningJobs=30
+maxRunningJobs=20
 numSubmitted=0
 
 #now loop over all elements in mcIdentifier
@@ -67,19 +68,21 @@ do
 		rm tempOne.sh
 
 		#submit the job from scripts/ dir
-		#echo "bsub -R 'pool>4000' -q 2nd -J runSkimJob_${mcIdentifier[$j]}_Part_${startingCount} < runSkimJob_${mcIdentifier[$j]}_${startingCount}.sh"
-		eval "bsub -R 'pool>4000' -q 2nd -J runSkimJob_${mcIdentifier[$j]}_Part_${startingCount} < runSkimJob_${mcIdentifier[$j]}_${startingCount}.sh"
+		#echo "bsub -R 'pool>1500' -q 1nh -J runSkimJob_${mcIdentifier[$j]}_Part_${startingCount} < runSkimJob_${mcIdentifier[$j]}_${startingCount}.sh"
+		eval "bsub -R 'pool>1500' -q 1nh -J runSkimJob_${mcIdentifier[$j]}_Part_${startingCount} < runSkimJob_${mcIdentifier[$j]}_${startingCount}.sh"
 		
 		#move back to one dir above scripts/
 		eval "cd .."
 
 		let startingCount=startingCount+1
 		let numSubmitted=numSubmitted+1
+		#clean up core dumps regularly
+		eval "rm core.*"
+		eval "rm scripts/core.*"
+
 		if [ $numSubmitted -ge $maxRunningJobs ]; then
 			let numSubmitted=0
-			eval "rm core.*"
-			eval "rm scripts/core.*"
-			eval "sleep 100m"
+			eval "sleep 35m"
 		fi
 
 	done
