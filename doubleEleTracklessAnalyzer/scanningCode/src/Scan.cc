@@ -239,9 +239,9 @@ float Scan::countEvtsPassing(){
 	_nPassing=0;
 	_nEvents=0;
 	//loop over entries in tuple
-	Long64_t maxEntries = _pInputChain->GetEntriesFast();
+	Long64_t maxEntries = _pInputChain->GetEntries();
 #ifdef SHORTTEST
-	maxEntries = 20;
+	maxEntries = 15;
 	cout<<"running short test, scanning over "<< maxEntries<<" entries in tuple"<<endl;
 #endif
 
