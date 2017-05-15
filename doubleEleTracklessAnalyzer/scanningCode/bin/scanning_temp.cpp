@@ -12,14 +12,17 @@
 
 //#define DEBUG
 
-//#define BKGND
+#define BKGND
 
 //#define SIGNAL
 
 using namespace std;
 
 int main(int argc, char **argv){
-	//call InitCutVars() first, then InitInputTree(), then InitOutputTree() in scanning.cpp file
+	//call InitCutContainer() first read in a list of cut variables, and initialize objects which store their names and the range of cut values over which the scan runs
+	//then call InitInputNtuple() to link cut variable objects to branches in the input TTree
+	//then call InitOutputNtuple() to setup a tree in the output file whose branches list the cut variables and values over which the scan ran, and the number of events
+	//read in and the number passing all cuts
 	
 	string configFileName;
 
@@ -42,9 +45,6 @@ int main(int argc, char **argv){
 	TChain * inputChain;
 	TChain * inputFriendChain;
 
-	TChain * templateChain = new TChain("scanned_tree","");
-	templateChain->Add("doc/trimmed_template_scanned_tree.root");
-	
 #ifdef BKGND
 	inputChain = new TChain("recoAnalyzerTrackedWithL1Filter/recoTreeBeforeTriggerFiltersTrackedBkgndWithL1Filter","");
 	inputChain->Add("*.root");
@@ -55,6 +55,8 @@ int main(int argc, char **argv){
 #endif
 
 #ifdef SIGNAL
+	//the input chain for SIGNAL mode has RECO objects matched to the two GEN electrons produced by the Z decay
+	//thus the output from the output from the scanning procedure allows the signal efficiency to be calculated at different cut levels
 	inputChain = new TChain("recoAnalyzerMatchedTrackedWithL1Filter/recoTreeBeforeTriggerFiltersMatchedTrackedSignalWithL1Filter","");
 	inputChain->Add("*.root");
 	
@@ -78,6 +80,10 @@ int main(int argc, char **argv){
 	fullScan.InitOutputNtuple(outTree);
 
 	fullScan.runScan(fullScan.numCutVars());
+	
+	////template chain only needed if runScanUsingTupleInput() is used
+	//TChain * templateChain = new TChain("scanned_tree","");
+	//templateChain->Add("doc/trimmed_template_scanned_tree.root");
 	//fullScan.runScanUsingTupleInput(templateChain);
 
 #ifdef SIGNAL
