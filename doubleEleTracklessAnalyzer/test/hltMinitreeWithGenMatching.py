@@ -9263,7 +9263,7 @@ process.hltOutputPhysicsEGamma = cms.OutputModule( "PoolOutputModule",
   #'HLT_Photon90_R9Id90_HE10_IsoM_v8',
   ) ),
     outputCommands = cms.untracked.vstring( 'drop *',
-	  'keep recoGenParticle_genParticles_*_*',
+	  'keep *_genParticles_*_*',
 	  'keep GenEventInfoProduct_*_*_*',
 	  'keep LHEEventProduct_*_*_*',
 	  'keep edmHepMCProduct_*_*_*',
@@ -11182,7 +11182,7 @@ process.maxEvents = cms.untracked.PSet(
 
 #the output from the analyzers (minitrees) will be stored in this file
 process.TFileService = cms.Service("TFileService",
-		fileName = cms.string('signal_analyzer_trees_NUM.root')
+		fileName = cms.string('TAGNAME_analyzer_trees_NUM.root')
 
 )
 
@@ -11243,8 +11243,7 @@ _customInfo['inputFiles'][True]  = "file:RelVal_Raw_GRun_DATA.root"
 _customInfo['inputFiles'][False] = "file:RelVal_Raw_GRun_MC.root"
 _customInfo['maxEvents' ]=  -1
 _customInfo['globalTag' ]= "90X_upgrade2017_TSG_Hcal_V2"
-#_customInfo['inputFile'] = 'FILEA','FILEB','FILEC','FILED','FILEE','FILEF','FILEG','FILEH','FILEI','FILEJ','FILEK','FILEK','FILEL','FILEM','FILEN','FILEO','FILEP','FILEQ','FILER','FILES','FILET','FILEU','FILEV','FILEW','FILEX','FILEY','FILEZ'
-_customInfo['inputFile'] = 'file:DYJets_madgraph_skim.root'
+_customInfo['inputFile'] = 'FILEA','FILEB','FILEC','FILED','FILEE','FILEF','FILEG','FILEH','FILEI','FILEJ','FILEK','FILEK','FILEL','FILEM','FILEN','FILEO','FILEP','FILEQ','FILER','FILES','FILET','FILEU','FILEV','FILEW','FILEX','FILEY','FILEZ'
 _customInfo['realData'  ]=  False
 from HLTrigger.Configuration.customizeHLTforALL import customizeHLTforAll
 process = customizeHLTforAll(process,"GRun",_customInfo)
