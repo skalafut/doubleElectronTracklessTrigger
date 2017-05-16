@@ -1,0 +1,218 @@
+  Sequence: HLTEle27HighEtaEle20Mass55Sequence
+  {
+    Module: hltDiEG20EtUnseededFilter
+    {
+      bool saveTags = 1
+      InputTag L1NonIsoCand = ""
+      bool relaxed = 0
+      InputTag L1IsoCand = hltEgammaCandidatesUnseeded
+      InputTag inputTag = hltEgammaCandidatesWrapperUnseeded
+      double etcutEB = 20.0
+      double etcutEE = 20.0
+      int32 ncandcut = 2
+    }
+    Module: hltEle27HighEtaEle20ClusterShapeFilter
+    {
+      InputTag L1NonIsoCand = ""
+      bool saveTags = 1
+      double thrRegularEE = 0.032
+      InputTag L1IsoCand = hltEgammaCandidates
+      double thrRegularEB = 0.0132
+      InputTag isoTag = hltEgammaClusterShape:sigmaIEtaIEta5x5
+      InputTag candTag = hltEle27HighEtaEle20EtFilter
+      InputTag nonIsoTag = ""
+    }
+    Module: hltEle27HighEtaEle20ClusterShapeUnseededFilter
+    {
+      InputTag L1NonIsoCand = ""
+      bool saveTags = 1
+      double thrRegularEE = 0.036
+      InputTag L1IsoCand = hltEgammaCandidatesUnseeded
+      double thrRegularEB = 0.036
+      int32 ncandcut = 2
+      InputTag isoTag = hltEgammaClusterShapeUnseeded:sigmaIEtaIEta5x5
+      InputTag candTag = hltDiEG20EtUnseededFilter
+      InputTag nonIsoTag = ""
+    }
+    Module: hltEle27HighEtaEle20DetaFilter
+    {
+      InputTag L1NonIsoCand = ""
+      bool saveTags = 1
+      double thrRegularEE = 0.01
+      InputTag L1IsoCand = hltEgammaCandidates
+      double thrRegularEB = 0.01
+      bool useEt = 1
+      InputTag isoTag = hltEgammaGsfTrackVars:DetaSeed
+      InputTag candTag = hltEle27HighEtaEle20PixelMatchFilter
+      InputTag nonIsoTag = ""
+    }
+    Module: hltEle27HighEtaEle20DphiFilter
+    {
+      InputTag L1NonIsoCand = ""
+      bool saveTags = 1
+      double thrRegularEE = 0.1
+      InputTag L1IsoCand = hltEgammaCandidates
+      double thrRegularEB = 0.1
+      bool useEt = 1
+      InputTag isoTag = hltEgammaGsfTrackVars:Dphi
+      InputTag candTag = hltEle27HighEtaEle20DetaFilter
+      InputTag nonIsoTag = ""
+    }
+    Module: hltEle27HighEtaEle20EcalIsoFilter
+    {
+      InputTag L1NonIsoCand = ""
+      bool saveTags = 1
+      double thrRegularEE = -1.0
+      double thrOverEEE = 0.11
+      InputTag L1IsoCand = hltEgammaCandidates
+      double thrOverEEB = 0.155
+      double thrRegularEB = -1.0
+      bool useEt = 1
+      InputTag isoTag = hltEgammaEcalPFClusterIso
+      InputTag candTag = hltEle27HighEtaEle20HEFilter
+      InputTag nonIsoTag = ""
+    }
+    Module: hltEle27HighEtaEle20EcalIsoFilterUnseeded
+    {
+      InputTag L1NonIsoCand = ""
+      bool saveTags = 1
+      double thrRegularEE = -1.0
+      double thrOverEEE = 0.2
+      InputTag L1IsoCand = hltEgammaCandidatesUnseeded
+      double thrOverEEB = 0.2
+      double thrRegularEB = -1.0
+      bool useEt = 1
+      int32 ncandcut = 2
+      InputTag isoTag = hltEgammaEcalPFClusterIsoUnseeded
+      InputTag candTag = hltEle27HighEtaEle20ClusterShapeUnseededFilter
+      InputTag nonIsoTag = ""
+    }
+    Module: hltEle27HighEtaEle20EtFilter
+    {
+      bool saveTags = 1
+      InputTag L1NonIsoCand = ""
+      bool relaxed = 0
+      InputTag L1IsoCand = hltEgammaCandidates
+      InputTag inputTag = hltEGL1SingleEG40OrL1DoubleEG2210OrL1DoubleEG2417Filter
+      double etcutEB = 27.0
+      double etcutEE = 27.0
+    }
+    Module: hltEle27HighEtaEle20HEFilter
+    {
+      InputTag L1NonIsoCand = ""
+      bool saveTags = 1
+      double thrRegularEE = -1.0
+      double thrOverEEE = 0.135
+      InputTag L1IsoCand = hltEgammaCandidates
+      double thrOverEEB = 0.1
+      double thrRegularEB = -1.0
+      InputTag isoTag = hltEgammaHoverE
+      InputTag candTag = hltEle27HighEtaEle20ClusterShapeFilter
+      InputTag nonIsoTag = ""
+    }
+    Module: hltEle27HighEtaEle20HEFilterUnseeded
+    {
+      InputTag L1NonIsoCand = ""
+      bool saveTags = 1
+      double thrRegularEE = -1.0
+      double thrOverEEE = 0.23
+      InputTag L1IsoCand = hltEgammaCandidatesUnseeded
+      double thrOverEEB = 0.23
+      double thrRegularEB = -1.0
+      int32 ncandcut = 2
+      InputTag isoTag = hltEgammaHoverEUnseeded
+      InputTag candTag = hltEle27HighEtaEle20EcalIsoFilterUnseeded
+      InputTag nonIsoTag = ""
+    }
+    Module: hltEle27HighEtaEle20HcalIsoFilter
+    {
+      InputTag L1NonIsoCand = ""
+      bool saveTags = 1
+      double thrRegularEE = -1.0
+      double thrOverEEE = 0.3
+      InputTag L1IsoCand = hltEgammaCandidates
+      double thrOverEEB = 0.16
+      double thrRegularEB = -1.0
+      bool useEt = 1
+      InputTag isoTag = hltEgammaHcalPFClusterIso
+      InputTag candTag = hltEle27HighEtaEle20EcalIsoFilter
+      InputTag nonIsoTag = ""
+    }
+    Module: hltEle27HighEtaEle20HcalIsoFilterUnseeded
+    {
+      InputTag L1NonIsoCand = ""
+      bool saveTags = 1
+      double thrRegularEE = -1.0
+      double thrOverEEE = 0.7
+      InputTag L1IsoCand = hltEgammaCandidatesUnseeded
+      double thrOverEEB = 0.7
+      double thrRegularEB = -1.0
+      bool useEt = 1
+      int32 ncandcut = 2
+      InputTag isoTag = hltEgammaHcalPFClusterIsoUnseeded
+      InputTag candTag = hltEle27HighEtaEle20HEFilterUnseeded
+      InputTag nonIsoTag = ""
+    }
+    Module: hltEle27HighEtaEle20Mass55Filter
+    {
+      bool saveTags = 1
+      double lowerMassCut = 55.0
+      InputTag L1NonIsoCand = ""
+      InputTag beamSpot = hltOnlineBeamSpot
+      bool relaxed = 0
+      InputTag L1IsoCand = hltEgammaCandidatesUnseeded
+      double upperMassCut = 13000.0
+      InputTag candTag = hltEle27HighEtaEle20HcalIsoFilterUnseeded
+      bool reqOppCharge = 0
+    }
+    Module: hltEle27HighEtaEle20OneOEMinusOneOPFilter
+    {
+      InputTag L1NonIsoCand = ""
+      bool saveTags = 1
+      double thrRegularEE = 0.08
+      InputTag L1IsoCand = hltEgammaCandidates
+      double thrRegularEB = 0.08
+      bool useEt = 1
+      InputTag isoTag = hltEgammaGsfTrackVars:OneOESuperMinusOneOP
+      InputTag candTag = hltEle27HighEtaEle20PixelMatchFilter
+      InputTag nonIsoTag = ""
+    }
+    Module: hltEle27HighEtaEle20PixelMatchFilter
+    {
+      bool saveTags = 1
+      double s2_threshold = 0.4
+      double tanhSO10InterThres = 1.8
+      InputTag L1IsoCand = hltEgammaCandidates
+      InputTag candTag = hltEle27HighEtaEle20HcalIsoFilter
+      double tanhSO10ForwardThres = 1.8
+      InputTag L1IsoPixelSeedsTag = hltEgammaElectronPixelSeeds
+      InputTag L1NonIsoCand = ""
+      double tanhSO10BarrelThres = 0.55
+      InputTag L1NonIsoPixelSeedsTag = ""
+      bool useS = 1
+    }
+    Module: hltEle27HighEtaEle20TrackIsoFilter
+    {
+      InputTag L1NonIsoCand = ""
+      bool saveTags = 1
+      double thrRegularEE = -1.0
+      double thrOverEEE = 0.2
+      InputTag L1IsoCand = hltEgammaCandidates
+      double thrOverEEB = 0.2
+      double thrRegularEB = -1.0
+      bool useEt = 1
+      InputTag isoTag = hltEgammaEleGsfTrackIso
+      InputTag candTag = hltEle27HighEtaEle20DphiFilter
+      InputTag nonIsoTag = ""
+    }
+    Module: hltHighEtaEle20Selector
+    {
+      InputTag src = hltEgammaCandidatesUnseeded
+      string cut = "et>20 && abs(eta) < 3.0 && abs(eta) > 2.5"
+    }
+    Module: hltHighEtaEle20SelectorFilter
+    {
+      InputTag src = hltHighEtaEle20Selector
+      uint32 minNumber = 1
+    }
+  }
