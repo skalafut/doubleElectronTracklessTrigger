@@ -10,12 +10,13 @@ mcIdentifier=(`cat $datasetFile | grep -v '#' | awk '{print $1}'`)
 fileTag='SkimFiles.txt'
 
 #these are the dummy names of different input files in the python executable in test/
-placeholderFileNames=('FILEA' 'FILEB' 'FILEC' 'FILED' 'FILEE' 'FILEF' 'FILEG' 'FILEH' 'FILEI' 'FILEJ' 'FILEK' 'FILEL' 'FILEM' 'FILEN' 'FILEO' 'FILEP' 'FILEQ' 'FILER' 'FILES' 'FILET' 'FILEU' 'FILEV' 'FILEW' 'FILEX' 'FILEY' 'FILEZ')
+#placeholderFileNames=('FILEA' 'FILEB' 'FILEC')
+placeholderFileNames=('FILEA')
 
 #use these two variables to control the submission of jobs
 #if too many jobs are running at the same time the local disk space quota
 #will be exceeded, and the jobs will fail
-maxRunningJobs=100
+maxRunningJobs=60
 numSubmitted=0
 
 #now loop over all elements in mcIdentifier
@@ -40,8 +41,8 @@ do
 		#now fill the python file used to make trees with path names to real input files
 		for i in ${!placeholderFileNames[*]}
 		do
-			#no more than 27 input files can be added to the python file used to make trees
-			#leave this loop before trying to add a 28th file
+			#no more than N (N = length of placeholderFileNames list) input files can be added to the python file used to make trees
+			#leave this loop before trying to add a (N+1)th file
 			if [ $fileListIndex -eq $fileListLength ]
 			then
 				break
@@ -67,21 +68,22 @@ do
 		rm tempOne.sh
 
 		#submit the job from scripts/ dir
-		echo "bsub -R 'pool>3500' -q 8nh -J runOptimizationTreesJob_${mcIdentifier[$j]}_Part_${startingCount} < runOptimizationTreesJob_${mcIdentifier[$j]}_${startingCount}.sh"
-		eval "bsub -R 'pool>3500' -q 8nh -J runOptimizationTreesJob_${mcIdentifier[$j]}_Part_${startingCount} < runOptimizationTreesJob_${mcIdentifier[$j]}_${startingCount}.sh"
+		#echo "bsub -R 'pool>2000' -q 1nh -J runOptimizationTreesJob_${mcIdentifier[$j]}_Part_${startingCount} < runOptimizationTreesJob_${mcIdentifier[$j]}_${startingCount}.sh"
+		eval "bsub -R 'pool>2000' -q 1nh -J runOptimizationTreesJob_${mcIdentifier[$j]}_Part_${startingCount} < runOptimizationTreesJob_${mcIdentifier[$j]}_${startingCount}.sh"
 		
 		#move back to one dir above scripts/
 		eval "cd .."
 
 		let startingCount=startingCount+1
 		let numSubmitted=numSubmitted+1
+		
 		#clean up core dumps regularly
-		#eval "rm core.*"
-		#eval "rm scripts/core.*"
+		eval "rm core.*"
+		eval "rm scripts/core.*"
 
 		if [ $numSubmitted -ge $maxRunningJobs ]; then
 			let numSubmitted=0
-			eval "sleep 5m"
+			eval "sleep 60m"
 		fi
 
 	done

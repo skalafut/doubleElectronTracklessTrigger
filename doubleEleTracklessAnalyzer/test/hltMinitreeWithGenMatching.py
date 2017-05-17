@@ -11243,7 +11243,7 @@ _customInfo['inputFiles'][True]  = "file:RelVal_Raw_GRun_DATA.root"
 _customInfo['inputFiles'][False] = "file:RelVal_Raw_GRun_MC.root"
 _customInfo['maxEvents' ]=  -1
 _customInfo['globalTag' ]= "90X_upgrade2017_TSG_Hcal_V2"
-_customInfo['inputFile'] = 'FILEA','FILEB','FILEC','FILED','FILEE','FILEF','FILEG','FILEH','FILEI','FILEJ','FILEK','FILEK','FILEL','FILEM','FILEN','FILEO','FILEP','FILEQ','FILER','FILES','FILET','FILEU','FILEV','FILEW','FILEX','FILEY','FILEZ'
+_customInfo['inputFile'] = 'FILEA'
 _customInfo['realData'  ]=  False
 from HLTrigger.Configuration.customizeHLTforALL import customizeHLTforAll
 process = customizeHLTforAll(process,"GRun",_customInfo)
