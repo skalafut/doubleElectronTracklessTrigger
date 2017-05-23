@@ -170,6 +170,7 @@ void Scan::SaveOutput(string pathToOutputFile){
 	TFile * outTupleFile = new TFile(pathToOutputFile.c_str(),"recreate");
 	outTupleFile->cd();
 	_outputTree->Scan("","","",10);
+	_outputTree->Scan("","_nPassing>0","",10);
 	_outputTree->Write();
 	outTupleFile->Close();
 #ifdef DEBUG
