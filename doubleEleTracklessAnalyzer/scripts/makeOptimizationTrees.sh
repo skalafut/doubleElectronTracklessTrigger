@@ -35,7 +35,7 @@ do
 		#move into test dir, copy the python file used to make trees, and replace NUM with an int and TAGNAME with the process name, like QCD_emenr_pt30to50 
 		eval "cd test"
 		#use hltMinitreeWithoutGenMatching.py for QCD, and hltMinitreeWithGenMatching.py for DY
-		eval "sed 's@NUM@$startingCount@g' hltMinitreeWithGenMatching.py > tempOne.py"
+		eval "sed 's@NUM@$startingCount@g' hltMinitreeWithoutGenMatching.py > tempOne.py"
 		eval "sed 's@TAGNAME@${mcIdentifier[$j]}@g' tempOne.py > tempTwo.py"
 
 		#now fill the python file used to make trees with path names to real input files
@@ -53,7 +53,7 @@ do
 			let fileListIndex=fileListIndex+1
 		done
 		#use hltMinitreeWithoutGenMatching.py for QCD, and hltMinitreeWithGenMatching.py for DY
-		eval "mv tempTwo.py hltMinitreeWithGenMatching_${mcIdentifier[$j]}_${startingCount}.py"
+		eval "mv tempTwo.py hltMinitreeWithoutGenMatching_${mcIdentifier[$j]}_${startingCount}.py"
 
 		rm tempOne.py
 

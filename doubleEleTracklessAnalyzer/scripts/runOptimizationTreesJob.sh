@@ -9,19 +9,19 @@ eosReadingTag='root://eoscms.cern.ch/'
 
 cd $UP/$CMSSW_PROJECT_SRC
 eval `scramv1 runtime -sh`
-#for trees with GEN matching (signal)
-eval "cmsRun test/hltMinitreeWithGenMatching_TAGNAME_NUM.py"
+##for trees with GEN matching (signal)
+#eval "cmsRun test/hltMinitreeWithGenMatching_TAGNAME_NUM.py"
 
-#for trees without GEN matching (bkgnds)
-#eval "cmsRun test/hltMinitreeWithoutGenMatching_TAGNAME_NUM.py"
+##for trees without GEN matching (bkgnds)
+eval "cmsRun test/hltMinitreeWithoutGenMatching_TAGNAME_NUM.py"
 
 #after the tree production finishes, move the tree file to a pre-existing directory in the my caf user space on CERN EOS
 eval "xrdcp TAGNAME_analyzer_trees_NUM.root $eosReadingTag$WRITEDIR/."
 rm TAGNAME_analyzer_trees_NUM.root
 
-#for trees with GEN matching (signal)
-eval "rm test/hltMinitreeWithGenMatching_TAGNAME_NUM.py"
+##for trees with GEN matching (signal)
+#eval "rm test/hltMinitreeWithGenMatching_TAGNAME_NUM.py"
 
-#for trees without GEN matching (bkgnds)
-#eval "rm test/hltMinitreeWithoutGenMatching_TAGNAME_NUM.py"
+##for trees without GEN matching (bkgnds)
+eval "rm test/hltMinitreeWithoutGenMatching_TAGNAME_NUM.py"
 
