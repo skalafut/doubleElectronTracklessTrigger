@@ -188,40 +188,56 @@ void countNpassingForAllCutSets(){
 	string signalPath = "scanned_signal_tree_*.root";
 	//string highPtPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_high_pt/*_DoubleEG_22_10.root";
 	string localDir = "../scanningCode/scanResultTrees/";
-	string lowPtPath = "scanned_bkgnd_tree_pt50to80*.root";
+	//string lowPtPath = "scanned_bkgnd_tree_pt50to80*.root";
+	//string lowPtPath = "scanned_WJets_tree_*.root";
+	string lowPtPath = "scanned_TT_tree_*.root";
+	
 	//string veryHighPtPath = "scanned_bkgnd_tree_pt80to120.root";
 	//if(signalPath.empty() || highPtPath.empty() || lowPtPath.empty() || veryHighPtPath.empty()){
 	//	cout<<"where are the scanned tuples?"<<endl;
 	//	return;
 	//}
-	TChain * sigChain = new TChain("scanned_tree","");
-	sigChain->Add((localDir+signalPath).c_str());
+	//TChain * sigChain = new TChain("scanned_tree","");
+	//sigChain->Add((localDir+signalPath).c_str());
 	//TChain * highPtChain = new TChain("scanned_tree","");
 	//highPtChain->Add(highPtPath.c_str());
 	TChain * lowPtChain = new TChain("scanned_tree","");
 	lowPtChain->Add((localDir+lowPtPath).c_str());
 	//TChain * veryHighPtChain = new TChain("scanned_tree","");
 	//veryHighPtChain->Add(veryHighPtPath.c_str());
-	
-	string sigTreeId="signal", highPtTreeId="highPtBkgnd", lowPtTreeId="mediumPtBkgnd";
+
+
+	//string lowPtTreeId="wjetsBkgnd";
+	string lowPtTreeId="ttbarBkgnd";
+
+	string sigTreeId="signal", highPtTreeId="highPtBkgnd";
 	string veryHighPtTreeId = "veryHighPtBkgnd";
 	string sigOutPath = "all_scanned_signal.root";
 	//string highPtOutPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_high_pt/DoubleEG_22_10_master_high_pt_bkgnd_tuple.root";
-	string lowPtOutPath = "all_scanned_bkgnd_pt50to80.root";
+	//string lowPtOutPath = "all_scanned_bkgnd_pt50to80.root";
+	//string lowPtOutPath = "all_scanned_WJets.root";
+	string lowPtOutPath = "all_scanned_TT.root";
+	
 	//string veryHighPtOutPath = "/eos/uscms/store/user/skalafut/doubleElectronHLT/scannedTuples/bkgnd_very_high_pt/DoubleEG_22_10_master_very_high_pt_bkgnd_tuple.root";
 
-	Float_t pt50to80SkimEff = 0.0000709;
+	//Float_t pt50to80SkimEff = 0.0000709;	//for QCD pt20to30 bkgnd
+	//Float_t pt50to80SkimEff = .0004215;	//for WJets bkgnd
+	Float_t pt50to80SkimEff = .00584;	//for TTBar bkgnd
+	
 	Float_t pt30to80BkgndL1Eff = 0.043, pt30to80BkgndRecoEff = 0.107;
 	Float_t pt80to170BkgndL1Eff = 0.123, pt80to170BkgndRecoEff = 0.147;
 	Float_t sigRecoEff = 0.51, sigGenEff = 0.077, sigL1Eff = 0.83, sigTrackedMatchEff = 0.96, sigTracklessMatchEff = 0.84;
 	
 	Float_t lumi = 2.0e34;
-	Float_t rateFactor50to80 = lumi*((2890800)*(1e-36));	///< xSxn times lumi for QCD pt 20-30 bkgnd
+	//Float_t rateFactor50to80 = lumi*((2890800)*(1e-36));
+	//Float_t rateFactor50to80 = lumi*((52700)*(1e-36));	///< xSxn times lumi for WJets bkgnd
+	Float_t rateFactor50to80 = lumi*((730)*(1e-36));	///< xSxn times lumi for TTBar bkgnd
+	
 	//Float_t rateFactor30to80 = lumi*((1.859*0.06071)*(1e-28));
 	//Float_t rateFactor80to170 = lumi*((3.529*0.15443)*(1e-30));
 	Float_t rateFactorSignal = lumi*(2.0)*(1e-33);
 
-	iterateOverFilesAndEntries(sigChain,nSignalPassing,nSignalMaxPassing, sigTreeId, localDir+sigOutPath, sigGenEff, sigRecoEff*sigL1Eff*sigTrackedMatchEff*sigTracklessMatchEff, rateFactorSignal);
+	//iterateOverFilesAndEntries(sigChain,nSignalPassing,nSignalMaxPassing, sigTreeId, localDir+sigOutPath, sigGenEff, sigRecoEff*sigL1Eff*sigTrackedMatchEff*sigTracklessMatchEff, rateFactorSignal);
 	//iterateOverFilesAndEntries(highPtChain,nHighPtBkgndPassing,nHighPtBkgndMaxPassing, highPtTreeId, highPtOutPath,1, pt30to80BkgndL1Eff*pt30to80BkgndRecoEff, rateFactor30to80);
 	//iterateOverFilesAndEntries(veryHighPtChain,nVeryHighPtBkgndPassing,nVeryHighPtBkgndMaxPassing, veryHighPtTreeId, veryHighPtOutPath,1, pt80to170BkgndL1Eff*pt80to170BkgndRecoEff, rateFactor80to170);
 	iterateOverFilesAndEntries(lowPtChain,nLowPtBkgndPassing,nLowPtBkgndMaxPassing, lowPtTreeId, localDir+lowPtOutPath,1, pt50to80SkimEff, rateFactor50to80);
