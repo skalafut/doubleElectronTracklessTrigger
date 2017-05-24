@@ -1,3 +1,6 @@
+#this file was made with the following command, then modified to use the correct parameters for timing studies
+#hltGetConfiguration /dev/CMSSW_9_1_0/HLT --globaltag 90X_upgrade2017_TSG_Hcal_V3 --timing --full --offline --mc --process MYHLT --l1-emulator FullMC --l1Xml L1Menu_Collisions2017_dev_r3.xml >& hltFinalizedDoubleElePathWithTiming.py &
+
 # /dev/CMSSW_9_1_0/HLT/V18 (CMSSW_9_1_0)
 
 import FWCore.ParameterSet.Config as cms
@@ -80118,10 +80121,10 @@ process.options = cms.untracked.PSet(
 )
 
 # override the GlobalTag, connection string and pfnPrefix
-if 'GlobalTag' in process.__dict__:
-    from Configuration.AlCa.GlobalTag import GlobalTag as customiseGlobalTag
-    process.GlobalTag = customiseGlobalTag(process.GlobalTag, globaltag = '90X_upgrade2017_TSG_Hcal_V3')
-    process.GlobalTag.connect   = 'frontier://FrontierProd/CMS_CONDITIONS'
+#if 'GlobalTag' in process.__dict__:
+#    from Configuration.AlCa.GlobalTag import GlobalTag as customiseGlobalTag
+#    process.GlobalTag = customiseGlobalTag(process.GlobalTag, globaltag = '90X_upgrade2017_TSG_Hcal_V3')
+#    process.GlobalTag.connect   = 'frontier://FrontierProd/CMS_CONDITIONS'
 
 if 'MessageLogger' in process.__dict__:
     process.MessageLogger.categories.append('TriggerSummaryProducerAOD')
@@ -80159,10 +80162,12 @@ _customInfo['globalTags'][False] = "auto:run2_mc_GRun"
 _customInfo['inputFiles']={}
 _customInfo['inputFiles'][True]  = "file:RelVal_Raw_GRun_DATA.root"
 _customInfo['inputFiles'][False] = "file:RelVal_Raw_GRun_MC.root"
-_customInfo['maxEvents' ]=  -1
-_customInfo['globalTag' ]= "90X_upgrade2017_TSG_Hcal_V3"
-_customInfo['inputFile' ]=  'file:00074837-870E-E711-B171-FA163E701D0F.root','file:002CCEBB-7A0E-E711-B0AC-0025901FB188.root'
-_customInfo['realData'  ]=  False
+_customInfo['maxEvents' ]=  10
+#_customInfo['globalTag' ]= "90X_upgrade2017_TSG_Hcal_V3"
+_customInfo['globalTag' ]= "auto:run2_hlt_GRun"
+#_customInfo['inputFile' ]=  'file:00074837-870E-E711-B171-FA163E701D0F.root','file:002CCEBB-7A0E-E711-B0AC-0025901FB188.root'
+_customInfo['inputFile' ]=  'file:/data/samples/skim_L1Menuv6/PU_45to50_v4.2.2_PS_1.45e34.root'
+_customInfo['realData'  ]=  True
 from HLTrigger.Configuration.customizeHLTforALL import customizeHLTforAll
 process = customizeHLTforAll(process,"GRun",_customInfo)
 

@@ -279,6 +279,7 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
    std::cout<<"made handles to input collections"<<std::endl;
 #endif
 
+   /**/
    //create empty output collections, one for each daughter, and pointers to each collection
    //std::auto_ptr<reco::RecoEcalCandidateRefVector> daughterOneRefColl(new reco::RecoEcalCandidateRefVector );	//trackless collection
    //std::auto_ptr<reco::RecoEcalCandidateRefVector> daughterTwoRefColl(new reco::RecoEcalCandidateRefVector );	//tracked collection
@@ -299,6 +300,7 @@ SeparateCombCandidate::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
    iEvent.put(std::move(dauOneRefCands), daughterOneCollection);
    iEvent.put(std::move(dauTwoRefCands), daughterTwoCollection);
 
+   /**/
 
 
 /* This is an event example
