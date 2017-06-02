@@ -1,9 +1,4 @@
-#this file was made with the following command, then modified to use the correct parameters for timing studies
-
-#hltGetConfiguration /users/skalafut/correct2017DoubleEleHighEtaTrackless --setup /dev/CMSSW_9_1_0/HLT --globaltag 90X_upgrade2017_TSG_Hcal_V3 --timing --full --unprescale --offline --mc --process MYHLT --l1-emulator FullMC --l1Xml L1Menu_Collisions2017_dev_r3.xml >& hltCorrectDoubleElePathWithTimingUsingMC.py &
-
-#in order for the setup cff to be included, execute cmsRun in the same directory as this file
-# /users/skalafut/correct2017DoubleEleHighEtaTrackless/V8 (CMSSW_9_1_0_HLT1)
+# /users/skalafut/tracklessDoubleEle2017WithFirstAndFinalPaths/V4 (CMSSW_9_1_0_HLT1)
 
 import FWCore.ParameterSet.Config as cms
 
@@ -11,7 +6,7 @@ process = cms.Process( "MYHLT" )
 process.load("setup_dev_CMSSW_9_1_0_HLT_cff")
 
 process.HLTConfigVersion = cms.PSet(
-  tableName = cms.string('/users/skalafut/correct2017DoubleEleHighEtaTrackless/V8')
+  tableName = cms.string('/users/skalafut/tracklessDoubleEle2017WithFirstAndFinalPaths/V4')
 )
 
 process.hltTriggerType = cms.EDFilter( "HLTTriggerTypeFilter",
@@ -67,7 +62,7 @@ process.hltOnlineBeamSpot = cms.EDProducer( "BeamSpotOnlineProducer",
     maxRadius = cms.double( 2.0 )
 )
 process.hltL1sSingleAndDoubleEGNonIsoOr = cms.EDFilter( "HLTL1TSeed",
-    L1SeedsLogicalExpression = cms.string( "L1_SingleEG30 OR L1_SingleEG32 OR L1_SingleEG34 OR L1_SingleEG36 OR L1_SingleEG38 OR L1_SingleEG40 OR L1_DoubleEG_15_10 OR L1_DoubleEG_18_17 OR L1_DoubleEG_20_18 OR L1_DoubleEG_22_10 OR L1_DoubleEG_22_12 OR L1_DoubleEG_22_15 OR L1_DoubleEG_23_10 OR L1_DoubleEG_24_17 OR L1_DoubleEG_25_12 OR L1_DoubleEG_25_13 OR L1_DoubleEG_25_14" ),
+    L1SeedsLogicalExpression = cms.string( "L1_SingleEG30 OR L1_SingleEG32 OR L1_SingleEG34 OR L1_SingleEG36 OR L1_SingleEG38 OR L1_SingleEG40 OR L1_DoubleEG_15_10 OR L1_DoubleEG_18_17 OR L1_DoubleEG_20_18 OR L1_DoubleEG_22_10 OR L1_DoubleEG_22_12 OR L1_DoubleEG_22_15 OR L1_DoubleEG_23_10 OR L1_DoubleEG_24_17 OR L1_DoubleEG_25_12" ),
     L1EGammaInputTag = cms.InputTag( 'hltGtStage2Digis','EGamma' ),
     L1JetInputTag = cms.InputTag( 'hltGtStage2Digis','Jet' ),
     saveTags = cms.bool( True ),
@@ -139,7 +134,7 @@ process.hltEcalUncalibRecHit = cms.EDProducer( "EcalUncalibRecHitProducer",
       EBtimeFitParameters = cms.vdouble( -2.015452, 3.130702, -12.3473, 41.88921, -82.83944, 91.01147, -50.35761, 11.05621 ),
       useLumiInfoRunHeader = cms.bool( False ),
       EBamplitudeFitParameters = cms.vdouble( 1.138, 1.652 ),
-      doPrefitEE = cms.bool( True ),
+      doPrefitEE = cms.bool( False ),
       EEtimeFitLimits_Upper = cms.double( 1.4 ),
       outOfTimeThresholdGain61pEE = cms.double( 1000.0 ),
       outOfTimeThresholdGain61mEE = cms.double( 1000.0 ),
@@ -147,9 +142,9 @@ process.hltEcalUncalibRecHit = cms.EDProducer( "EcalUncalibRecHitProducer",
       EEtimeConstantTerm = cms.double( 1.0 ),
       EBtimeConstantTerm = cms.double( 0.6 ),
       chi2ThreshEB_ = cms.double( 65.0 ),
-      activeBXs = cms.vint32( -5, -4, -3, -2, -1, 0, 1, 2 ),
+      activeBXs = cms.vint32( -5, -4, -3, -2, -1, 0, 1, 2, 3, 4 ),
       outOfTimeThresholdGain61mEB = cms.double( 5.0 ),
-      doPrefitEB = cms.bool( True )
+      doPrefitEB = cms.bool( False )
     )
 )
 process.hltEcalDetIdToBeRecovered = cms.EDProducer( "EcalDetIdToBeRecoveredProducer",
@@ -947,7 +942,7 @@ process.hltHcalDigisL1EGSeeded = cms.EDProducer( "HLTHcalDigisInRegionsProducer"
       cms.PSet(  inputColl = cms.InputTag( "hltEgammaCandidates" ),
         type = cms.string( "RecoEcalCandidate" ),
         minEt = cms.double( 5.0 ),
-        maxDeltaR = cms.double( 0.25 ),
+        maxDeltaR = cms.double( 0.4 ),
         maxDPhi = cms.double( 0.0 ),
         maxDEta = cms.double( 0.0 ),
         maxEt = cms.double( -1.0 )
@@ -1215,11 +1210,11 @@ process.hltRegionalTowerForEgamma = cms.EDProducer( "EgammaHLTCaloTowerProducer"
     EtMin = cms.double( 0.5 ),
     L1IsoCand = cms.InputTag( 'hltGtStage2Digis','EGamma' ),
     useTowersInCone = cms.double( 0.8 ),
-    towerCollection = cms.InputTag( "hltTowerMakerForAll" )
+    towerCollection = cms.InputTag( "hltTowerMakerMethod2L1EGSeeded" )
 )
 process.hltParticleFlowRecHitHBHEForEgamma = cms.EDProducer( "PFRecHitProducer",
     producers = cms.VPSet( 
-      cms.PSet(  src = cms.InputTag( "hltHbhereco" ),
+      cms.PSet(  src = cms.InputTag( "hltHbherecoMethod2L1EGSeeded" ),
         name = cms.string( "PFHBHERecHitCreator" ),
         qualityTests = cms.VPSet( 
           cms.PSet(  threshold = cms.double( 0.8 ),
@@ -1259,7 +1254,7 @@ process.hltParticleFlowRecHitHCALForEgamma = cms.EDProducer( "PFCTRecHitProducer
     ECAL_Threshold = cms.double( 10.0 ),
     ApplyTimeDPG = cms.bool( False ),
     caloTowers = cms.InputTag( "hltRegionalTowerForEgamma" ),
-    hcalRecHitsHBHE = cms.InputTag( "hltHbhereco" ),
+    hcalRecHitsHBHE = cms.InputTag( "hltHbherecoMethod2L1EGSeeded" ),
     LongFibre_Fraction = cms.double( 0.1 ),
     MaxShortTiming_Cut = cms.double( 5.0 ),
     HcalMaxAllowedHFLongShortSev = cms.int32( 9 ),
@@ -3611,11 +3606,10 @@ process.hltGetConditions = cms.EDAnalyzer( 'EventSetupRecordDataGetter',
 )
 
 process.HLTriggerFirstPath = cms.Path( process.hltGetRaw + process.hltGetConditions + process.hltBoolFalse )
-process.HLT_Ele28_HighEta_SC20_Mass55 = cms.Path( process.HLTBeginSequence + process.hltL1sSingleAndDoubleEGNonIsoOr + process.hltPreEle28HighEtaSC20Mass55 + process.HLTEle28HighEtaSC20Mass55Sequence + process.HLTEndSequence )
+process.HLT_Ele28_HighEta_SC20_Mass55_v8 = cms.Path( process.HLTBeginSequence + process.hltL1sSingleAndDoubleEGNonIsoOr + process.hltPreEle28HighEtaSC20Mass55 + process.HLTEle28HighEtaSC20Mass55Sequence + process.HLTEndSequence )
 process.HLTriggerFinalPath = cms.Path( process.hltGtStage2Digis + process.hltScalersRawToDigi + process.hltFEDSelector + process.hltTriggerSummaryAOD + process.hltTriggerSummaryRAW + process.hltBoolFalse )
 
-
-#process.HLTSchedule = cms.Schedule( *(process.HLT_Ele28_HighEta_SC20_Mass55, process.HLTriggerFinalPath ))
+#process.HLTSchedule = cms.Schedule( *(process.HLT_Ele28_HighEta_SC20_Mass55_v8, process.HLTriggerFinalPath ))
 
 
 process.source = cms.Source( "PoolSource",
@@ -3750,6 +3744,7 @@ process.dqmSaver.workflow = "/HLT/FastTimerService/All"
 
 process.DQMFileSaverOutput = cms.EndPath( process.fastTimerServiceClient + process.dqmSaver )
 
+
 # add specific customizations
 _customInfo = {}
 _customInfo['menuType'  ]= "GRun"
@@ -3761,7 +3756,7 @@ _customInfo['inputFiles'][True]  = "file:RelVal_Raw_GRun_DATA.root"
 _customInfo['inputFiles'][False] = "file:RelVal_Raw_GRun_MC.root"
 _customInfo['maxEvents' ]=  -1
 _customInfo['globalTag' ]= "90X_upgrade2017_TSG_Hcal_V3"
-#_customInfo['inputFile' ]=  'file:/afs/cern.ch/work/s/skalafut/public/doubleElectronHLT/hlt2017/CMSSW_9_1_0/src/doubleElectronTracklessTrigger/doubleEleTracklessAnalyzer/002CCEBB-7A0E-E711-B0AC-0025901FB188.root'
+#_customInfo['inputFile' ]=  ['file:RelVal_Raw_GRun_MC.root']
 _customInfo['inputFile' ]=  'root://eoscms.cern.ch//eos/cms/store/group/dpg_trigger/comm_trigger/TriggerStudiesGroup/STEAM/SKIM/mc/2017/Neutrino/83x/L1Menu_Collisions2017_dev_r3/PU53to57/L1skim_PU53to57_1.root','root://eoscms.cern.ch//eos/cms/store/group/dpg_trigger/comm_trigger/TriggerStudiesGroup/STEAM/SKIM/mc/2017/Neutrino/83x/L1Menu_Collisions2017_dev_r3/PU53to57/L1skim_PU53to57_2.root','root://eoscms.cern.ch//eos/cms/store/group/dpg_trigger/comm_trigger/TriggerStudiesGroup/STEAM/SKIM/mc/2017/Neutrino/83x/L1Menu_Collisions2017_dev_r3/PU53to57/L1skim_PU53to57_3.root','root://eoscms.cern.ch//eos/cms/store/group/dpg_trigger/comm_trigger/TriggerStudiesGroup/STEAM/SKIM/mc/2017/Neutrino/83x/L1Menu_Collisions2017_dev_r3/PU53to57/L1skim_PU53to57_4.root','root://eoscms.cern.ch//eos/cms/store/group/dpg_trigger/comm_trigger/TriggerStudiesGroup/STEAM/SKIM/mc/2017/Neutrino/83x/L1Menu_Collisions2017_dev_r3/PU53to57/L1skim_PU53to57_5.root','root://eoscms.cern.ch//eos/cms/store/group/dpg_trigger/comm_trigger/TriggerStudiesGroup/STEAM/SKIM/mc/2017/Neutrino/83x/L1Menu_Collisions2017_dev_r3/PU53to57/L1skim_PU53to57_6.root','root://eoscms.cern.ch//eos/cms/store/group/dpg_trigger/comm_trigger/TriggerStudiesGroup/STEAM/SKIM/mc/2017/Neutrino/83x/L1Menu_Collisions2017_dev_r3/PU53to57/L1skim_PU53to57_7.root','root://eoscms.cern.ch//eos/cms/store/group/dpg_trigger/comm_trigger/TriggerStudiesGroup/STEAM/SKIM/mc/2017/Neutrino/83x/L1Menu_Collisions2017_dev_r3/PU53to57/L1skim_PU53to57_8.root','root://eoscms.cern.ch//eos/cms/store/group/dpg_trigger/comm_trigger/TriggerStudiesGroup/STEAM/SKIM/mc/2017/Neutrino/83x/L1Menu_Collisions2017_dev_r3/PU53to57/L1skim_PU53to57_9.root','root://eoscms.cern.ch//eos/cms/store/group/dpg_trigger/comm_trigger/TriggerStudiesGroup/STEAM/SKIM/mc/2017/Neutrino/83x/L1Menu_Collisions2017_dev_r3/PU53to57/L1skim_PU53to57_10.root'
 _customInfo['realData'  ]=  False
 from HLTrigger.Configuration.customizeHLTforALL import customizeHLTforAll
